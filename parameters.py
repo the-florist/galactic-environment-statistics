@@ -6,5 +6,5 @@ num_steps = 200
 
 print_D_a = False
 
-compare_case_1 = True
-compare_case_2 = False
+compare_case_1 = False
+compare_case_2 = True
