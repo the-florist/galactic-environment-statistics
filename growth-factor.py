@@ -34,7 +34,7 @@ print("D(a) error: "+str(err))
 
 # Plot D(a)
 plot_factor = bool(input("Plot D(a) from (0, 1)? "))
-if(plot_factor):
+if(plot_factor == True):
     a_vals = np.linspace(lowest_a, 1, 200)
     D_vals = [D(a, lowest_a) for a in a_vals]
 
