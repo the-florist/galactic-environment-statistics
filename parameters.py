@@ -1,5 +1,5 @@
-Omega_m = 1
-Omega_L = 0
+Omega_m = 0.2
+Omega_L = 0.8
 a_f = 1
 a_i = 0.01
 num_steps = 200
