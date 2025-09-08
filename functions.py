@@ -33,3 +33,10 @@ def A(x_val):
         A_tmp = out[0]
         A_tmp *= np.sqrt(pow(x_val, 3) + 2) / pow(x_val, 3/2)
         return A_tmp
+
+
+def rho(beta, gamma, delta_c, Omega_m, a = 1):
+    return (Omega_m * mp.rho_c) * (a ** -3) * pow(1 - pow(beta, -gamma), -delta_c + 1)
+
+def r(beta, gamma, delta_c, w):
+    return pow(w * beta * pow(1 - pow(beta, -gamma), delta_c), 1/3)

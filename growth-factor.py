@@ -9,7 +9,6 @@
 
 # libraries
 import matplotlib.pyplot as plt
-import scipy.integrate as integrate
 import numpy as np
 
 # custom files

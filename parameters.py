@@ -16,3 +16,6 @@ print_D_a = True
 
 compare_case_1 = True      # Einstein-de-Sitter
 compare_case_2 = True      # Flat Universe
+
+h = 67.3 / 100              # unitless H0
+rho_c = 2.78e11 * (h ** 2)  # units of Solar Mass / Mpc^3
