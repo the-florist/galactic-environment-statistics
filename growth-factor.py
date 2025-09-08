@@ -1,34 +1,30 @@
-import numpy as np
+"""
+    Author: Ericka Florio
+    Created: 4th September 2025
+    Description: Calculation of the linear transfer function D(a):
+        - at a particular a given in parameters,
+        - as a function of a, for Omega_m = 1 (Einstein-de-Sitter),
+        - and as a function of a for Omega_m + Omega_L = 1 (flat Universe)
+"""
+
+# libraries
 import matplotlib.pyplot as plt
 import scipy.integrate as integrate
+import numpy as np
 
-# Import parameters
+# custom files
 import parameters as mp
-
-# Define functions
-def integrand(x, Om_integrand : float, Ol_integrand : float):
-    return pow(x / (x * (1 - Om_integrand - Ol_integrand) + Om_integrand + Ol_integrand * (x ** 3)), 3/2)
-
-def D(a, floor, return_full = False, Om : float = mp.Omega_m, Ol : float = mp.Omega_L):
-    out_full = integrate.quad(lambda x: integrand(x, Om, Ol), floor, a)
-    D_temp = out_full[0]
-    D_temp *= np.sqrt(a * (1 - Om - Ol) + Om + Ol * (a ** 3)) / pow(a, 3/2)
-    err = out_full[1]
-    
-    if(return_full):
-        return [D_temp, err]
-    else:
-        return D_temp
+import functions as func
 
 # Compute D(a) for a single value
-out = D(mp.a_f, mp.a_i, return_full = True)
+out = func.D(mp.a_f, mp.a_i, return_full = True)
 D_i = out[0]
 err = out[1]
 print("D(a) = "+str(D_i))
 print("D(a) error: "+str(err))
 
 a_vals = np.linspace(mp.a_i, 1, mp.num_steps)
-D_vals = [D(a, mp.a_i) for a in a_vals]
+D_vals = [func.D(a, mp.a_i) for a in a_vals]
 
 # Plot D(a)
 if(mp.print_D_a == True):
@@ -39,10 +35,11 @@ if(mp.print_D_a == True):
     plt.legend()
     plt.grid(True)
     plt.savefig("D-plot.pdf")
+    plt.close()
 
 # Check the matter-only case works
 if(mp.compare_case_1 == True):
-    matter_model = [D(a, mp.a_i, Om = 1, Ol = 0) for a in a_vals]
+    matter_model = [func.D(a, mp.a_i, Om = 1, Ol = 0) for a in a_vals]
     slope_est = (matter_model[-1] - matter_model[0])/(mp.a_f - mp.a_i)
     
     plt.plot(a_vals, matter_model, label="D(a), Omega_m = 1")
@@ -52,7 +49,8 @@ if(mp.compare_case_1 == True):
     plt.title("Growth Factor D(a) vs Scale Factor a")
     plt.legend()
     plt.grid(True)
-    plt.savefig("D-plot-compare-case-1.pdf")
+    plt.savefig("compare-case-1.pdf")
+    plt.close()
 
 # Check the Matter + DM = 1 case works
 if(mp.compare_case_2 == True):
@@ -62,21 +60,11 @@ if(mp.compare_case_2 == True):
         print(Omega_m, Omega_L, Omega_m + Omega_L)
         raise Exception("For test 2, Omega_m and Omega_L must sum to 1")
 
-    w = Omega_L / Omega_m
-    x_of_a = lambda a: pow(2 * w, 1/3) * a
-    A_integrand = lambda u: pow(u / (pow(u, 3) + 2), 3/2)
-    
-    def A(x_val):
-        out = integrate.quad(A_integrand, x_of_a(mp.a_i), x_val)
-        A_tmp = out[0]
-        A_tmp *= np.sqrt(pow(x_val, 3) + 2) / pow(x_val, 3/2)
-        return A_tmp
+    even_evaluation = [func.D(a, mp.a_i, Om = Omega_m, Ol = Omega_L) for a in a_vals]
+    even_model = [func.A(func.x_of_a(a)) for a in a_vals]
 
-    even_evaluation = [D(a, mp.a_i, Om = Omega_m, Ol = Omega_L) for a in a_vals]
-    even_model = [A(x_of_a(a)) for a in a_vals]
-
-    rescale = pow(Omega_L, -3/2) * pow(2 * w, 2/3) * np.sqrt(Omega_L) 
-    even_model_rescaled = [(A(x_of_a(a)) * rescale) for a in a_vals]
+    rescale = pow(Omega_L, -3/2) * pow(2 * mp.w, 2/3) * np.sqrt(Omega_L) 
+    even_model_rescaled = [(func.A(func.x_of_a(a)) * rescale) for a in a_vals]
 
     plt.plot(a_vals, even_evaluation, label="D(a)")
     plt.plot(a_vals, even_model, label="A(x)", linestyle='--')
@@ -88,5 +76,6 @@ if(mp.compare_case_2 == True):
     plt.legend()
     plt.grid(True)
     plt.savefig("compare-case-2.pdf")
+    plt.close()
 
 print("Program finished.")
