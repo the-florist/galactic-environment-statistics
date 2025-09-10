@@ -30,29 +30,35 @@ num_betas = 300
 print("Cosmological parameters:")
 print("Omega_m = "+str(pms.Omega_m))
 print("Omega_L = "+str(pms.Omega_L))
-print("gamma = "+str(gamma))
 print("delta_c = "+str(delta_c))
-print("--------")
 
-# Scaling r with delta_ta
-w = lambda g:(1 + delta_ta) * pow(1 - pow(1 + delta_ta, -1/delta_c), 1/g)
+if pms.power_law_approx == True:
+    print("Using power law approximation for S(m).\n gamma = "+str(gamma))
+    print("--------")
 
-# Solve for rho and r parametrically 
-beta_range = np.linspace(beta_0, beta_f, num_betas)
-rhos = [[func.rho(b, g, delta_c, pms.Omega_m) for b in beta_range] for g in gamma]
-rs = [[func.r(b, g, delta_c, w(g)) for b in beta_range] for g in gamma]
+    # Solve for rho and r parametrically 
+    beta_range = np.linspace(beta_0, beta_f, num_betas)
+    rhos = [[func.rho(b, g, delta_c, pms.Omega_m) for b in beta_range] for g in gamma]
+    rs = [[func.r(b, g, delta_c, delta_ta) for b in beta_range] for g in gamma]
 
-# Plot this
-for i in np.arange(0, len(gamma)):
-    plt.plot(rs[i], rhos[i], label=r"$\gamma =$ "+str(gamma[i]))
-plt.xlabel(r"$r$ ($R/R_{\mathrm{ta}}$)")
-plt.xscale('log')
-plt.ylabel(r"$\tilde{\rho}$ $(\rho/\rho_{m})$")
-plt.yscale('log')
-plt.title(r"Mock density profile (today, LambdaCDM)")
-plt.legend()
-plt.grid(True)
-plt.savefig("rho-vs-r.pdf")
-plt.close()
+    # Plot this
+    for i in np.arange(0, len(gamma)):
+        plt.plot(rs[i], rhos[i], label=r"$\gamma =$ "+str(gamma[i]))
+    plt.xlabel(r"$r$ ($R/R_{\mathrm{ta}}$)")
+    plt.xscale('log')
+    plt.ylabel(r"$\tilde{\rho}$ $(\rho/\rho_{m})$")
+    plt.yscale('log')
+    plt.title(r"Mock density profile (today, LambdaCDM)")
+    plt.legend()
+    plt.grid(True)
+    plt.savefig("rho-vs-r.pdf")
+    plt.close()
+
+# else:
+#     print("Using Bardeen transfer function for S(m)")
+#     # FIXME
+#     masses = [1, 5, 10, 20]
+
+
 
 print("Figure printed.")

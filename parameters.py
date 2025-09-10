@@ -25,3 +25,9 @@ compare_case_2 = True      # Flat Universe
 h = 67.3 / 100              # unitless H0
 rho_c = 2.78e11 * (h ** 2)  # units of Solar Mass / Mpc^3
 s_8 = 0.811                 # Sigma 8
+
+# For density-profile.py, use universal scaling or not
+power_law_approx = True
+m_8 = 1 # FIXME
+n = 1 # spectral index
+beta_ta = 1 # FIXME
