@@ -25,6 +25,7 @@ delta_ta = 11 * (pms.Omega_m)   # turnaround overdensity (provided by Vaso)
 beta_0 = 1.3
 beta_f = 10
 num_betas = 300
+beta_range = np.linspace(beta_0, beta_f, num_betas)
 
 # Information to terminal
 print("Cosmological parameters:")
@@ -37,27 +38,33 @@ if pms.power_law_approx == True:
     print("--------")
 
     # Solve for rho and r parametrically 
-    beta_range = np.linspace(beta_0, beta_f, num_betas)
-    rhos = [[func.rho(b, g, delta_c, pms.Omega_m) for b in beta_range] for g in gamma]
+    rhos = [[func.rho(b, g, delta_c) for b in beta_range] for g in gamma]
     rs = [[func.r(b, g, delta_c, delta_ta) for b in beta_range] for g in gamma]
 
     # Plot this
     for i in np.arange(0, len(gamma)):
         plt.plot(rs[i], rhos[i], label=r"$\gamma =$ "+str(gamma[i]))
-    plt.xlabel(r"$r$ ($R/R_{\mathrm{ta}}$)")
-    plt.xscale('log')
-    plt.ylabel(r"$\tilde{\rho}$ $(\rho/\rho_{m})$")
-    plt.yscale('log')
-    plt.title(r"Mock density profile (today, LambdaCDM)")
-    plt.legend()
-    plt.grid(True)
-    plt.savefig("rho-vs-r.pdf")
-    plt.close()
 
-# else:
-#     print("Using Bardeen transfer function for S(m)")
-#     # FIXME
-#     masses = [1, 5, 10, 20]
+else:
+    print("Using Bardeen transfer function for S(m)")
+    # FIXME
+    masses = [1, 5, 10, 20]
+
+    rhos = [[func.rho(beta, delta_c, m = mass) for beta in beta_range] for mass in masses]
+    rs = [[func.r(beta, delta_c, delta_ta, m = mass) for beta in beta_range] for mass in masses]
+
+    for m in np.arange(0, len(masses)):
+        plt.plot(rs[m], rhos[m], label="m = "+str(masses[m]))
+
+plt.xlabel(r"$r$ ($R/R_{\mathrm{ta}}$)")
+plt.xscale('log')
+plt.ylabel(r"$\tilde{\rho}$ $(\rho/\rho_{m})$")
+plt.yscale('log')
+plt.title(r"Mock density profile (today, LambdaCDM)")
+plt.legend()
+plt.grid(True)
+plt.savefig("rho-vs-r.pdf")
+plt.close()
 
 
 

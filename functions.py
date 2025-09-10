@@ -72,32 +72,32 @@ def S(m, gamma = 1, power_law_approx = pms.power_law_approx):
         return m ** (-gamma)
 
     else:
-        S_temp = integrate.quad(lambda k: transfer_function_integrand(k), 0, k_of_m(m))
+        S_temp = integrate.quad(lambda k: transfer_function_integrand(k), 0, k_of_m(m))[0]
         S_temp *= pms.s_8
-        S_temp /= (integrate.quad(lambda k: transfer_function_integrand(k), 0, k_of_m(pms.m_8)))
+        S_temp /= (integrate.quad(lambda k: transfer_function_integrand(k), 0, k_of_m(pms.m_8))[0])
         return S_temp 
 
-def rho(beta, gamma, delta_c, Omega_m, a = 1, power_law_approx = pms.power_law_approx, m = 1):
+def rho(beta, delta_c, gamma = 0.52, a = 1, m = 1):
     """
         Find rho(beta) for power law approximation of S(m),
         or rho(beta, m) for transfer function version of S(m).
     """
-    if power_law_approx == True:
-        return (Omega_m * pms.rho_c) * (a ** -3) * pow(1 - pow(beta, -gamma), -delta_c + 1) / (Omega_m * pms.rho_c)
+    if pms.power_law_approx == True:
+        return (pms.Omega_m * pms.rho_c) * (a ** -3) * pow(1 - pow(beta, -gamma), -delta_c + 1) / (pms.Omega_m * pms.rho_c)
 
     else:
-        C = pms.s_8 / (integrate.quad(lambda k: transfer_function_integrand(k), 0, k_of_m(pms.m_8)))
+        C = pms.s_8 / (integrate.quad(lambda k: transfer_function_integrand(k), 0, k_of_m(pms.m_8)))[0]
         temp = delta_c * pow(1 - S(beta * m)/S(m), -1) * k_of_m(beta * m) * transfer_function_integrand(k_of_m(m)) / 3 / S(m)
         denominator = 1 - temp * C
         return rho_avg(S(beta * m), S(m), delta_c) / denominator
         
 
-def r(beta, gamma, delta_c, delta_ta, power_law_approx = pms.power_law_approx, m = 1):
+def r(beta, delta_c, delta_ta, gamma = 0.52, m = 1):
     """
         Find r(beta) for power law approximation of S(m), where r = R/R_ta,
         or r(beta, m) for transfer function version of S(m).
     """
-    if power_law_approx == True:
+    if pms.power_law_approx == True:
             w = (1 + delta_ta) * pow(1 - pow(1 + delta_ta, -1/delta_c), 1/gamma)
             return pow(w * beta * pow(1 - pow(beta, -gamma), delta_c), 1/3)
 
