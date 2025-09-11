@@ -78,7 +78,7 @@ def S(m, gamma = 1, power_law_approx = pms.power_law_approx):
         S_temp /= (integrate.quad(lambda k: transfer_function_integrand(k), 0, k_of_m(pms.m_8))[0])
         return S_temp 
 
-def rho(beta, delta_c, gamma = 0.52, a = 1, m = 1):
+def rho(beta, delta_c, gamma = 0.52, a = 1, m:float = 1):
     """
         Find rho(beta) for power law approximation of S(m),
         or rho(beta, m) for transfer function version of S(m).
@@ -93,7 +93,7 @@ def rho(beta, delta_c, gamma = 0.52, a = 1, m = 1):
         return rho_avg(S(beta * m), S(m), delta_c) / denominator
         
 
-def r(beta, delta_c, delta_ta, gamma = 0.52, m = 1):
+def r(beta, delta_c, delta_ta, gamma = 0.52, m:float = 1):
     """
         Find r(beta) for power law approximation of S(m), where r = R/R_ta,
         or r(beta, m) for transfer function version of S(m).

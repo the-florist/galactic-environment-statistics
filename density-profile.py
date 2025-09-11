@@ -48,14 +48,13 @@ if pms.power_law_approx == True:
 
 else:
     print("Using Bardeen transfer function for S(m)")
-    # FIXME
-    masses = [1, 5, 10, 20]
+    masses = [2e13, 4e13, 6e13, 8e13, 1e14]  # Solar masses
 
     rhos = [[func.rho(beta, delta_c, m = mass) for beta in beta_range] for mass in masses]
     rs = [[func.r(beta, delta_c, delta_ta, m = mass) for beta in beta_range] for mass in masses]
 
     for m in np.arange(0, len(masses)):
-        plt.plot(rs[m], rhos[m], label="m = "+str(masses[m]))
+        plt.plot(rs[m], rhos[m], label=rf"$m = {masses[m]:.1e}$")
 
 plt.xlabel(r"$r$ ($R/R_{\mathrm{ta}}$)")
 plt.xscale('log')
