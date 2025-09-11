@@ -7,6 +7,8 @@
 
 # libraries
 import scipy.integrate as integrate
+from scipy.optimize import minimize
+import scipy.optimize._minimize as _minimize
 import numpy as np
 
 # parameters
@@ -29,8 +31,8 @@ def A(x_val):
 def D_integrand(x, Om_integrand : float, Ol_integrand : float):
     return pow(x / (x * (1 - Om_integrand - Ol_integrand) + Om_integrand + Ol_integrand * (x ** 3)), 3/2)
 
-def D(a, floor, return_full = False, Om : float = pms.Omega_m, Ol : float = pms.Omega_L):
-    out_full = integrate.quad(lambda x: D_integrand(x, Om, Ol), floor, a)
+def D(a, return_full = False, Om : float = pms.Omega_m, Ol : float = pms.Omega_L):
+    out_full = integrate.quad(lambda x: D_integrand(x, Om, Ol), pms.a_i, a)
     D_temp = out_full[0]
     D_temp *= np.sqrt(a * (1 - Om - Ol) + Om + Ol * (a ** 3)) / pow(a, 3/2)
     err = out_full[1]
@@ -63,7 +65,7 @@ def transfer_function_integrand(k):
     return temp
 
 
-def S(m, gamma = 1, power_law_approx = pms.power_law_approx):
+def S(m, gamma:float = 0.52, power_law_approx = pms.power_law_approx):
     """
         Variance of the density field 
         calculated both in the power law approximation
@@ -78,7 +80,7 @@ def S(m, gamma = 1, power_law_approx = pms.power_law_approx):
         S_temp /= (integrate.quad(lambda k: transfer_function_integrand(k), 0, k_of_m(pms.m_8))[0])
         return S_temp 
 
-def rho(beta, delta_c, gamma = 0.52, a = 1, m:float = 1):
+def rho(beta, delta_c, gamma:float = 0.52, a = 1, m:float = 1):
     """
         Find rho(beta) for power law approximation of S(m),
         or rho(beta, m) for transfer function version of S(m).
@@ -93,7 +95,7 @@ def rho(beta, delta_c, gamma = 0.52, a = 1, m:float = 1):
         return rho_avg(S(beta * m), S(m), delta_c) / denominator
         
 
-def r(beta, delta_c, delta_ta, gamma = 0.52, m:float = 1):
+def r(beta, delta_c, delta_ta, gamma:float = 0.52, m:float = 1):
     """
         Find r(beta) for power law approximation of S(m), where r = R/R_ta,
         or r(beta, m) for transfer function version of S(m).
@@ -106,3 +108,46 @@ def r(beta, delta_c, delta_ta, gamma = 0.52, m:float = 1):
         temp = beta * pow(1 - S(beta * m)/S(m), delta_c) * (1 + delta_ta) / pms.beta_ta
         return pow(temp, 1/3)
 
+"""
+    Functions used in double-dsitribution.py, to find the double distribution.
+"""
+
+def a_coll_integrand(x, c1, c2):
+    return np.sqrt(x / (c1 * x**3 - c2 * x + 1))
+
+def a_coll():
+    """
+        Calculate a_coll by minimizing the integral to a_coll and the integral to a_pta
+    """
+    a_init = 1
+
+    a_pta = pow(pms.w, -1/3) 
+    a_pta *= np.sqrt(4 * pms.kappa / 3 / pow(pms.w, 1/3)) 
+    a_pta *= np.cos(1/3 * (np.arccos(np.sqrt(27 * pow(pms.kappa/pow(pms.w, 1/3), -3) / 4)) + np.pi))
+
+    C = 2 * integrate.quad(lambda x: a_coll_integrand(x, pms.w, pms.kappa), pms.a_i, a_pta)[0]
+
+    def diff(a):
+        return abs(integrate.quad(lambda x: a_coll_integrand(x, pms.w, pms.phi), pms.a_i, a)[0] - C)
+
+    goal_precision = 1e-5
+    solution = minimize(diff, a_init, bounds=[(0, 1)], tol=goal_precision)
+
+    return solution.x[0]
+
+
+def dn(m, delta_l, beta, a:float = 1):
+    """
+        Calculate the double distribution of number density w/r/t mass and local overdensity
+    """
+    
+    a_c = a_coll()
+    delta_c = 3 * pms.Omega_m * (pms.kappa - pms.phi) * D(a_c) / 2
+    delta_c_0 = lambda a_i: D(1) * delta_c / D(a_i)
+
+    mass_removal = (delta_c_0(a) - delta_l) * np.exp(-(delta_c_0(a) - delta_l)**2 / (2 *(S(m) - S(beta*m)))) 
+    mass_removal /= pow(S(m) - S(beta*m), 3/2)
+
+    random_walk = (pms.Omega_m * pms.rho_c / m ) * (np.exp(-(delta_l**2) / (2 * S(beta*m))) / (2 * np.pi * np.sqrt(S(beta*m))))
+
+    return random_walk * mass_removal 

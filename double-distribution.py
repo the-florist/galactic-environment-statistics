@@ -8,32 +8,19 @@
 """
 
 import numpy as np
-import seaborn as sns
 import matplotlib.pyplot as plt
+from matplotlib.gridspec import GridSpec
 
-import parameters as pms 
+import parameters as pms
 import functions as func
 
-rho_m_0 = pms.Omega_m * pms.rho_c
+print("Plotting the double distribution.")
 
-def dn(m, delta_l, beta, delta_c_0):
-    mass_removal = (delta_c_0 - delta_l) * np.exp(-(delta_c_0 - delta_l)**2 / (2 *(func.S(m) - func.S(beta*m)))) 
-    mass_removal /= pow(func.S(m) - func.S(beta*m), 3/2)
-
-    random_walk = np.exp(-(delta_l**2) / (2 * func.S(beta*m))) / (2 * np.pi * np.sqrt(func.S(beta*m))) # rho_m_0 / m 
-    return mass_removal * random_walk
-
-beta = 1.7
-delta_c_0 = 0.4
-
-# Define ranges for m and delta_l
-m_min, m_max = 1e14, 6e15
-delta_l_min, delta_l_max = -2, 2
+# Define ranges for m and delta_l (values from P&F 2005 Fig. 1)
+m_min, m_max = 2e13, 1e14 # Solar masses
+delta_l_min, delta_l_max = -1, 5
 num_m = 100
 num_delta_l = 100
-
-print("Overall scale:")
-print(rho_m_0/m_min, rho_m_0/m_max)
 
 m_vals = np.logspace(np.log10(m_min), np.log10(m_max), num_m)
 delta_l_vals = np.linspace(delta_l_min, delta_l_max, num_delta_l)
@@ -41,21 +28,23 @@ delta_l_vals = np.linspace(delta_l_min, delta_l_max, num_delta_l)
 # Create meshgrid for m and delta_l
 M, DL = np.meshgrid(m_vals, delta_l_vals, indexing='ij')
 
+print("-----\nDomain: ")
+print("Mass range: ("+str(m_min)+", "+str(m_max)+")")
+print("Density contrast range: ("+str(delta_l_min)+", "+str(delta_l_max)+")")
+print("Starting loop over mass/contrast domain...")
+
 # Compute joint pdf using dn
 Z = np.zeros_like(M)
 for i in range(num_m):
     for j in range(num_delta_l):
         try:
-            Z[i, j] = dn(M[i, j], DL[i, j], beta, delta_c_0)
+            Z[i, j] = func.dn(M[i, j], DL[i, j], pms.beta_dd)
         except Exception:
             Z[i, j] = 0
 
 # Marginals
 marginal_m = np.trapezoid(Z, delta_l_vals, axis=1)
 marginal_dl = np.trapezoid(Z, m_vals, axis=0)
-
-# Set up the figure with joint and marginal axes
-from matplotlib.gridspec import GridSpec
 
 fig = plt.figure(figsize=(8, 8))
 gs = GridSpec(4, 4, hspace=0.05, wspace=0.05)

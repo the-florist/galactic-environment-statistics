@@ -13,6 +13,8 @@ if concordance_model:
     Omega_m = 0.27
     Omega_L = 1 - Omega_m
     w = Omega_L / Omega_m
+    phi = (Omega_m + Omega_L - 1)/Omega_m
+    kappa = 1.50 * 3 * pow(w, 1/3) / pow(2, 2/3)
     s_8 = 0.84
     m_8 = 2e14              # Solar masses
 
@@ -20,6 +22,8 @@ if concordance_model:
 else:
     Omega_m = 1
     w = 0
+    phi = 0
+    kappa = 1.50 * 3 * pow(w, 1/3) / pow(2, 2/3)
     s_8 = 0.45
     m_8 = 8e14              # Solar masses
 
@@ -36,6 +40,9 @@ compare_case_2 = True      # Flat Universe
 # Parameters and flags for density-profile.py
 power_law_approx = False
 beta_ta = 1 # FIXME
+
+# Beta for calculating the double distribution
+beta_dd = 2.
 
 ###############
 
