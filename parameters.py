@@ -2,32 +2,43 @@
     Author: Ericka Florio
     Created: 4th September 2025
     Description: Parameters for the growth-factor.py program.
+    Note: Cosmological parameters in each case match those used by 
+        Pavlidou & Fields, PRD 71 043510 (2005)
 """
 
-# Cosmological model parameters
-Omega_m = 0.3
-Omega_L = 0.7
-w = Omega_L / Omega_m
+# Concordance cosmology
+concordance_model = True
+if concordance_model:
+    Omega_m = 0.27
+    Omega_L = 1 - Omega_m
+    w = Omega_L / Omega_m
+    s_8 = 0.84
+
+# Einstein de-Sitter
+else:
+    Omega_m = 1
+    w = 0
+    s_8 = 0.45
 
 # Scale factor range
 a_f = 1
-a_i = 0.01                 # Avoids divide by zero in integration
+a_i = 0.01                  # Avoids divide by zero in integration
 num_steps = 200
 
+# Flags for growth-factor.py
 print_D_a = True
-
-# For growth-factor.py, compare to two known solutions?
 compare_case_1 = True      # Einstein-de-Sitter
 compare_case_2 = True      # Flat Universe
 
-# Fixed cosmological parameters
-# Measured values from the Planck 2018 data release
-h = 67.3 / 100              # unitless H0
-rho_c = 2.78e11 * (h ** 2)  # units of Solar Mass / Mpc^3
-s_8 = 0.811                 # Sigma 8
-
-# For density-profile.py, use universal scaling or not
+# Parameters and flags for density-profile.py
 power_law_approx = False
+
 m_8 = 1 # FIXME
-n = 1 # spectral index
 beta_ta = 1 # FIXME
+
+###############
+
+# Fixed cosmological parameters (do not change!)
+h = 71 / 100                # unitless H0
+rho_c = 2.78e11 * (h ** 2)  # units of Solar Mass / Mpc^3
+n = 1                       # primordial spectral index
