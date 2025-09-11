@@ -1,4 +1,5 @@
 """
+    Filename: growth-factor.py
     Author: Ericka Florio
     Created: 4th September 2025
     Description: Calculation of the linear transfer function D(a):

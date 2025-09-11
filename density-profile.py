@@ -1,4 +1,5 @@
 """
+    Filename: density-profile.py
     Author: Ericka Florio
     Date: 8th September 2025
     Description: Calculates the parametric density profile (rho(beta), R(beta))

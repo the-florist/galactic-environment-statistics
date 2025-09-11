@@ -1,4 +1,5 @@
 """
+    Filename: functions.py
     Author: Ericka Florio
     Created: 8th September 2025
     Description: Shared functions for calculating the most probable density profile.

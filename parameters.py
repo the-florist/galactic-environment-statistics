@@ -1,4 +1,5 @@
 """
+    Filename: parameters.py
     Author: Ericka Florio
     Created: 4th September 2025
     Description: Parameters for the growth-factor.py program.
