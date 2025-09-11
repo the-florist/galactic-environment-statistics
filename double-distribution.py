@@ -29,7 +29,7 @@ delta_l_vals = np.linspace(delta_l_min, delta_l_max, num_delta_l)
 M, DL = np.meshgrid(m_vals, delta_l_vals, indexing='ij')
 
 print("-----\nDomain: ")
-print("Mass range: ("+str(m_min)+", "+str(m_max)+")")
+print(rf"Mass range: ({m_min:.1e}, {m_max:.1e})")
 print("Density contrast range: ("+str(delta_l_min)+", "+str(delta_l_max)+")")
 print("Starting loop over mass/contrast domain...")
 
@@ -79,7 +79,7 @@ plt.setp(ax_marg_dl.get_yticklabels(), visible=False)
 
 ax_joint.set_title('Joint PDF of m and $\delta_l$ with marginals')
 # plt.tight_layout()
-plt.savefig("joint_pdf_m_delta_l.png", dpi=150)
+plt.savefig("joint-probability.pdf")
 plt.close()
 
 print("Printed density profile.")
