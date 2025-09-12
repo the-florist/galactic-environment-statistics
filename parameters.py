@@ -38,11 +38,12 @@ compare_case_1 = True      # Einstein-de-Sitter
 compare_case_2 = True      # Flat Universe
 
 # Parameters and flags for density-profile.py
-power_law_approx = True
+power_law_approx = False
 beta_ta = 1 # FIXME
 
-# Beta for calculating the double distribution
+# Parameters for calculating the double distribution
 beta_dd = 2.
+plot_dimension = 1
 
 ###############
 
