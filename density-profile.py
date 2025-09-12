@@ -39,8 +39,8 @@ if pms.power_law_approx == True:
     print("--------")
 
     # Solve for rho and r parametrically 
-    rhos = [[func.rho(b, g, delta_c) for b in beta_range] for g in gamma]
-    rs = [[func.r(b, g, delta_c, delta_ta) for b in beta_range] for g in gamma]
+    rhos = [[func.rho(b, delta_c, gamma = g) for b in beta_range] for g in gamma]
+    rs = [[func.r(b, delta_c, delta_ta, gamma = g) for b in beta_range] for g in gamma]
 
     # Plot this
     for i in np.arange(0, len(gamma)):
