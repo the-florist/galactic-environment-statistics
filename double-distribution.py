@@ -40,7 +40,7 @@ if pms.plot_dimension == 2:
     for i in range(num_m):
         for j in range(num_delta_l):
             try:
-                Z[i, j] = func.dn(M[i, j], DL[i, j], pms.beta_dd)
+                Z[i, j] = func.dn(DL[i, j], M[i, j], pms.beta_dd)
             except Exception:
                 Z[i, j] = 0
 
@@ -89,7 +89,11 @@ elif pms.plot_dimension == 1:
 
     for m in mass_slices:
         print("Starting PDF calculation for mass %.2E..." % m)
-        plt.plot(delta_l_vals, [func.dn(m, delta, pms.beta_dd) for delta in delta_l_vals])
+        plt.plot(delta_l_vals, [func.dn(delta, m, pms.beta_dd) for delta in delta_l_vals])
+
+    for m in mass_slices:
+        delta_expectation = max(delta for delta in delta_l_vals if delta <= func.pdf_expectation(m, pms.beta_dd))
+        plt.plot(delta_expectation, func.dn(delta_expectation, m, pms.beta_dd), 'b*', markersize=10)
     
     plt.xlabel(r"$\delta_l$")
     plt.ylabel(r"$P_n$")

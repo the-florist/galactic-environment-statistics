@@ -6,6 +6,7 @@
 """
 
 # libraries
+from math import exp
 import scipy.integrate as integrate
 from scipy.optimize import minimize
 import scipy.optimize._minimize as _minimize
@@ -121,10 +122,10 @@ def r(beta, delta_c, delta_ta, gamma:float = 0.52, m:float = 1):
     Functions used in double-dsitribution.py, to find the double distribution.
 """
 
-def a_coll_integrand(x, c1, c2):
+def a_coll_integrand(x, c1, c2) -> float:
     return np.sqrt(x / (c1 * x**3 - c2 * x + 1))
 
-def a_coll():
+def a_coll() -> float:
     """
         Calculate a_coll by minimizing the integral to a_coll and the integral to a_pta
     """
@@ -144,15 +145,16 @@ def a_coll():
 
     return solution.x[0]
 
+def delta_c_0(a_i : float) -> float:
+    a_c = a_coll()
+    delta_c = 3 * pms.Omega_m * (pms.kappa - pms.phi) * D(a_c) / 2
+    temp = D(1) * delta_c / D(a_i)
+    return temp
 
-def dn(m, delta_l, beta, a:float = 1):
+def dn(delta_l, m, beta, a:float = 1):
     """
         Calculate the double distribution of number density w/r/t mass and local overdensity
     """
-    
-    a_c = a_coll()
-    delta_c = 3 * pms.Omega_m * (pms.kappa - pms.phi) * D(a_c) / 2
-    delta_c_0 = lambda a_i: D(1) * delta_c / D(a_i)
 
     mass_removal = (delta_c_0(a) - delta_l) * np.exp(-(delta_c_0(a) - delta_l)**2 / (2 *(S(m) - S(beta*m)))) 
     mass_removal /= pow(S(m) - S(beta*m), 3/2)
@@ -169,3 +171,16 @@ def dn(m, delta_l, beta, a:float = 1):
 
     else:
         return dn
+
+def pdf_expectation(m : float, beta : float, a : float = 1):
+    """
+        Calculate the expectation value of the double distribution sliced at m.
+    """
+
+    A = S(beta * m)
+    B = delta_c_0(a)
+    C = S(m)
+
+    temp = A * (A - C) * (-B**2 + C) * np.exp(-B**2/2/C)
+    temp /= (C**2 * np.sqrt(-C/(2 * A**2 * np.pi - 2 * A * C * np.pi)))
+    return temp
