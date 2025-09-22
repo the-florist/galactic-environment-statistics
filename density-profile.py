@@ -63,7 +63,7 @@ plt.yscale('log')
 plt.title(r"Mock density profile (today, LambdaCDM)")
 plt.legend()
 plt.grid(True)
-plt.savefig("plots/rho-vs-r.pdf")
+plt.savefig("plots/density-profile.pdf")
 plt.close()
 
 

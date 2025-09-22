@@ -48,7 +48,7 @@ if(pms.compare_case_1 == True):
     plt.title("Growth Factor D(a) vs Scale Factor a")
     plt.legend()
     plt.grid(True)
-    plt.savefig("plots/compare-case-1.pdf")
+    plt.savefig("plots/D-case-1.pdf")
     plt.close()
 
 # Check the Matter + DM = 1 case works
@@ -74,7 +74,7 @@ if(pms.compare_case_2 == True):
     plt.title("Example 2: Omega_m + Omega_L = 1")
     plt.legend()
     plt.grid(True)
-    plt.savefig("plots/compare-case-2.pdf")
+    plt.savefig("plots/D-case-2.pdf")
     plt.close()
 
 print("Program finished.")

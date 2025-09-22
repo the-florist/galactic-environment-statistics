@@ -18,7 +18,7 @@ print("Plotting the double distribution.")
 
 # Define ranges for m and delta_l (values from P&F 2005 Fig. 1)
 m_min, m_max = 2e13, 1e14 # Solar masses
-delta_l_min, delta_l_max = -1, 5
+delta_l_min, delta_l_max = -1, 3
 num_m = 100
 num_delta_l = 100
 
@@ -65,7 +65,7 @@ if pms.plot_dimension == 2:
     ax_marg_m.plot(m_vals, marginal_m, color='tab:blue')
     ax_marg_m.set_xscale('log')
     ax_marg_m.set_ylabel('Marginal\nPDF (m)')
-    ax_marg_m.tick_params(axis='x', labelbottom=False)
+    ax_marg_m.tick_params(axis='y', labelbottom=False)
     ax_marg_m.grid(True, which='both', ls='--', alpha=0.3)
 
     # Marginal for delta_l
@@ -79,7 +79,7 @@ if pms.plot_dimension == 2:
     plt.setp(ax_marg_dl.get_yticklabels(), visible=False)
 
     ax_joint.set_title(r'Joint PDF of m and $\delta_l$ with marginals')
-    plt.savefig("plots/joint-probability.pdf")
+    plt.savefig("plots/joint-pdf.pdf")
     plt.close()
 
 elif pms.plot_dimension == 1:
@@ -89,13 +89,13 @@ elif pms.plot_dimension == 1:
 
     for m in mass_slices:
         print("Starting PDF calculation for mass %.2E..." % m)
-        plt.plot(np.array([func.dn(m, delta, pms.beta_dd) for delta in delta_l_vals]))
+        plt.plot(delta_l_vals, [func.dn(m, delta, pms.beta_dd) for delta in delta_l_vals])
     
     plt.xlabel(r"$\delta_l$")
     plt.ylabel(r"$P_n$")
     plt.legend(["%.2E" % m for m in mass_slices])
     plt.title("PDF slices along mass")
-    plt.savefig("plots/contrast-pdf-slice.pdf")
+    plt.savefig("plots/joint-pdf-slice.pdf")
     plt.grid(True)
     plt.close()
 
