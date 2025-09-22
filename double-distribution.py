@@ -71,7 +71,7 @@ if pms.plot_dimension == 2:
 
     # Marginal for delta_l
     ax_marg_dl.plot(marginal_dl, delta_l_vals, color='tab:orange')
-    ax_marg_dl.set_xlabel('Marginal\nPDF ($\delta_l$)')
+    ax_marg_dl.set_xlabel(r'Marginal\nPDF ($\delta_l$)')
     ax_marg_dl.tick_params(axis='y', labelleft=False)
     ax_marg_dl.grid(True, which='both', ls='--', alpha=0.3)
 
@@ -79,7 +79,7 @@ if pms.plot_dimension == 2:
     plt.setp(ax_marg_m.get_xticklabels(), visible=False)
     plt.setp(ax_marg_dl.get_yticklabels(), visible=False)
 
-    ax_joint.set_title('Joint PDF of m and $\delta_l$ with marginals')
+    ax_joint.set_title(r'Joint PDF of m and $\delta_l$ with marginals')
     # plt.tight_layout()
     plt.savefig("plots/joint-probability.pdf")
     plt.close()
