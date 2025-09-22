@@ -85,16 +85,19 @@ if pms.plot_dimension == 2:
     plt.close()
 
 elif pms.plot_dimension == 1:
-    mass_slice = 0.25 * (m_max - m_min) + m_min
+    mass_slices = np.array([0, 0.25, 0.5, 0.75, 1])
+    mass_slices *= (m_max - m_min) 
+    mass_slices += m_min
 
-    print("Starting PDF calculation for mass %.2E..." % mass_slice)
-    Z = [func.dn(mass_slice, delta, pms.beta_dd) for delta in delta_l_vals]
-
-    plt.plot(Z)
+    for m in mass_slices:
+        print("Starting PDF calculation for mass %.2E..." % m)
+        plt.plot(np.array([func.dn(m, delta, pms.beta_dd) for delta in delta_l_vals]))
+    
     plt.xlabel(r"$\delta_l$")
     plt.ylabel(r"$P_n$")
-    plt.title("PDF sliced at m = %.2E solar masses" % mass_slice)
-    plt.savefig("plots/contrast-pdf-mass-%.2E.pdf" % mass_slice)
+    plt.legend(["%.2E" % m for m in mass_slices])
+    plt.title("PDF slices along mass")
+    plt.savefig("plots/contrast-pdf-slice.pdf")
     plt.grid(True)
     plt.close()
 
