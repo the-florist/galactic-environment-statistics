@@ -7,8 +7,28 @@
         Pavlidou & Fields, PRD 71 043510 (2005), page 7
 """
 
+# Scale factor range
+a_f = 1
+a_i = 0.01                  # Avoids divide by zero in integration
+num_steps = 200
+
+# Flags for growth-factor.py
+print_D_a = True
+compare_case_1 = True      # Einstein-de-Sitter
+compare_case_2 = True      # Flat Universe
+
+# Parameters and flags for density-profile.py
+power_law_approx = False
+beta_ta = 1 # FIXME
+
+# Parameters for double-distribution.py
+beta_dd = 2.
+plot_dimension = 2
+enforce_positive_pdf = True
+
 # Concordance cosmology
 concordance_model = True
+
 if concordance_model:
     Omega_m = 0.27
     Omega_L = 1 - Omega_m
@@ -26,24 +46,6 @@ else:
     kappa = 1.50 * 3 * pow(w, 1/3) / pow(2, 2/3)
     s_8 = 0.45
     m_8 = 8e14              # Solar masses
-
-# Scale factor range
-a_f = 1
-a_i = 0.01                  # Avoids divide by zero in integration
-num_steps = 200
-
-# Flags for growth-factor.py
-print_D_a = True
-compare_case_1 = True      # Einstein-de-Sitter
-compare_case_2 = True      # Flat Universe
-
-# Parameters and flags for density-profile.py
-power_law_approx = False
-beta_ta = 1 # FIXME
-
-# Parameters for calculating the double distribution
-beta_dd = 2.
-plot_dimension = 1
 
 ###############
 

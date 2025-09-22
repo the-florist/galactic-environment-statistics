@@ -60,7 +60,6 @@ if pms.plot_dimension == 2:
     ax_joint.set_xlabel('m')
     ax_joint.set_ylabel(r'$\delta_l$')
     ax_joint.set_xscale('log')
-    # fig.colorbar(c, ax=ax_joint, label='dn(m, delta_l)')
 
     # Marginal for m
     ax_marg_m.plot(m_vals, marginal_m, color='tab:blue')
@@ -80,7 +79,6 @@ if pms.plot_dimension == 2:
     plt.setp(ax_marg_dl.get_yticklabels(), visible=False)
 
     ax_joint.set_title(r'Joint PDF of m and $\delta_l$ with marginals')
-    # plt.tight_layout()
     plt.savefig("plots/joint-probability.pdf")
     plt.close()
 

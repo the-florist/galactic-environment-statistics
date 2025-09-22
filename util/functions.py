@@ -159,4 +159,13 @@ def dn(m, delta_l, beta, a:float = 1):
 
     random_walk = (pms.Omega_m * pms.rho_c / m ) * (np.exp(-(delta_l**2) / (2 * S(beta*m))) / (2 * np.pi * np.sqrt(S(beta*m))))
 
-    return random_walk * mass_removal 
+    dn = random_walk * mass_removal 
+    
+    if pms.enforce_positive_pdf == True:
+        if dn < 0:
+            return 0
+        else:
+            return dn
+
+    else:
+        return dn
