@@ -10,8 +10,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-import parameters as pms 
-import functions as func
+import util.parameters as pms 
+import util.functions as func
 
 print("Visualising density profile.")
 
@@ -63,7 +63,7 @@ plt.yscale('log')
 plt.title(r"Mock density profile (today, LambdaCDM)")
 plt.legend()
 plt.grid(True)
-plt.savefig("rho-vs-r.pdf")
+plt.savefig("plots/rho-vs-r.pdf")
 plt.close()
 
 

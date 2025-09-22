@@ -1,6 +1,7 @@
 __pycache__/
 forth-programs/
-Density-profile-notebook.nb
+misc/
+plots/
 
 *.pdf
 *.png

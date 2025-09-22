@@ -11,8 +11,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 
-import parameters as pms
-import functions as func
+import util.parameters as pms
+import util.functions as func
 
 print("Plotting the double distribution.")
 
@@ -81,20 +81,20 @@ if pms.plot_dimension == 2:
 
     ax_joint.set_title('Joint PDF of m and $\delta_l$ with marginals')
     # plt.tight_layout()
-    plt.savefig("joint-probability.pdf")
+    plt.savefig("plots/joint-probability.pdf")
     plt.close()
 
 elif pms.plot_dimension == 1:
-    mass_slice = 0.25 * (m_max - m_min)
+    mass_slice = 0.25 * (m_max - m_min) + m_min
 
-    print("Starting PDF calculation for mass "+str(mass_slice))
+    print("Starting PDF calculation for mass %.2E..." % mass_slice)
     Z = [func.dn(mass_slice, delta, pms.beta_dd) for delta in delta_l_vals]
 
     plt.plot(Z)
     plt.xlabel(r"$\delta_l$")
     plt.ylabel(r"$P_n$")
-    plt.title("PDF sliced at m = "+str(mass_slice)+" solar masses")
-    plt.savefig("contrast-pdf-mass-"+str(mass_slice)+".pdf")
+    plt.title("PDF sliced at m = %.2E solar masses" % mass_slice)
+    plt.savefig("plots/contrast-pdf-mass-%.2E.pdf" % mass_slice)
     plt.grid(True)
     plt.close()
 
