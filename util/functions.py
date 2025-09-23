@@ -7,6 +7,7 @@
 
 # libraries
 from math import exp
+from numpy.typing import NDArray
 import scipy.integrate as integrate
 from scipy.optimize import minimize
 import scipy.optimize._minimize as _minimize
@@ -172,7 +173,7 @@ def dn(delta_l, m, beta, a:float = 1):
     else:
         return dn
 
-def pdf_expectation(m : float, beta : float, a : float = 1):
+def pdf_analytic_expectation(m : float, beta : float, a : float = 1):
     """
         Calculate the expectation value of the double distribution sliced at m.
     """
@@ -183,4 +184,22 @@ def pdf_expectation(m : float, beta : float, a : float = 1):
 
     temp = A * (A - C) * (-B**2 + C) * np.exp(-B**2/2/C)
     temp /= (C**2 * np.sqrt(-C/(2 * A**2 * np.pi - 2 * A * C * np.pi)))
-    return temp
+
+    norm = B * (-A+C) * np.exp(-B**2/2/C)
+    norm /= (C * np.sqrt(-C/(2 * A**2 * np.pi - 2 * A * C * np.pi)))
+
+    return norm, temp/norm
+
+def pdf_sample_expectation(pdf : list, delta_vals : NDArray):
+    sample_norm = 0
+    num_deltas = len(delta_vals)
+    for i in range(num_deltas):
+        sample_norm += pdf[i]
+    sample_norm /= num_deltas
+
+    sample_mean = 0
+    for i in range(num_deltas):
+        sample_mean += (pdf[i] / sample_norm) * delta_vals[i]
+    sample_mean /= num_deltas
+
+    return sample_mean, sample_norm
