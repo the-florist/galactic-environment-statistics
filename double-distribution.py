@@ -83,35 +83,29 @@ if pms.plot_dimension == 2:
     plt.close()
 
 elif pms.plot_dimension == 1:
-    mass_slices = np.array([0, 0.25, 0.5, 0.75, 1])
-    mass_slices *= (m_max - m_min) 
-    mass_slices += m_min
-
+    mass_slices = np.array([0, 0.25, 0.5, 0.75, 1]) * (m_max - m_min) + m_min
     for m in mass_slices:
         print("Starting PDF calculation for mass %.2E..." % m)
+        
         PDF = [func.dn(delta, m, pms.beta_dd) for delta in delta_l_vals]
-        plt.plot(delta_l_vals, PDF)
-
-    for m in mass_slices:
         analytic_norm, analytic_expectation = func.pdf_analytic_expectation(m, pms.beta_dd)
-        binned_analytic_expectation = max(delta for delta in delta_l_vals if delta <= analytic_expectation)
         sample_mean, sample_norm = func.pdf_sample_expectation(PDF, delta_l_vals)
 
-        print("Analytic norm: %.5E" % analytic_norm)
         print("Analytic expectation: %.5E" % analytic_expectation)
-        print("Sample norm: %.5E" % sample_norm)
         print("Sample expectation: %.5E" % sample_mean)
         print("---------")
 
-        plt.plot(binned_analytic_expectation, func.dn(binned_analytic_expectation, m, pms.beta_dd), 'b*', markersize=10)
+        plt.plot(delta_l_vals, PDF)
+        plt.plot(analytic_expectation, func.dn(analytic_expectation, m, pms.beta_dd), 'b*', markersize=10)
         plt.plot(sample_mean, func.dn(sample_mean, m, pms.beta_dd), 'r.', markersize=10)
     
     plt.xlabel(r"$\delta_l$")
     plt.ylabel(r"$P_n$")
-    plt.legend(["%.2E" % m for m in mass_slices])
     plt.title("PDF slices along mass")
     plt.savefig("plots/joint-pdf-slice.pdf")
     plt.grid(True)
+    #plt.legend(["%.2E" % m for m in mass_slices])
+
     plt.close()
 
 print("Printed density profile.")

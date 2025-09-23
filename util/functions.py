@@ -162,8 +162,10 @@ def dn(delta_l, m, beta, a:float = 1):
 
     random_walk = (pms.Omega_m * pms.rho_c / m ) * (np.exp(-(delta_l**2) / (2 * S(beta*m))) / (2 * np.pi * np.sqrt(S(beta*m))))
 
-    dn = random_walk * mass_removal 
-    
+    norm = delta_c_0(a) * (-S(beta * m) + S(m)) * np.exp(-delta_c_0(a)**2/2/S(m))
+    norm /= (S(m) * np.sqrt(-S(m)/(2 * S(beta * m)**2 * np.pi - 2 * S(beta * m) * S(m) * np.pi)))
+
+    dn = random_walk * mass_removal / norm
     if pms.enforce_positive_pdf == True:
         if dn < 0:
             return 0
@@ -195,11 +197,9 @@ def pdf_sample_expectation(pdf : list, delta_vals : NDArray):
     num_deltas = len(delta_vals)
     for i in range(num_deltas):
         sample_norm += pdf[i]
-    sample_norm /= num_deltas
 
     sample_mean = 0
     for i in range(num_deltas):
-        sample_mean += (pdf[i] / sample_norm) * delta_vals[i]
-    sample_mean /= num_deltas
+        sample_mean += pdf[i] * delta_vals[i] / sample_norm
 
     return sample_mean, sample_norm
