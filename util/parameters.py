@@ -25,7 +25,7 @@ beta_ta = 1 # FIXME
 beta_dd = 2.
 plot_dimension = 1
 enforce_positive_pdf = False
-run_convergence_tests = True
+run_convergence_tests = False
 
 # Concordance cosmology
 concordance_model = True
