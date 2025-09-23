@@ -2,6 +2,7 @@ __pycache__/
 forth-programs/
 misc/
 plots/
+output/
 
 *.pdf
 *.png

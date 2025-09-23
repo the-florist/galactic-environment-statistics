@@ -9,7 +9,7 @@
 from math import exp
 from numpy.typing import NDArray
 import scipy.integrate as integrate
-from scipy.optimize import minimize
+from scipy.optimize import fixed_point, minimize
 import scipy.optimize._minimize as _minimize
 import numpy as np
 from typing import overload, Literal, Tuple, Union
@@ -203,3 +203,27 @@ def pdf_sample_expectation(pdf : list, delta_vals : NDArray):
         sample_mean += pdf[i] * delta_vals[i] / sample_norm
 
     return sample_mean, sample_norm
+
+def convergence_test(my_analytic_function, my_analytic_diagnostic, my_sample_diagnostic, param_1, param_2, 
+                        my_min : float, my_max : float, resolutions : list):
+        import os
+
+        # Ensure output directory exists
+        output_dir = "output"
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+
+        output_path = os.path.join(output_dir, "convergence-test.txt")
+        fixed_point, _ = my_analytic_diagnostic(param_1, param_2)
+        with open(output_path, "w") as f:
+            f.write("res\tfixed_point\tguess\tnorm_diff\n")
+            for res in resolutions:
+                xs = np.linspace(my_min, my_max, res)
+                data = [my_analytic_function(x, param_1, param_2) for x in xs]
+                guess, _ = my_sample_diagnostic(data, xs)
+                # If sample diagnostic returns tuple, take first element
+                if isinstance(guess, tuple):
+                    guess = guess[0]
+                norm = max(abs(fixed_point), abs(guess))
+                norm_diff = abs(guess - fixed_point) / norm if norm != 0 else 0
+                f.write(f"{res}\t{fixed_point:.8e}\t{guess:.8e}\t{norm_diff:.3e}\n")

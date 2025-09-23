@@ -86,7 +86,7 @@ elif pms.plot_dimension == 1:
     mass_slices = np.array([0, 0.25, 0.5, 0.75, 1]) * (m_max - m_min) + m_min
     for m in mass_slices:
         print("Starting PDF calculation for mass %.2E..." % m)
-        
+
         PDF = [func.dn(delta, m, pms.beta_dd) for delta in delta_l_vals]
         analytic_norm, analytic_expectation = func.pdf_analytic_expectation(m, pms.beta_dd)
         sample_mean, sample_norm = func.pdf_sample_expectation(PDF, delta_l_vals)
@@ -107,5 +107,10 @@ elif pms.plot_dimension == 1:
     #plt.legend(["%.2E" % m for m in mass_slices])
 
     plt.close()
+
+num_deltas = [25, 50, 100, 200]
+if pms.run_convergence_tests:
+    func.convergence_test(func.dn, func.pdf_analytic_expectation, func.pdf_sample_expectation, 
+                            m_min, pms.beta_dd, delta_l_min, delta_l_max, num_deltas)
 
 print("Printed density profile.")
