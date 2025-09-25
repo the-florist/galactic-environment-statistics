@@ -9,8 +9,8 @@
 from math import exp
 from numpy.typing import NDArray
 import scipy.integrate as integrate
-from scipy.optimize import fixed_point, minimize
-import scipy.optimize._minimize as _minimize
+from scipy.optimize import minimize
+from numdifftools import Derivative
 import numpy as np
 from typing import overload, Literal, Tuple, Union
 
@@ -156,29 +156,17 @@ def dn(beta, rho, m:float = pms.M_200, a:float = 1):
     """
         Calculate the double distribution of number density w/r/t mass and local overdensity
     """
-    # print(k_of_m(beta*m))
-    # exit()
 
     delta = rho - 1
     delta_c = delta_c_0(a) * D(a) / D(1)
     delta_tilde = delta_c * (1 - pow(1 + delta, -1/delta_c))
-
-    # print(beta*m)
-    # print(m)
-    # print(exp(-(delta_c_0(a) - delta_tilde)**2 / (2 *(S(m) - S(beta*m)))))
-    # # print((2 *(S(m) - S(beta*m))))
-    # exit()
 
     mass_removal = (delta_c_0(a) - delta_tilde) * np.exp(-(delta_c_0(a) - delta_tilde)**2 / (2 *(S(m) - S(beta*m)))) 
     mass_removal /= pow(S(m) - S(beta*m), 3/2)
 
     random_walk = (pms.Omega_m * pms.rho_c / m) * (np.exp(-(delta_tilde**2) / (2 * S(beta*m))) / (2 * np.pi * np.sqrt(S(beta*m))))
 
-    # norm = delta_c_0(a) * (-S(beta * m) + S(m)) * np.exp(-delta_c_0(a)**2/2/S(m))
-    # norm /= (S(m) * np.sqrt(-S(m)/(2 * S(beta * m)**2 * np.pi - 2 * S(beta * m) * S(m) * np.pi)))
-    norm = pow(1 + delta, -(1/delta_c + 1))
-
-    dn = random_walk * mass_removal * norm
+    dn = random_walk * mass_removal 
     if pms.enforce_positive_pdf == True:
         if dn < 0:
             return 0
@@ -204,22 +192,17 @@ def dn(beta, rho, m:float = pms.M_200, a:float = 1):
 
 #     return norm, temp/norm
 
-def pdf_sample_expectation(pdf : list, delta_vals : NDArray):
+def pdf_sample_expectation(pdf : list, rho_vals : NDArray):
     """
         Calculate the mode of the double distribution (i.e. the most probable profile)
         and the standard deviation of the mode, sliced at m.
     """
 
-    sample_mode = delta_vals[pdf.index(max(pdf))]
-
-    sample_norm = 0
-    num_deltas = len(delta_vals)
-    for i in range(num_deltas):
-        sample_norm += pdf[i]
+    sample_mode = rho_vals[pdf.index(max(pdf))]
 
     sample_mode_variance = 0
-    for i in range(num_deltas):
-        sample_mode_variance += pdf[i] * pow(delta_vals[i] - sample_mode, 2) / sample_norm
+    for i in range(len(rho_vals)):
+        sample_mode_variance += pdf[i] * pow(rho_vals[i] - sample_mode, 2) # / sample_norm
 
     return sample_mode, np.sqrt(sample_mode_variance)
 

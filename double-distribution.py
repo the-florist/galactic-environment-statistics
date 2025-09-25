@@ -17,10 +17,10 @@ import util.functions as func
 print("Plotting the double distribution.")
 
 # Both independent vars. are unitless
-beta_min, beta_max, num_beta = 1.3, 5, 100
-rho_tilde_min, rho_tilde_max, num_rho = 0, 3, 100
+beta_min, beta_max, num_beta = 1.3, 5, 50
+rho_tilde_min, rho_tilde_max, num_rho = 0, 3, 50
 
-beta_vals = np.linspace(np.log10(beta_min), np.log10(beta_max), num_beta)
+beta_vals = np.logspace(np.log10(beta_min), np.log10(beta_max), num_beta)
 rho_vals = np.logspace(rho_tilde_min, rho_tilde_max, num_rho)
 
 print("-----\nDomain: ")
@@ -55,9 +55,10 @@ if pms.plot_dimension == 2:
 
     # Joint pdf heatmap
     c = ax_joint.pcolormesh(beta_vals, rho_vals, Z.T, shading='auto', cmap='viridis')
-    ax_joint.set_xlabel('m')
-    ax_joint.set_ylabel(r'$\delta_l$')
+    ax_joint.set_xlabel(r'$\beta$')
+    ax_joint.set_ylabel(r'$\rho/\bar{\rho}_m$')
     ax_joint.set_xscale('log')
+    ax_joint.set_yscale('log')
 
     # Marginal for m
     ax_marg_m.plot(beta_vals, marginal_m, color='tab:blue')
@@ -90,14 +91,14 @@ elif pms.plot_dimension == 1:
         print("Starting PDF calculation for mass %.2E..." % beta)
 
         PDF = [func.dn(beta, rho) for rho in rho_vals]
-        # mode, mode_stdev = func.pdf_sample_expectation(PDF, beta_vals)
+        mode, mode_stdev = func.pdf_sample_expectation(PDF, rho_vals)
 
         # print("Sample mode: %.5E" % mode)
         # print("Sample variance from the mode: %.5E" % mode_stdev)
         # print("---------")
 
         plt.plot(rho_vals, PDF)
-        # plt.errorbar(mode, func.dn(beta, mode), xerr=mode_stdev, fmt='r.', markersize=10)
+        plt.errorbar(mode, func.dn(beta, mode), xerr=mode_stdev, fmt='r.', markersize=10)
     
     plt.xlabel(r"$\tilde{\rho} (\rho/\bar{\rho}_m)$")
     plt.ylabel(r"$P_n$")
