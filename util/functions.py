@@ -152,26 +152,38 @@ def delta_c_0(a_i : float) -> float:
     temp = D(1) * delta_c / D(a_i)
     return temp
 
-def dn(delta_l, m, beta, a:float = 1):
+def dn(beta, rho, m:float = pms.M_200, a:float = 1):
     """
         Calculate the double distribution of number density w/r/t mass and local overdensity
     """
+    # print(k_of_m(beta*m))
+    # exit()
 
-    mass_removal = (delta_c_0(a) - delta_l) * np.exp(-(delta_c_0(a) - delta_l)**2 / (2 *(S(m) - S(beta*m)))) 
+    delta = rho - 1
+    delta_c = delta_c_0(a) * D(a) / D(1)
+    delta_tilde = delta_c * (1 - pow(1 + delta, -1/delta_c))
+
+    # print(beta*m)
+    # print(m)
+    # print(exp(-(delta_c_0(a) - delta_tilde)**2 / (2 *(S(m) - S(beta*m)))))
+    # # print((2 *(S(m) - S(beta*m))))
+    # exit()
+
+    mass_removal = (delta_c_0(a) - delta_tilde) * np.exp(-(delta_c_0(a) - delta_tilde)**2 / (2 *(S(m) - S(beta*m)))) 
     mass_removal /= pow(S(m) - S(beta*m), 3/2)
 
-    random_walk = (pms.Omega_m * pms.rho_c / m ) * (np.exp(-(delta_l**2) / (2 * S(beta*m))) / (2 * np.pi * np.sqrt(S(beta*m))))
+    random_walk = (pms.Omega_m * pms.rho_c / m) * (np.exp(-(delta_tilde**2) / (2 * S(beta*m))) / (2 * np.pi * np.sqrt(S(beta*m))))
 
-    norm = delta_c_0(a) * (-S(beta * m) + S(m)) * np.exp(-delta_c_0(a)**2/2/S(m))
-    norm /= (S(m) * np.sqrt(-S(m)/(2 * S(beta * m)**2 * np.pi - 2 * S(beta * m) * S(m) * np.pi)))
+    # norm = delta_c_0(a) * (-S(beta * m) + S(m)) * np.exp(-delta_c_0(a)**2/2/S(m))
+    # norm /= (S(m) * np.sqrt(-S(m)/(2 * S(beta * m)**2 * np.pi - 2 * S(beta * m) * S(m) * np.pi)))
+    norm = pow(1 + delta, -(1/delta_c + 1))
 
-    dn = random_walk * mass_removal / norm
+    dn = random_walk * mass_removal * norm
     if pms.enforce_positive_pdf == True:
         if dn < 0:
             return 0
         else:
             return dn
-
     else:
         return dn
 

@@ -22,7 +22,8 @@ power_law_approx = False
 beta_ta = 1 # FIXME
 
 # Parameters for double-distribution.py
-beta_dd = 2.
+# beta_dd = 2.
+M_200 = 6.3e14
 plot_dimension = 1
 enforce_positive_pdf = True
 run_convergence_tests = False
