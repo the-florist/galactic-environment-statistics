@@ -18,7 +18,7 @@ print("Plotting the double distribution.")
 
 # Define ranges for m and delta_l (values from P&F 2005 Fig. 1)
 m_min, m_max = 2e13, 1e14 # Solar masses
-delta_l_min, delta_l_max = -1, 3
+delta_l_min, delta_l_max = -1, 3 # Lin. extp. overdensity
 num_m = 100
 num_delta_l = 100
 
@@ -88,16 +88,14 @@ elif pms.plot_dimension == 1:
         print("Starting PDF calculation for mass %.2E..." % m)
 
         PDF = [func.dn(delta, m, pms.beta_dd) for delta in delta_l_vals]
-        analytic_norm, analytic_expectation = func.pdf_analytic_expectation(m, pms.beta_dd)
-        sample_mean, sample_norm = func.pdf_sample_expectation(PDF, delta_l_vals)
+        mode, mode_stdev = func.pdf_sample_expectation(PDF, delta_l_vals)
 
-        print("Analytic expectation: %.5E" % analytic_expectation)
-        print("Sample expectation: %.5E" % sample_mean)
+        print("Sample mode: %.5E" % mode)
+        print("Sample variance from the mode: %.5E" % mode_stdev)
         print("---------")
 
         plt.plot(delta_l_vals, PDF)
-        plt.plot(analytic_expectation, func.dn(analytic_expectation, m, pms.beta_dd), 'b*', markersize=10)
-        plt.plot(sample_mean, func.dn(sample_mean, m, pms.beta_dd), 'r.', markersize=10)
+        plt.errorbar(mode, func.dn(mode, m, pms.beta_dd), xerr=mode_stdev, fmt='r.', markersize=10)
     
     plt.xlabel(r"$\delta_l$")
     plt.ylabel(r"$P_n$")

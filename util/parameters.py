@@ -24,7 +24,7 @@ beta_ta = 1 # FIXME
 # Parameters for double-distribution.py
 beta_dd = 2.
 plot_dimension = 1
-enforce_positive_pdf = False
+enforce_positive_pdf = True
 run_convergence_tests = False
 
 # Concordance cosmology

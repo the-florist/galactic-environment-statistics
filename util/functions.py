@@ -175,34 +175,41 @@ def dn(delta_l, m, beta, a:float = 1):
     else:
         return dn
 
-def pdf_analytic_expectation(m : float, beta : float, a : float = 1):
-    """
-        Calculate the expectation value of the double distribution sliced at m.
-    """
+# def pdf_analytic_expectation(m : float, beta : float, a : float = 1):
+#     """
+#         Calculate the expectation value of the double distribution sliced at m.
+#     """
 
-    A = S(beta * m)
-    B = delta_c_0(a)
-    C = S(m)
+#     A = S(beta * m)
+#     B = delta_c_0(a)
+#     C = S(m)
 
-    temp = A * (A - C) * (-B**2 + C) * np.exp(-B**2/2/C)
-    temp /= (C**2 * np.sqrt(-C/(2 * A**2 * np.pi - 2 * A * C * np.pi)))
+#     temp = A * (A - C) * (-B**2 + C) * np.exp(-B**2/2/C)
+#     temp /= (C**2 * np.sqrt(-C/(2 * A**2 * np.pi - 2 * A * C * np.pi)))
 
-    norm = B * (-A+C) * np.exp(-B**2/2/C)
-    norm /= (C * np.sqrt(-C/(2 * A**2 * np.pi - 2 * A * C * np.pi)))
+#     norm = B * (-A+C) * np.exp(-B**2/2/C)
+#     norm /= (C * np.sqrt(-C/(2 * A**2 * np.pi - 2 * A * C * np.pi)))
 
-    return norm, temp/norm
+#     return norm, temp/norm
 
 def pdf_sample_expectation(pdf : list, delta_vals : NDArray):
+    """
+        Calculate the mode of the double distribution (i.e. the most probable profile)
+        and the standard deviation of the mode, sliced at m.
+    """
+
+    sample_mode = delta_vals[pdf.index(max(pdf))]
+
     sample_norm = 0
     num_deltas = len(delta_vals)
     for i in range(num_deltas):
         sample_norm += pdf[i]
 
-    sample_mean = 0
+    sample_mode_variance = 0
     for i in range(num_deltas):
-        sample_mean += pdf[i] * delta_vals[i] / sample_norm
+        sample_mode_variance += pdf[i] * pow(delta_vals[i] - sample_mode, 2) / sample_norm
 
-    return sample_mean, sample_norm
+    return sample_mode, np.sqrt(sample_mode_variance)
 
 def convergence_test(my_analytic_function, my_analytic_diagnostic, my_sample_diagnostic, param_1, param_2, 
                         my_min : float, my_max : float, resolutions : list):
