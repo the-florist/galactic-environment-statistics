@@ -83,7 +83,7 @@ def S(m, gamma:float = 0.52, power_law_approx = pms.power_law_approx):
         and by the transfer function from Bardeen 1986.
     """
     if power_law_approx == True:
-        return m ** (-gamma)
+        return pms.s_8 * (m/pms.m_8) ** (-gamma)
 
     else:
         S_temp = integrate.quad(lambda k: transfer_function_integrand(k), 0, k_of_m(m))[0]
