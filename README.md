@@ -13,8 +13,6 @@ This repository contains the code and analysis accompanying the paper
 **"Beyond the Mean: Advancing the Analytic Outer Density Profile"**  
 by **Ericka Florio (DAMTP, University of Cambridge & FORTH, University of Crete)**.
 
-
-
 📄 **Full documentation:** [Read the PDF here](docs/documentation.pdf)
 
 ---
@@ -45,10 +43,6 @@ git clone https://github.com/the-florist/galactic-environment-statistics.git
 cd galactic-environment-statistics
 pip install -r requirements.txt
 ```
-
-## Usage
-
-
 
 ## Citation
 
