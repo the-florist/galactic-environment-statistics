@@ -22,7 +22,7 @@ D_i, err = func.D(pms.a_f, return_full = True)
 print("D(a) = "+str(D_i))
 print("D(a) error: "+str(err))
 
-a_vals = np.linspace(pms.a_i, 1, pms.num_steps)
+a_vals = np.linspace(pms.a_i, pms.a_f, pms.num_steps)
 D_vals: List[float] = [cast(float, func.D(a, return_full=False)) for a in a_vals]
 
 # Plot D(a)
