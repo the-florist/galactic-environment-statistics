@@ -1,7 +1,7 @@
 # Beyond the Mean: Advancing the Analytic Outer Density Profile
 
 [![Documentation](https://img.shields.io/badge/Docs-PDF-blue)](docs/documentation.pdf)
-[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+[![License: GPL v2](https://img.shields.io/badge/License-GPLv2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
 
 ---
 
