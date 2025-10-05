@@ -15,10 +15,12 @@ import util.parameters as pms
 import util.functions as func
 
 print("Plotting the double distribution.")
+if pms.plot_dimension != 1 and pms.plot_dimension != 2:
+    raise ValueError("double-distribution.py : plot_dimension impossible or is not implemented.")
 
 # Both independent vars. are unitless
-beta_min, beta_max, num_beta = 1.3, 5, 100
-rho_tilde_min, rho_tilde_max, num_rho = 0, 3, 100
+beta_min, beta_max, num_beta = 1.3, 5, 50
+rho_tilde_min, rho_tilde_max, num_rho = 0, 3, 50
 
 beta_vals = np.logspace(np.log10(beta_min), np.log10(beta_max), num_beta)
 rho_vals = np.logspace(rho_tilde_min, rho_tilde_max, num_rho)
@@ -56,28 +58,30 @@ if pms.plot_dimension == 2:
     # Joint pdf heatmap
     c = ax_joint.pcolormesh(beta_vals, rho_vals, Z.T, shading='auto', cmap='viridis')
     ax_joint.set_xlabel(r'$\beta$')
-    ax_joint.set_ylabel(r'$\rho/\bar{\rho}_m$')
+    ax_joint.set_ylabel(r'$\tilde{\rho}$')
     ax_joint.set_xscale('log')
     ax_joint.set_yscale('log')
 
     # Marginal for m
     ax_marg_m.plot(beta_vals, marginal_m, color='tab:blue')
     ax_marg_m.set_xscale('log')
-    ax_marg_m.set_ylabel('Marginal\nPDF (m)')
+    ax_marg_m.set_ylabel(r'Marginal ($\beta$)')
     ax_marg_m.tick_params(axis='y', labelbottom=False)
     ax_marg_m.grid(True, which='both', ls='--', alpha=0.3)
 
     # Marginal for delta_l
     ax_marg_dl.plot(marginal_dl, rho_vals, color='tab:orange')
-    ax_marg_dl.set_xlabel(r'Marginal\nPDF ($\delta_l$)')
+    ax_marg_dl.set_xlabel(r'Marginal ($\tilde{\rho}$)')
     ax_marg_dl.tick_params(axis='y', labelleft=False)
     ax_marg_dl.grid(True, which='both', ls='--', alpha=0.3)
+    ax_marg_dl.xaxis.get_offset_text().set_x(1.2)  # Move right
+    ax_marg_dl.xaxis.get_offset_text().set_y(-0.15)  # Move down a bit
 
     # Remove tick labels on shared axes
     plt.setp(ax_marg_m.get_xticklabels(), visible=False)
     plt.setp(ax_marg_dl.get_yticklabels(), visible=False)
 
-    ax_joint.set_title(r'Joint PDF of m and $\delta_l$ with marginals')
+    ax_joint.set_title(r'Joint PDF of $\beta$ and $\tilde{\rho}$ with marginals')
     plt.savefig("plots/joint-pdf.pdf")
     plt.close()
 
@@ -97,14 +101,14 @@ elif pms.plot_dimension == 1:
         # print("Sample variance from the mode: %.5E" % mode_stdev)
         # print("---------")
 
-        plt.plot(rho_vals, PDF, label=f"{beta:.2E}")
+        plt.plot(rho_vals, PDF, label=rf"$\beta$ = {beta:.2}")
         plt.plot(mode, func.dn(beta, mode), 'r.', label='_nolegend_')
         # plt.errorbar(mode, func.dn(beta, mode), xerr=mode_stdev, fmt='r.', markersize=10)
     
-    plt.xlabel(r"$\tilde{\rho} (\rho/\bar{\rho}_m)$")
+    plt.xlabel(r"$\tilde{\rho}$")
     plt.ylabel(r"$P_n$")
     plt.xscale("log")
-    plt.title("PDF slices along mass")
+    plt.title(r"PDF slices along $\beta$")
     plt.grid(True)
     plt.legend()
 
