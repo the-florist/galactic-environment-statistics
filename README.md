@@ -3,8 +3,6 @@
 [![Documentation](https://img.shields.io/badge/Docs-PDF-blue)](docs/paper.pdf)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
-> _Analytic exploration of the outer density profile beyond the mean-field approximation._
-
 ---
 
 ## Overview
@@ -12,6 +10,13 @@
 This repository contains the code and analysis accompanying the paper  
 **"Beyond the Mean: Advancing the Analytic Outer Density Profile"**  
 by **Ericka Florio (DAMTP, University of Cambridge & FORTH, University of Crete)**.
+
+### Abstract
+The mode of the double distribution describes the “most probable”
+galactic outer density profile, and the departure of this profile from
+galactic simulations can be used to infer cosmological parameters.
+This python library calculates and visualises the double distribution
+and the most probable profile, for a given cosmological model.
 
 📄 **Full documentation:** [Read the PDF here](docs/documentation.pdf)
 
