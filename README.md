@@ -20,10 +20,9 @@ by **Ericka Florio (DAMTP, University of Cambridge & FORTH, University of Crete)
 ## Repository Structure
 ```
 galactic-environment-statistics/
-├── src/ # Main programs
-│ ├── growth-factor.py # Calculate and plot the growth factor
-│ ├── double-distribution.py # Calculate and plot the double distribution
-│ ├── density-profile.py # Calculate and plot the most probable density profile 
+├── growth-factor.py # Calculate and plot the growth factor
+├── double-distribution.py # Calculate and plot the double distribution
+├── density-profile.py # Calculate and plot the most probable density profile 
 ├── utils/ # Utilities
 │ ├── functions.py # Functions used by the src/ programs
 │ ├── parameters.py # Parameters used by the src/ programs
