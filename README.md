@@ -20,7 +20,7 @@ by **Ericka Florio (DAMTP, University of Cambridge & FORTH, University of Crete)
 ---
 
 ## Repository Structure
-
+```
 project-root/
 ├── src/
 │ ├── main.py
@@ -34,7 +34,7 @@ project-root/
 ├── requirements.txt
 ├── README.md
 └── LICENSE
-
+```
 
 ---
 
@@ -66,5 +66,5 @@ If you use this code or analysis in your research, please cite:
 
 ## Contact
 
-If you would like to report any bugs, feel free to report them on the repository or to contact me directly at [Named Link](eaf49@cam.ac.uk).
+If you would like to report any bugs, feel free to report them on the repository or to contact me directly at [eaf49@cam.ac.uk](mailto:eaf49@cam.ac.uk).
 
