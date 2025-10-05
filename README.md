@@ -22,16 +22,18 @@ by **Ericka Florio (DAMTP, University of Cambridge & FORTH, University of Crete)
 ## Repository Structure
 
 project-root/
-├── src/ # Main programs
-│ ├── growth-factor.py # Calculate and plot the growth factor
-│ ├── double-distribution.py # Calculate and plot the double distribution
-│ ├── density-profile.py # Calculate and plot the most probable density profile 
-├── utils/ # Utilities
-│ ├── functions.py # Functions used by the src/ programs
-│ ├── parameters.py # Parameters used by the src/ programs
+├── src/
+│ ├── main.py
+│ ├── utils.py
+│ └── init.py
 ├── docs/
-│ ├── documentation.pdf # Full LaTeX documentation
-└── README.md
+│ └── documentation.pdf
+├── tests/
+│ ├── test_main.py
+│ └── test_utils.py
+├── requirements.txt
+├── README.md
+└── LICENSE
 
 
 ---
@@ -53,14 +55,16 @@ pip install -r requirements.txt
 ## Citation
 
 If you use this code or analysis in your research, please cite:
+```bibtex
 @misc{florio2025beyond,
   author    = {Ericka Florio},
   title     = {Beyond the Mean: Advancing the Analytic Outer Density Profile},
   year      = {2025},
   url       = {https://github.com/<your-username>/<your-repo>}
 }
+```
 
 ## Contact
 
-If you would like to report any bugs, feel free to report them on the repository or to contact me directly at eaf49@cam.ac.uk.
+If you would like to report any bugs, feel free to report them on the repository or to contact me directly at [Named Link](eaf49@cam.ac.uk).
 
