@@ -160,13 +160,20 @@ def dn(beta, rho, m:float = pms.M_200, a:float = 1):
     delta = rho - 1
     delta_c = delta_c_0(a) * D(a) / D(1)
     delta_tilde = delta_c * (1 - pow(1 + delta, -1/delta_c))
+    rho_m = pms.Omega_m * pms.rho_c 
 
     mass_removal = (delta_c_0(a) - delta_tilde) * np.exp(-(delta_c_0(a) - delta_tilde)**2 / (2 *(S(m) - S(beta*m)))) 
     mass_removal /= pow(S(m) - S(beta*m), 3/2)
 
-    random_walk = (pms.Omega_m * pms.rho_c / m) * (np.exp(-(delta_tilde**2) / (2 * S(beta*m))) / (2 * np.pi * np.sqrt(S(beta*m))))
+    random_walk = (rho_m / m) * (np.exp(-(delta_tilde**2) / (2 * S(beta*m))) / (2 * np.pi * np.sqrt(S(beta*m))))
 
-    dn = random_walk * mass_removal 
+    """
+    norm = delta_c_0(a) * np.exp(delta_c_0(a)**2 / 2 / S(m)) * (rho_m)
+    norm /= (2 * np.pi * m * np.sqrt(S(beta * m)) * S(m) * np.sqrt(S(m) - S(beta * m)))
+    norm /= np.sqrt(-S(m) / (2 * np.pi * (S(beta * m)**2 - S(beta * m) * S(m))))
+    """
+
+    dn = random_walk * mass_removal # / norm
     if pms.enforce_positive_pdf == True:
         if dn < 0:
             return 0

@@ -18,8 +18,7 @@ compare_case_1 = True      # Einstein-de-Sitter
 compare_case_2 = True      # Flat Universe
 
 # Parameters and flags for density-profile.py
-power_law_approx = True
-beta_ta = 1 # FIXME
+power_law_approx = False
 
 # Parameters for double-distribution.py
 M_200 = 6.3e14
@@ -37,7 +36,8 @@ if concordance_model:
     phi = (Omega_m + Omega_L - 1)/Omega_m
     kappa = 1.50 * 3 * pow(w, 1/3) / pow(2, 2/3)
     s_8 = 0.84
-    m_8 = 2e14              # Solar masses
+    m_8 = 2e14    
+    delta_c = 1.6757          # Solar masses
 
 # Einstein de-Sitter
 else:
@@ -46,7 +46,8 @@ else:
     phi = 0
     kappa = 1.50 * 3 * pow(w, 1/3) / pow(2, 2/3)
     s_8 = 0.45
-    m_8 = 8e14              # Solar masses
+    m_8 = 8e14   
+    delta_c = 1.6865           # Solar masses
 
 ###############
 

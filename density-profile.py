@@ -16,7 +16,6 @@ import util.functions as func
 print("Visualising density profile.")
 
 # Problem-specific quantities
-delta_c = 1.6757                # requires flat LambdaCDM universe
 gamma = [0.55, 0.525, 0.50]     # taken as mean of figure given in Pavlidou 2024
 delta_ta = 11 * (pms.Omega_m)   # turnaround overdensity (provided by Vaso)
 
@@ -32,15 +31,15 @@ beta_range = np.linspace(beta_0, beta_f, num_betas)
 print("Cosmological parameters:")
 print("Omega_m = "+str(pms.Omega_m))
 print("Omega_L = "+str(pms.Omega_L))
-print("delta_c = "+str(delta_c))
+print("delta_c = "+str(pms.delta_c))
 
 if pms.power_law_approx == True:
     print("Using power law approximation for S(m).\n gamma = "+str(gamma))
     print("--------")
 
     # Solve for rho and r parametrically 
-    rhos = [[func.rho(b, delta_c, gamma = g) for b in beta_range] for g in gamma]
-    rs = [[func.r(b, delta_c, delta_ta, gamma = g) for b in beta_range] for g in gamma]
+    rhos = [[func.rho(b, pms.delta_c, gamma = g) for b in beta_range] for g in gamma]
+    rs = [[func.r(b, pms.delta_c, delta_ta, gamma = g) for b in beta_range] for g in gamma]
 
     # Plot this
     for i in np.arange(0, len(gamma)):
@@ -50,8 +49,8 @@ else:
     print("Using Bardeen transfer function for S(m)")
     masses = [2e13, 4e13, 6e13, 8e13, 1e14]  # Solar masses
 
-    rhos = [[func.rho(beta, delta_c, m = mass) for beta in beta_range] for mass in masses]
-    rs = [[func.r(beta, delta_c, delta_ta, m = mass) for beta in beta_range] for mass in masses]
+    rhos = [[func.rho(beta, pms.delta_c, m = mass) for beta in beta_range] for mass in masses]
+    rs = [[func.r(beta, pms.delta_c, delta_ta, m = mass) for beta in beta_range] for mass in masses]
 
     for m in np.arange(0, len(masses)):
         plt.plot(rs[m], rhos[m], label=rf"$m = {masses[m]:.1e}$")

@@ -17,8 +17,8 @@ import util.functions as func
 print("Plotting the double distribution.")
 
 # Both independent vars. are unitless
-beta_min, beta_max, num_beta = 1.3, 5, 50
-rho_tilde_min, rho_tilde_max, num_rho = 0, 3, 50
+beta_min, beta_max, num_beta = 1.3, 5, 100
+rho_tilde_min, rho_tilde_max, num_rho = 0, 3, 100
 
 beta_vals = np.logspace(np.log10(beta_min), np.log10(beta_max), num_beta)
 rho_vals = np.logspace(rho_tilde_min, rho_tilde_max, num_rho)
@@ -86,26 +86,27 @@ elif pms.plot_dimension == 1:
         Calculate the PDF at slices of beta, and plot alongside the mode and stdev of the mode.
     """
 
-    beta_slices = np.array([0, 0.25, 0.5, 0.75, 1]) * (beta_max - beta_min) + beta_min
+    beta_slices = np.array([0, 0.25, 0.5, 0.75, 1]) * (beta_max - beta_min) + beta_min # 
     for beta in beta_slices:
         print("Starting PDF calculation for mass %.2E..." % beta)
 
         PDF = [func.dn(beta, rho) for rho in rho_vals]
-        mode, mode_stdev = func.pdf_sample_expectation(PDF, rho_vals)
+        mode, _ = func.pdf_sample_expectation(PDF, rho_vals)
 
         # print("Sample mode: %.5E" % mode)
         # print("Sample variance from the mode: %.5E" % mode_stdev)
         # print("---------")
 
-        plt.plot(rho_vals, PDF)
-        plt.errorbar(mode, func.dn(beta, mode), xerr=mode_stdev, fmt='r.', markersize=10)
+        plt.plot(rho_vals, PDF, label=f"{beta:.2E}")
+        plt.plot(mode, func.dn(beta, mode), 'r.', label='_nolegend_')
+        # plt.errorbar(mode, func.dn(beta, mode), xerr=mode_stdev, fmt='r.', markersize=10)
     
     plt.xlabel(r"$\tilde{\rho} (\rho/\bar{\rho}_m)$")
     plt.ylabel(r"$P_n$")
     plt.xscale("log")
     plt.title("PDF slices along mass")
     plt.grid(True)
-    plt.legend(["%.2E" % beta for beta in beta_slices])
+    plt.legend()
 
     plt.savefig("plots/joint-pdf-slice.pdf")
     plt.close()
