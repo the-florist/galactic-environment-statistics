@@ -1,6 +1,6 @@
 # Beyond the Mean: Advancing the Analytic Outer Density Profile
 
-[![Documentation](https://img.shields.io/badge/Docs-PDF-blue)](docs/paper.pdf)
+[![Documentation](https://img.shields.io/badge/Docs-PDF-blue)](docs/documentation.pdf)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
 ---
