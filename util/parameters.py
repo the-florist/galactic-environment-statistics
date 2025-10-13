@@ -18,16 +18,23 @@ compare_case_1 = True      # Einstein-de-Sitter
 compare_case_2 = True      # Flat Universe
 
 # Parameters and flags for density-profile.py
-power_law_approx = False
+power_law_approx = True
+root_finder_precision = 1e-5 # Precision used for root finding
 
 # Parameters for double-distribution.py
-M_200 = 6.3e14
+beta_min, beta_max, num_beta = 1.5, 5, 50 # Both independent vars. are unitless
+rho_tilde_min, rho_tilde_max, num_rho = 0, 3, 50
+
 plot_dimension = 1
 enforce_positive_pdf = True
 run_convergence_tests = False
 
 # Concordance cosmology
 concordance_model = True
+
+#####################
+#####################
+#####################
 
 if concordance_model:
     Omega_m = 0.27
@@ -55,3 +62,4 @@ else:
 h = 71 / 100                # unitless H0
 rho_c = 2.78e11 * (h ** 2)  # units of Solar Mass / Mpc^3
 n = 1                       # primordial spectral index
+M_200 = 6.3e14              # virial mass scale

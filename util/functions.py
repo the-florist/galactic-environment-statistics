@@ -10,7 +10,8 @@ from math import exp
 from numpy.typing import NDArray
 import scipy.integrate as integrate
 from scipy.optimize import minimize
-from numdifftools import Derivative
+from scipy.special import erf
+from scipy.differentiate import derivative
 import numpy as np
 from typing import overload, Literal, Tuple, Union
 
@@ -91,7 +92,7 @@ def S(m, gamma:float = 0.52, power_law_approx = pms.power_law_approx):
         S_temp /= (integrate.quad(lambda k: transfer_function_integrand(k), 0, k_of_m(pms.m_8))[0])
         return S_temp 
 
-def rho(beta, delta_c, gamma:float = 0.52, a = 1, m:float = 1):
+def rho(beta, delta_c, gamma:float = 0.52, a = 1, m:float = pms.M_200):
     """
         Find rho(beta) for power law approximation of S(m),
         or rho(beta, m) for transfer function version of S(m).
@@ -106,7 +107,7 @@ def rho(beta, delta_c, gamma:float = 0.52, a = 1, m:float = 1):
         return rho_avg(S(beta * m), S(m), delta_c) / denominator
         
 
-def r(beta, delta_c, delta_ta, gamma:float = 0.52, m:float = 1):
+def r(beta, delta_c, delta_ta, gamma:float = 0.52, m:float = pms.M_200):
     """
         Find r(beta) for power law approximation of S(m), where r = R/R_ta,
         or r(beta, m) for transfer function version of S(m).
@@ -116,7 +117,7 @@ def r(beta, delta_c, delta_ta, gamma:float = 0.52, m:float = 1):
             return pow(w * beta * pow(1 - pow(beta, -gamma), delta_c), 1/3)
 
     else:
-        temp = beta * pow(1 - S(beta * m)/S(m), delta_c) * (1 + delta_ta) / pms.beta_ta
+        temp = beta * pow(1 - S(beta * m)/S(m), delta_c) * (1 + delta_ta) / pms.beta_ta # FIXME
         return pow(temp, 1/3)
 
 """
@@ -141,8 +142,7 @@ def a_coll() -> float:
     def diff(a):
         return abs(integrate.quad(lambda x: a_coll_integrand(x, pms.w, pms.phi), pms.a_i, a)[0] - C)
 
-    goal_precision = 1e-5
-    solution = minimize(diff, a_init, bounds=[(0, 1)], tol=goal_precision)
+    solution = minimize(diff, a_init, bounds=[(0, 1)], tol=pms.root_finder_precision)
 
     return solution.x[0]
 
@@ -151,6 +151,62 @@ def delta_c_0(a_i : float) -> float:
     delta_c = 3 * pms.Omega_m * (pms.kappa - pms.phi) * D(a_c) / 2
     temp = D(1) * delta_c / D(a_i)
     return temp
+
+def CDF(rho, beta:float = 1.3, m:float = pms.M_200, a:float = 1):
+    """
+        Calculate the CDF as a function of rho (delta_l)
+    """
+    delta = rho - 1
+    delta_c = delta_c_0(a) * D(a) / D(1)
+    delta_tilde = delta_c * (1 - pow(1 + delta, -1/delta_c))
+    rho_m = pms.Omega_m * pms.rho_c 
+    # dS = derivative(S, m)
+    # print(dS.status)
+
+    N = (rho_m / m) * 1. / (2 * np.pi * np.sqrt(S(beta * m)) * pow(S(m) - S(beta * m), 3/2))
+    # print(dS.df)
+
+    A = S(m) / (2 * S(beta * m) *(S(m) - S(beta * m)))
+    B = delta_c_0(a) / 2 / (S(m) - S(beta * m))
+    C = (delta_c_0(a) ** 2) / (2 * (S(m) - S(beta * m)))
+
+    # print("---------")
+    # print(f"beta: {beta}")
+    # print(f"rho: {rho}")
+    # print(f"rho m: {rho_m}")
+    # print(f"S(m): {S(m)}")
+    # print(f"S(beta m): {S(beta * m)}")
+    # print(f"delta c 0: {delta_c_0(a)}")
+    print(f"delta tile: {delta_tilde}")
+
+    # print(A, B, C)
+
+    # print(C + B**2 / A)
+    # print(S(beta * m) *(S(m) - S(beta * m)))
+
+    # print((S(m) - S(beta * m)))
+    # print(delta_c_0(a))
+    # exit()
+
+    cdf_temp = np.sqrt(np.pi / A) * (delta_c_0(a) - B / A) / 2. # 0.5 * np.sqrt(np.pi / A) * (delta_c_0(a) - B / (2 * A))
+    # print(cdf_temp)
+    cdf_temp *= np.exp(B**2 / A - C) * (1 - erf((B - A * delta_tilde) / np.sqrt(A))) # -1 np.sqrt(A) * delta_tilde - B / np.sqrt(A)
+    # print(cdf_temp)
+    # print(np.exp((A*C + B**2) / A))
+    # print(erf(np.sqrt(A) * delta_tilde - B / np.sqrt(A)))
+    # print(np.sqrt(A) * delta_tilde - B / np.sqrt(A))
+    # print(C)
+    # # print(B**2 / A)
+    # print(B, A)
+    cdf_temp += np.exp(-A * (delta_tilde**2) + B * delta_tilde - C) / (2 * A)
+    # print(np.exp(C) / (2 * A))
+    # print(cdf_temp)
+    cdf_temp *= N
+    print(cdf_temp)
+    # print(N)
+    exit()
+
+    return cdf_temp
 
 def dn(beta, rho, m:float = pms.M_200, a:float = 1):
     """
@@ -167,11 +223,12 @@ def dn(beta, rho, m:float = pms.M_200, a:float = 1):
 
     random_walk = (rho_m / m) * (np.exp(-(delta_tilde**2) / (2 * S(beta*m))) / (2 * np.pi * np.sqrt(S(beta*m))))
 
-    """
-    norm = delta_c_0(a) * np.exp(delta_c_0(a)**2 / 2 / S(m)) * (rho_m)
-    norm /= (2 * np.pi * m * np.sqrt(S(beta * m)) * S(m) * np.sqrt(S(m) - S(beta * m)))
-    norm /= np.sqrt(-S(m) / (2 * np.pi * (S(beta * m)**2 - S(beta * m) * S(m))))
-    """
+    # norm = CDF(pow(10, pms.rho_tilde_max), pms.beta_max) - CDF(pow(10, pms.rho_tilde_min), pms.beta_min)
+    # print(norm)
+    # print(CDF(pow(10, pms.rho_tilde_max), pms.beta_max), CDF(pow(10, pms.rho_tilde_min), pms.beta_min))
+    # CDF(pow(10, pms.rho_tilde_max), pms.beta_max)
+    # CDF(pow(10, pms.rho_tilde_min), pms.beta_min)
+    # exit()
 
     dn = random_walk * mass_removal # / norm
     if pms.enforce_positive_pdf == True:
@@ -213,6 +270,7 @@ def pdf_sample_expectation(pdf : list, rho_vals : NDArray):
 
     return sample_mode, np.sqrt(sample_mode_variance)
 
+"""
 def convergence_test(my_analytic_function, my_analytic_diagnostic, my_sample_diagnostic, param_1, param_2, 
                         my_min : float, my_max : float, resolutions : list):
         import os
@@ -236,3 +294,18 @@ def convergence_test(my_analytic_function, my_analytic_diagnostic, my_sample_dia
                 norm = max(abs(fixed_point), abs(guess))
                 norm_diff = abs(guess - fixed_point) / norm if norm != 0 else 0
                 f.write(f"{res}\t{fixed_point:.8e}\t{guess:.8e}\t{norm_diff:.3e}\n")
+"""
+
+def IQR(beta, guess_l, guess_h, m:float = pms.M_200/pms.m_8, a:float = 1):
+    """
+        Calculate the IQR at a slice in beta using a root finding method.
+    """
+    
+    cdf_slice = lambda rho : CDF(rho, beta, m, a)
+    diff_l = lambda rho : cdf_slice(rho) - 0.25
+    diff_h = lambda rho : cdf_slice(rho) - 0.75
+
+    iqr_l = minimize(diff_l, guess_l, bounds=[(1, 1e6)], tol=pms.root_finder_precision)
+    iqr_h = minimize(diff_h, guess_h, bounds=[(1, 1e6)], tol=pms.root_finder_precision)
+
+    return iqr_l.x[0], iqr_h.x[0]

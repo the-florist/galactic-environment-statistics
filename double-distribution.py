@@ -18,16 +18,12 @@ print("Plotting the double distribution.")
 if pms.plot_dimension != 1 and pms.plot_dimension != 2:
     raise ValueError("double-distribution.py : plot_dimension impossible or is not implemented.")
 
-# Both independent vars. are unitless
-beta_min, beta_max, num_beta = 1.3, 5, 50
-rho_tilde_min, rho_tilde_max, num_rho = 0, 3, 50
-
-beta_vals = np.logspace(np.log10(beta_min), np.log10(beta_max), num_beta)
-rho_vals = np.logspace(rho_tilde_min, rho_tilde_max, num_rho)
+beta_vals = np.logspace(np.log10(pms.beta_min), np.log10(pms.beta_max), pms.num_beta)
+rho_vals = np.logspace(pms.rho_tilde_min, pms.rho_tilde_max, pms.num_rho)
 
 print("-----\nDomain: ")
-print(rf"Mass range: ({beta_min:.1e}, {beta_max:.1e})")
-print("Density contrast range: ("+str(rho_tilde_min)+", "+str(rho_tilde_max)+")")
+print(rf"Mass range: ({pms.beta_min:.1e}, {pms.beta_max:.1e})")
+print("Density contrast range: ("+str(pms.rho_tilde_min)+", "+str(pms.rho_tilde_max)+")")
 
 if pms.plot_dimension == 2:
     # Create meshgrid for m and delta_l
@@ -37,8 +33,8 @@ if pms.plot_dimension == 2:
 
     # Compute joint pdf using dn
     Z = np.zeros_like(BTS)
-    for i in range(num_beta):
-        for j in range(num_rho):
+    for i in range(pms.num_beta):
+        for j in range(pms.num_rho):
             try:
                 Z[i, j] = func.dn(BTS[i, j], RHOS[i, j])
             except Exception:
@@ -90,29 +86,48 @@ elif pms.plot_dimension == 1:
         Calculate the PDF at slices of beta, and plot alongside the mode and stdev of the mode.
     """
 
-    beta_slices = np.array([0, 0.25, 0.5, 0.75, 1]) * (beta_max - beta_min) + beta_min # 
+    beta_slices = np.array([1]) * (pms.beta_max - pms.beta_min) + pms.beta_min # , 0.25, 0.5, 0.75, 1
     for beta in beta_slices:
         print("Starting PDF calculation for mass %.2E..." % beta)
 
         PDF = [func.dn(beta, rho) for rho in rho_vals]
-        mode, _ = func.pdf_sample_expectation(PDF, rho_vals)
+        mode, stdev = func.pdf_sample_expectation(PDF, rho_vals)
+
+        # print(func.CDF(2, beta))
+        # IQRL, IQRH = func.IQR(beta, mode - stdev, mode + stdev)
 
         # print("Sample mode: %.5E" % mode)
-        # print("Sample variance from the mode: %.5E" % mode_stdev)
+        # print("Sample variance from the mode: %.5E" % stdev)
+        # print(f"Initial guess for IQR: [{mode - stdev}, {mode + stdev}]")
+        # print(f"Predicted IQR: [{IQRL}, {IQRH}]")
         # print("---------")
 
+        CDF = [func.CDF(rho, beta) for rho in rho_vals]
+        # print(CDF[:10])
+        # print(rho_vals[0], rho_vals[-1])
+        # func.CDF(rho_vals[-1], pms.beta_max)
+        # func.CDF(rho_vals[0], pms.beta_min)
+        # print(func.CDF(rho_vals[-1], pms.beta_max), func.CDF(rho_vals[0], pms.beta_min))
+
+        plt.plot(rho_vals, CDF, label=rf"$\beta$ = {beta:.2}")
         plt.plot(rho_vals, PDF, label=rf"$\beta$ = {beta:.2}")
-        plt.plot(mode, func.dn(beta, mode), 'r.', label='_nolegend_')
+        # plt.plot(mode, func.dn(beta, mode), 'ro', label='_nolegend_')
         # plt.errorbar(mode, func.dn(beta, mode), xerr=mode_stdev, fmt='r.', markersize=10)
+        
+        # Add IQR as a horizontal line segment centered at the mode
+        # plt.hlines(func.dn(beta, mode), IQRL, IQRH, colors='red', linestyles='-', lw=2, label=f"IQR ($\\beta$={beta:.2f})")
+
+        # Plot the IQR as vertical lines at IQRL and IQRH
+        # plt.vlines([IQRL, IQRH], ymin=0, ymax=func.dn(beta, mode), colors='red', linestyles='dashed', lw=1.5, label='_nolegend_')
     
     plt.xlabel(r"$\tilde{\rho}$")
     plt.ylabel(r"$P_n$")
     plt.xscale("log")
-    plt.title(r"PDF slices along $\beta$")
+    plt.title(r"CDF slices along $\beta$")
     plt.grid(True)
     plt.legend()
 
-    plt.savefig("plots/joint-pdf-slice.pdf")
+    plt.savefig("plots/joint-cdf-slice.pdf")
     plt.close()
 
 """
