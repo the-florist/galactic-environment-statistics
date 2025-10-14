@@ -160,51 +160,17 @@ def CDF(rho, beta:float = 1.3, m:float = pms.M_200, a:float = 1):
     delta_c = delta_c_0(a) * D(a) / D(1)
     delta_tilde = delta_c * (1 - pow(1 + delta, -1/delta_c))
     rho_m = pms.Omega_m * pms.rho_c 
-    # dS = derivative(S, m)
-    # print(dS.status)
 
     N = (rho_m / m) * 1. / (2 * np.pi * np.sqrt(S(beta * m)) * pow(S(m) - S(beta * m), 3/2))
-    # print(dS.df)
 
     A = S(m) / (2 * S(beta * m) *(S(m) - S(beta * m)))
     B = delta_c_0(a) / 2 / (S(m) - S(beta * m))
     C = (delta_c_0(a) ** 2) / (2 * (S(m) - S(beta * m)))
 
-    # print("---------")
-    # print(f"beta: {beta}")
-    # print(f"rho: {rho}")
-    # print(f"rho m: {rho_m}")
-    # print(f"S(m): {S(m)}")
-    # print(f"S(beta m): {S(beta * m)}")
-    # print(f"delta c 0: {delta_c_0(a)}")
-    print(f"delta tile: {delta_tilde}")
-
-    # print(A, B, C)
-
-    # print(C + B**2 / A)
-    # print(S(beta * m) *(S(m) - S(beta * m)))
-
-    # print((S(m) - S(beta * m)))
-    # print(delta_c_0(a))
-    # exit()
-
     cdf_temp = np.sqrt(np.pi / A) * (delta_c_0(a) - B / A) / 2. # 0.5 * np.sqrt(np.pi / A) * (delta_c_0(a) - B / (2 * A))
-    # print(cdf_temp)
     cdf_temp *= np.exp(B**2 / A - C) * (1 - erf((B - A * delta_tilde) / np.sqrt(A))) # -1 np.sqrt(A) * delta_tilde - B / np.sqrt(A)
-    # print(cdf_temp)
-    # print(np.exp((A*C + B**2) / A))
-    # print(erf(np.sqrt(A) * delta_tilde - B / np.sqrt(A)))
-    # print(np.sqrt(A) * delta_tilde - B / np.sqrt(A))
-    # print(C)
-    # # print(B**2 / A)
-    # print(B, A)
-    cdf_temp += np.exp(-A * (delta_tilde**2) + B * delta_tilde - C) / (2 * A)
-    # print(np.exp(C) / (2 * A))
-    # print(cdf_temp)
+    cdf_temp += np.exp(-A * (delta_tilde**2) + 2 * B * delta_tilde - C) / (2 * A)
     cdf_temp *= N
-    print(cdf_temp)
-    # print(N)
-    exit()
 
     return cdf_temp
 
@@ -221,16 +187,12 @@ def dn(beta, rho, m:float = pms.M_200, a:float = 1):
     mass_removal = (delta_c_0(a) - delta_tilde) * np.exp(-(delta_c_0(a) - delta_tilde)**2 / (2 *(S(m) - S(beta*m)))) 
     mass_removal /= pow(S(m) - S(beta*m), 3/2)
 
-    random_walk = (rho_m / m) * (np.exp(-(delta_tilde**2) / (2 * S(beta*m))) / (2 * np.pi * np.sqrt(S(beta*m))))
+    random_walk = (rho_m / m) * (np.exp(-(delta_tilde ** 2) / (2 * S(beta * m))) / (2 * np.pi * np.sqrt(S(beta*m))))
 
-    # norm = CDF(pow(10, pms.rho_tilde_max), pms.beta_max) - CDF(pow(10, pms.rho_tilde_min), pms.beta_min)
-    # print(norm)
-    # print(CDF(pow(10, pms.rho_tilde_max), pms.beta_max), CDF(pow(10, pms.rho_tilde_min), pms.beta_min))
-    # CDF(pow(10, pms.rho_tilde_max), pms.beta_max)
-    # CDF(pow(10, pms.rho_tilde_min), pms.beta_min)
-    # exit()
+    jacobian = pow(rho, (-1 - 1/delta_c))
 
-    dn = random_walk * mass_removal # / norm
+    dn = random_walk * mass_removal * jacobian
+
     if pms.enforce_positive_pdf == True:
         if dn < 0:
             return 0

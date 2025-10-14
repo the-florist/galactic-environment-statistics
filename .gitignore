@@ -1,0 +1,8 @@
+__pycache__/
+forth-programs/
+docs/
+misc/
+output/
+plots/
+*.pdf
+*.txt

@@ -19,7 +19,9 @@ if pms.plot_dimension != 1 and pms.plot_dimension != 2:
     raise ValueError("double-distribution.py : plot_dimension impossible or is not implemented.")
 
 beta_vals = np.logspace(np.log10(pms.beta_min), np.log10(pms.beta_max), pms.num_beta)
-rho_vals = np.logspace(pms.rho_tilde_min, pms.rho_tilde_max, pms.num_rho)
+lin_rho_vals = np.linspace(pms.rho_tilde_min, pms.rho_tilde_max, pms.num_rho)
+rho_vals = np.array([pow(10, r) for r in lin_rho_vals])
+dr = (pms.rho_tilde_max - pms.rho_tilde_min) / (pms.num_rho)
 
 print("-----\nDomain: ")
 print(rf"Mass range: ({pms.beta_min:.1e}, {pms.beta_max:.1e})")
@@ -86,31 +88,22 @@ elif pms.plot_dimension == 1:
         Calculate the PDF at slices of beta, and plot alongside the mode and stdev of the mode.
     """
 
-    beta_slices = np.array([1]) * (pms.beta_max - pms.beta_min) + pms.beta_min # , 0.25, 0.5, 0.75, 1
+    beta_slices = np.array([0, 0.25, 0.5, 0.75, 1]) * (pms.beta_max - pms.beta_min) + pms.beta_min # 
     for beta in beta_slices:
         print("Starting PDF calculation for mass %.2E..." % beta)
 
         PDF = [func.dn(beta, rho) for rho in rho_vals]
+        CDF = [sum(PDF[:i]) * dr for i in range(len(PDF))]
         mode, stdev = func.pdf_sample_expectation(PDF, rho_vals)
 
-        # print(func.CDF(2, beta))
-        # IQRL, IQRH = func.IQR(beta, mode - stdev, mode + stdev)
+        norm = (CDF[-1] - CDF[0])
+        for i in range(len(PDF)):
+            PDF[i] /= norm
 
-        # print("Sample mode: %.5E" % mode)
-        # print("Sample variance from the mode: %.5E" % stdev)
-        # print(f"Initial guess for IQR: [{mode - stdev}, {mode + stdev}]")
-        # print(f"Predicted IQR: [{IQRL}, {IQRH}]")
-        # print("---------")
-
-        CDF = [func.CDF(rho, beta) for rho in rho_vals]
-        # print(CDF[:10])
-        # print(rho_vals[0], rho_vals[-1])
-        # func.CDF(rho_vals[-1], pms.beta_max)
-        # func.CDF(rho_vals[0], pms.beta_min)
-        # print(func.CDF(rho_vals[-1], pms.beta_max), func.CDF(rho_vals[0], pms.beta_min))
-
-        plt.plot(rho_vals, CDF, label=rf"$\beta$ = {beta:.2}")
+        print(f"PDF sample norm: {sum(PDF) * dr}")
         plt.plot(rho_vals, PDF, label=rf"$\beta$ = {beta:.2}")
+
+        # plt.plot(rho_vals, CDF, label=rf"$\beta$ = {beta:.2}")
         # plt.plot(mode, func.dn(beta, mode), 'ro', label='_nolegend_')
         # plt.errorbar(mode, func.dn(beta, mode), xerr=mode_stdev, fmt='r.', markersize=10)
         
@@ -127,7 +120,7 @@ elif pms.plot_dimension == 1:
     plt.grid(True)
     plt.legend()
 
-    plt.savefig("plots/joint-cdf-slice.pdf")
+    plt.savefig("plots/joint-pdf-slice-normalised.pdf")
     plt.close()
 
 """
