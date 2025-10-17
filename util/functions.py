@@ -7,6 +7,7 @@
 
 # libraries
 from math import exp
+import string
 from numpy.typing import NDArray
 import scipy.integrate as integrate
 from scipy.optimize import minimize
@@ -22,6 +23,10 @@ import util.parameters as pms
 """
     Functions used in growth-factor, to calculate D(a)
 """
+
+def make_directory(output_dir):
+    if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
 
 x_of_a = lambda a: pow(2 * pms.w, 1/3) * a
 A_integrand = lambda u: pow(u / (pow(u, 3) + 2), 3/2)
@@ -241,10 +246,7 @@ def convergence_test(my_analytic_function, my_analytic_diagnostic, my_sample_dia
                         my_min : float, my_max : float, resolutions : list):
 
         # Ensure output directory exists
-        output_dir = "output"
-        if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
-
+        make_directory("output")
         output_path = os.path.join(output_dir, "convergence-test.txt")
         fixed_point, _ = my_analytic_diagnostic(param_1, param_2)
         with open(output_path, "w") as f:

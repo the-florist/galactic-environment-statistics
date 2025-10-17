@@ -33,6 +33,8 @@ if(pms.print_D_a == True):
     plt.title("Growth Factor D(a) vs Scale Factor a")
     plt.legend()
     plt.grid(True)
+
+    func.make_directory("plots")
     plt.savefig("plots/D-plot.pdf")
     plt.close()
 
@@ -48,6 +50,8 @@ if(pms.compare_case_1 == True):
     plt.title("Growth Factor D(a) vs Scale Factor a")
     plt.legend()
     plt.grid(True)
+
+    func.make_directory("plots")
     plt.savefig("plots/D-case-1.pdf")
     plt.close()
 
@@ -74,6 +78,8 @@ if(pms.compare_case_2 == True):
     plt.title("Example 2: Omega_m + Omega_L = 1")
     plt.legend()
     plt.grid(True)
+
+    func.make_directory("plots")
     plt.savefig("plots/D-case-2.pdf")
     plt.close()
 

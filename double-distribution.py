@@ -14,6 +14,8 @@ from matplotlib.gridspec import GridSpec
 import util.parameters as pms
 import util.functions as func
 
+import os
+
 print("Plotting the double distribution.")
 if pms.plot_dimension != 1 and pms.plot_dimension != 2:
     raise ValueError("double-distribution.py : plot_dimension impossible or is not implemented.")
@@ -85,6 +87,8 @@ if pms.plot_dimension == 2:
     plt.setp(ax_marg_dl.get_yticklabels(), visible=False)
 
     ax_joint.set_title(r'Joint PDF of $\beta$ and $\tilde{\rho}$ with marginals')
+
+    func.make_directory("plots")
     plt.savefig("plots/joint-pdf.pdf")
     plt.close()
 
@@ -132,6 +136,7 @@ elif pms.plot_dimension == 1:
     plt.grid(True)
     plt.legend()
 
+    func.make_directory("plots")
     plt.savefig("plots/joint-pdf-slice.pdf")
     plt.close()
 

@@ -62,6 +62,8 @@ plt.yscale('log')
 plt.title(r"Mock density profile (today, LambdaCDM)")
 plt.legend()
 plt.grid(True)
+
+func.make_directory("plots")
 plt.savefig("plots/density-profile.pdf")
 plt.close()
 
