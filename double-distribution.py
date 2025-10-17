@@ -104,37 +104,32 @@ elif pms.plot_dimension == 1:
     beta_slices = np.array([0, 0.25, 0.5, 0.75, 1]) * (pms.beta_max - pms.beta_min) + pms.beta_min # 
     num_beta = 0
 
-    for beta in beta_slices:
-        print("Starting PDF calculation for mass %.2E..." % beta)
-
+    for beta in beta_vals:
         PDF = [func.dn(beta, rho) for rho in rho_vals]
-        CDF = [sum(PDF[:i]) * dr for i in range(len(PDF))]
         numeric_mode, stdev = func.pdf_sample_expectation(PDF, rho_vals)
-
-        norm = (CDF[-1] - CDF[0])
-        for i in range(len(PDF)):
-            PDF[i] /= norm
-
-        sample_norm = sum(PDF) * dr
         analytic_mode = func.most_probable_rho(beta)
 
-        print(f"PDF sample norm: {sample_norm}")
-        print(f"Most probable rho, from DD: {numeric_mode}")
-        print(f"Most probable rho, from analytic model: {analytic_mode}")
-
-        plt.plot(rho_vals, PDF, label=rf"$\beta$ = {beta:.2}")
-        plt.plot(numeric_mode, max(PDF), 'ro', label='_nolegend_')
-
-        
         num_beta += 1
         with open(fname, "a") as file:
             diff = abs(numeric_mode - analytic_mode) / numeric_mode
             if (num_beta == 1):
-                file.write("beta\tnorm-accuracy\tmpr-analytic\tmpr-numeric\trelative-difference\n")
-            file.write(f"{beta:.4E}\t{abs(1-sample_norm)}\t{analytic_mode}\t{numeric_mode}\t{diff}\n")
-            
-        
-        print("-----------")
+                file.write("beta\tmpr-analytic\tmpr-numeric\trelative-difference\n")
+            file.write(f"{beta:.4E}\t{analytic_mode}\t{numeric_mode}\t{diff}\n")
+
+        if beta in beta_slices:
+            CDF = [sum(PDF[:i]) * dr for i in range(len(PDF))]
+            norm = (CDF[-1] - CDF[0])
+            for i in range(len(PDF)):
+                PDF[i] /= norm
+            sample_norm = sum(PDF) * dr
+
+            print(f"PDF sample norm accuracy: {abs(1-sample_norm)}")
+            print(f"Most probable rho, from DD: {numeric_mode}")
+            print(f"Most probable rho, from analytic model: {analytic_mode}")
+            print("-----------")
+
+            plt.plot(rho_vals, PDF, label=rf"$\beta$ = {beta:.2}")
+            plt.plot(numeric_mode, max(PDF), 'ro', label='_nolegend_')
     
     plt.xlabel(r"$\tilde{\rho}$")
     plt.ylabel(r"$P_n$")
@@ -146,6 +141,8 @@ elif pms.plot_dimension == 1:
     func.make_directory("plots")
     plt.savefig("plots/joint-pdf-slice.pdf")
     plt.close()
+
+
 
 
 
