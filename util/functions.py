@@ -28,6 +28,10 @@ def make_directory(output_dir):
     if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 
+def clear_file(file_name):
+    if os.path.exists(file_name):
+        os.remove(file_name)
+
 x_of_a = lambda a: pow(2 * pms.w, 1/3) * a
 A_integrand = lambda u: pow(u / (pow(u, 3) + 2), 3/2)
 
@@ -247,7 +251,7 @@ def convergence_test(my_analytic_function, my_analytic_diagnostic, my_sample_dia
 
         # Ensure output directory exists
         make_directory("output")
-        output_path = os.path.join(output_dir, "convergence-test.txt")
+        output_path = "output/convergence-test.txt"
         fixed_point, _ = my_analytic_diagnostic(param_1, param_2)
         with open(output_path, "w") as f:
             f.write("res\tfixed_point\tguess\tnorm_diff\n")

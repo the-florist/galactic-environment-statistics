@@ -97,35 +97,42 @@ elif pms.plot_dimension == 1:
         Calculate the PDF at slices of beta, and plot alongside the mode and stdev of the mode.
     """
 
+    func.make_directory("output")
+    fname = "output/mpp-info.txt"
+    func.clear_file(fname)
+
     beta_slices = np.array([0, 0.25, 0.5, 0.75, 1]) * (pms.beta_max - pms.beta_min) + pms.beta_min # 
+    num_beta = 0
+
     for beta in beta_slices:
         print("Starting PDF calculation for mass %.2E..." % beta)
 
         PDF = [func.dn(beta, rho) for rho in rho_vals]
         CDF = [sum(PDF[:i]) * dr for i in range(len(PDF))]
-        mode, stdev = func.pdf_sample_expectation(PDF, rho_vals)
+        numeric_mode, stdev = func.pdf_sample_expectation(PDF, rho_vals)
 
         norm = (CDF[-1] - CDF[0])
         for i in range(len(PDF)):
             PDF[i] /= norm
 
-        print(f"PDF sample norm: {sum(PDF) * dr}")
-        print(f"Most probable rho, from DD: {mode}")
-        print(f"Most probable rho, from analytic model: {func.most_probable_rho(beta)}")
+        sample_norm = sum(PDF) * dr
+        analytic_mode = func.most_probable_rho(beta)
+
+        print(f"PDF sample norm: {sample_norm}")
+        print(f"Most probable rho, from DD: {numeric_mode}")
+        print(f"Most probable rho, from analytic model: {analytic_mode}")
 
         plt.plot(rho_vals, PDF, label=rf"$\beta$ = {beta:.2}")
-        plt.plot(mode, max(PDF), 'ro', label='_nolegend_')
+        plt.plot(numeric_mode, max(PDF), 'ro', label='_nolegend_')
 
-
-
-        # plt.plot(rho_vals, CDF, label=rf"$\beta$ = {beta:.2}")
-        # plt.errorbar(mode, func.dn(beta, mode), xerr=mode_stdev, fmt='r.', markersize=10)
         
-        # Add IQR as a horizontal line segment centered at the mode
-        # plt.hlines(func.dn(beta, mode), IQRL, IQRH, colors='red', linestyles='-', lw=2, label=f"IQR ($\\beta$={beta:.2f})")
-
-        # Plot the IQR as vertical lines at IQRL and IQRH
-        # plt.vlines([IQRL, IQRH], ymin=0, ymax=func.dn(beta, mode), colors='red', linestyles='dashed', lw=1.5, label='_nolegend_')
+        num_beta += 1
+        with open(fname, "a") as file:
+            diff = abs(numeric_mode - analytic_mode) / numeric_mode
+            if (num_beta == 1):
+                file.write("beta\tnorm\tmpr-analytic\tmpr-numeric\trelative-difference\n")
+            file.write(f"{beta}\t{sample_norm}\t{analytic_mode}\t{numeric_mode}\t{diff}\n")
+            
         
         print("-----------")
     
