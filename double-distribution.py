@@ -20,6 +20,7 @@ print("Plotting the double distribution.")
 if pms.plot_dimension != 1 and pms.plot_dimension != 2:
     raise ValueError("double-distribution.py : plot_dimension impossible or is not implemented.")
 
+func.make_directory("plots")
 beta_vals = np.logspace(np.log10(pms.beta_min), np.log10(pms.beta_max), pms.num_beta)
 lin_rho_vals = np.linspace(pms.rho_tilde_min, pms.rho_tilde_max, pms.num_rho)
 rho_vals = np.array([pow(10, r) for r in lin_rho_vals])
@@ -103,18 +104,20 @@ elif pms.plot_dimension == 1:
 
     beta_slices = np.array([0, 0.25, 0.5, 0.75, 1]) * (pms.beta_max - pms.beta_min) + pms.beta_min # 
     num_beta = 0
+    mode_diffs = []
 
-    for beta in beta_vals:
+    for idx, beta in enumerate(beta_vals):
         PDF = [func.dn(beta, rho) for rho in rho_vals]
         numeric_mode, stdev = func.pdf_sample_expectation(PDF, rho_vals)
         analytic_mode = func.most_probable_rho(beta)
+        mode_diffs.append(abs(numeric_mode - analytic_mode) / numeric_mode)
 
-        num_beta += 1
-        with open(fname, "a") as file:
-            diff = abs(numeric_mode - analytic_mode) / numeric_mode
-            if (num_beta == 1):
-                file.write("beta\tmpr-analytic\tmpr-numeric\trelative-difference\n")
-            file.write(f"{beta:.4E}\t{analytic_mode}\t{numeric_mode}\t{diff}\n")
+        # num_beta += 1
+        # with open(fname, "a") as file:
+        #     diff = abs(numeric_mode - analytic_mode) / numeric_mode
+        #     if (num_beta == 1):
+        #         file.write("beta\tmpr-analytic\tmpr-numeric\trelative-difference\n")
+        #     file.write(f"{beta:.4E}\t{analytic_mode}\t{numeric_mode}\t{diff}\n")
 
         if beta in beta_slices:
             CDF = [sum(PDF[:i]) * dr for i in range(len(PDF))]
@@ -137,9 +140,15 @@ elif pms.plot_dimension == 1:
     plt.title(r"CDF slices along $\beta$")
     plt.grid(True)
     plt.legend()
-
-    func.make_directory("plots")
     plt.savefig("plots/joint-pdf-slice.pdf")
+    plt.close()
+
+    plt.plot(beta_vals, mode_diffs)
+    plt.xlabel(r"$\beta$")
+    plt.ylabel(r"$|\hat{M} - M|/\hat{M}$")
+    plt.title("Absolute difference between sample and predicted modes")
+    plt.grid(True)
+    plt.savefig("plots/mode-diffs.pdf")
     plt.close()
 
 

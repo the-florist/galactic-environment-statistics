@@ -17,6 +17,8 @@ from typing import List, cast
 import util.parameters as pms
 import util.functions as func
 
+func.make_directory("plots")
+
 # Compute D(a) for a single value
 D_i, err = func.D(pms.a_f, return_full = True)
 print("D(a) = "+str(D_i))
@@ -33,8 +35,6 @@ if(pms.print_D_a == True):
     plt.title("Growth Factor D(a) vs Scale Factor a")
     plt.legend()
     plt.grid(True)
-
-    func.make_directory("plots")
     plt.savefig("plots/D-plot.pdf")
     plt.close()
 
@@ -50,8 +50,6 @@ if(pms.compare_case_1 == True):
     plt.title("Growth Factor D(a) vs Scale Factor a")
     plt.legend()
     plt.grid(True)
-
-    func.make_directory("plots")
     plt.savefig("plots/D-case-1.pdf")
     plt.close()
 
@@ -78,8 +76,6 @@ if(pms.compare_case_2 == True):
     plt.title("Example 2: Omega_m + Omega_L = 1")
     plt.legend()
     plt.grid(True)
-
-    func.make_directory("plots")
     plt.savefig("plots/D-case-2.pdf")
     plt.close()
 

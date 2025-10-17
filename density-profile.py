@@ -14,6 +14,7 @@ import util.parameters as pms
 import util.functions as func
 
 print("Visualising density profile.")
+func.make_directory("plots")
 
 # Problem-specific quantities
 gamma = [0.55, 0.525, 0.50]     # taken as mean of figure given in Pavlidou 2024
@@ -62,8 +63,6 @@ plt.yscale('log')
 plt.title(r"Mock density profile (today, LambdaCDM)")
 plt.legend()
 plt.grid(True)
-
-func.make_directory("plots")
 plt.savefig("plots/density-profile.pdf")
 plt.close()
 
