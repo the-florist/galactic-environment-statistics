@@ -130,8 +130,8 @@ elif pms.plot_dimension == 1:
         with open(fname, "a") as file:
             diff = abs(numeric_mode - analytic_mode) / numeric_mode
             if (num_beta == 1):
-                file.write("beta\tnorm\tmpr-analytic\tmpr-numeric\trelative-difference\n")
-            file.write(f"{beta}\t{sample_norm}\t{analytic_mode}\t{numeric_mode}\t{diff}\n")
+                file.write("beta\tnorm-accuracy\tmpr-analytic\tmpr-numeric\trelative-difference\n")
+            file.write(f"{beta:.4E}\t{abs(1-sample_norm)}\t{analytic_mode}\t{numeric_mode}\t{diff}\n")
             
         
         print("-----------")
