@@ -11,9 +11,9 @@ from numpy.typing import NDArray
 import scipy.integrate as integrate
 from scipy.optimize import minimize
 from scipy.special import erf
-from scipy.differentiate import derivative
 import numpy as np
 from typing import overload, Literal, Tuple, Union
+import os
 
 # parameters
 import util.parameters as pms
@@ -232,10 +232,13 @@ def pdf_sample_expectation(pdf : list, rho_vals : NDArray):
 
     return sample_mode, np.sqrt(sample_mode_variance)
 
+def most_probable_rho(beta:float, gamma:float = 0.52, a:float = 1):
+    delta_c = delta_c_0(a) * D(a) / D(1)
+    return pow(1 - pow(beta, -gamma), -delta_c + 1)
+
 """
 def convergence_test(my_analytic_function, my_analytic_diagnostic, my_sample_diagnostic, param_1, param_2, 
                         my_min : float, my_max : float, resolutions : list):
-        import os
 
         # Ensure output directory exists
         output_dir = "output"

@@ -42,6 +42,11 @@ if pms.plot_dimension == 2:
             except Exception:
                 Z[i, j] = 0
 
+    for i in range(pms.num_beta):
+        norm = (sum(Z[i]) - Z[i, 0]) * dr
+        for j in range(pms.num_rho):
+            Z[i, j] /= norm
+
     # Marginals
     marginal_m = np.trapezoid(Z, rho_vals, axis=1)
     marginal_dl = np.trapezoid(Z, beta_vals, axis=0)
@@ -101,10 +106,15 @@ elif pms.plot_dimension == 1:
             PDF[i] /= norm
 
         print(f"PDF sample norm: {sum(PDF) * dr}")
+        print(f"Most probable rho, from DD: {mode}")
+        print(f"Most probable rho, from analytic model: {func.most_probable_rho(beta)}")
+
         plt.plot(rho_vals, PDF, label=rf"$\beta$ = {beta:.2}")
+        plt.plot(mode, max(PDF), 'ro', label='_nolegend_')
+
+
 
         # plt.plot(rho_vals, CDF, label=rf"$\beta$ = {beta:.2}")
-        # plt.plot(mode, func.dn(beta, mode), 'ro', label='_nolegend_')
         # plt.errorbar(mode, func.dn(beta, mode), xerr=mode_stdev, fmt='r.', markersize=10)
         
         # Add IQR as a horizontal line segment centered at the mode
@@ -112,6 +122,8 @@ elif pms.plot_dimension == 1:
 
         # Plot the IQR as vertical lines at IQRL and IQRH
         # plt.vlines([IQRL, IQRH], ymin=0, ymax=func.dn(beta, mode), colors='red', linestyles='dashed', lw=1.5, label='_nolegend_')
+        
+        print("-----------")
     
     plt.xlabel(r"$\tilde{\rho}$")
     plt.ylabel(r"$P_n$")
@@ -120,8 +132,10 @@ elif pms.plot_dimension == 1:
     plt.grid(True)
     plt.legend()
 
-    plt.savefig("plots/joint-pdf-slice-normalised.pdf")
+    plt.savefig("plots/joint-pdf-slice.pdf")
     plt.close()
+
+
 
 """
 num_deltas = [25, 50, 100, 200]
