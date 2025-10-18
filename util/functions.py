@@ -42,7 +42,8 @@ def A(x_val):
         return A_tmp
 
 def D_integrand(x: float, Om_integrand: float, Ol_integrand: float) -> float:
-    return pow(x / (x * (1 - Om_integrand - Ol_integrand) + Om_integrand + Ol_integrand * (x ** 3)), 3/2)
+    return pow(x / (x * (1 - Om_integrand - Ol_integrand) + Om_integrand 
+                + Ol_integrand * (x ** 3)), 3/2)
 
 @overload
 def D(a: float, return_full: Literal[True], Om: float = ..., Ol: float = ...) -> Tuple[float, float]:
@@ -76,10 +77,15 @@ def rho_avg(Sbm, Sm, delta_c):
 
 def transfer_function_integrand(k):
     """
-        The integrand used to calculate S(m) according to Bardeen's transfer function.
+        The integrand used to calculate S(m) according to Bardeen's 
+        transfer function.
     """
     transfer_function = np.log(1 + 2.34 * q_of_k(k)) 
-    transfer_function *= pow(1 + 3.89 * q_of_k(k) + pow(16.1 * q_of_k(k), 2) + pow(5.46 * q_of_k(k), 3) + pow(6.71 * q_of_k(k), 4), -1/4)
+    transfer_function *= pow(1 + 3.89 * q_of_k(k) 
+                        + pow(16.1 * q_of_k(k), 2) 
+                        + pow(5.46 * q_of_k(k), 3) 
+                        + pow(6.71 * q_of_k(k), 4), -1/4)
+
     transfer_function /= (2.34 * q_of_k(k))
 
     temp = pow(transfer_function, 2) * pow(k, 2 + pms.n)
@@ -107,11 +113,15 @@ def rho(beta, delta_c, gamma:float = 0.52, a = 1, m:float = pms.M_200):
         or rho(beta, m) for transfer function version of S(m).
     """
     if pms.power_law_approx == True:
-        return (pms.Omega_m * pms.rho_c) * (a ** -3) * pow(1 - pow(beta, -gamma), -delta_c + 1) / (pms.Omega_m * pms.rho_c)
+        return ((pms.Omega_m * pms.rho_c) * (a ** -3) 
+                * pow(1 - pow(beta, -gamma), -delta_c + 1) 
+                / (pms.Omega_m * pms.rho_c))
 
     else:
-        C = pms.s_8 / (integrate.quad(lambda k: transfer_function_integrand(k), 0, k_of_m(pms.m_8)))[0]
-        temp = delta_c * pow(1 - S(beta * m)/S(m), -1) * k_of_m(beta * m) * transfer_function_integrand(k_of_m(m)) / 3 / S(m)
+        C = pms.s_8 / (integrate.quad(lambda k: transfer_function_integrand(k), 
+                                        0, k_of_m(pms.m_8)))[0]
+        temp = delta_c * pow(1 - S(beta * m)/S(m), -1) * k_of_m(beta * m) 
+        temp *= transfer_function_integrand(k_of_m(m)) / 3 / S(m)
         denominator = 1 - temp * C
         return rho_avg(S(beta * m), S(m), delta_c) / denominator
         
@@ -138,18 +148,22 @@ def a_coll_integrand(x, c1, c2) -> float:
 
 def a_coll() -> float:
     """
-        Calculate a_coll by minimizing the integral to a_coll and the integral to a_pta
+        Calculate a_coll by minimizing the integral to a_coll and the integral 
+        to a_pta
     """
     a_init = 1
 
     a_pta = pow(pms.w, -1/3) 
     a_pta *= np.sqrt(4 * pms.kappa / 3 / pow(pms.w, 1/3)) 
-    a_pta *= np.cos(1/3 * (np.arccos(np.sqrt(27 * pow(pms.kappa/pow(pms.w, 1/3), -3) / 4)) + np.pi))
+    a_pta *= np.cos(1/3 * (np.arccos(np.sqrt(27 * 
+                pow(pms.kappa/pow(pms.w, 1/3), -3) / 4)) + np.pi))
 
-    C = 2 * integrate.quad(lambda x: a_coll_integrand(x, pms.w, pms.kappa), pms.a_i, a_pta)[0]
+    C = 2 * integrate.quad(lambda x: a_coll_integrand(x, pms.w, pms.kappa), 
+                            pms.a_i, a_pta)[0]
 
     def diff(a):
-        return abs(integrate.quad(lambda x: a_coll_integrand(x, pms.w, pms.phi), pms.a_i, a)[0] - C)
+        return abs(integrate.quad(lambda x: a_coll_integrand(x, pms.w, pms.phi), 
+                                    pms.a_i, a)[0] - C)
 
     solution = minimize(diff, a_init, bounds=[(0, 1)], tol=pms.root_finder_precision)
 
@@ -170,7 +184,8 @@ def CDF(rho, beta:float = 1.3, m:float = pms.M_200, a:float = 1):
     delta_tilde = delta_c * (1 - pow(1 + delta, -1/delta_c))
     rho_m = pms.Omega_m * pms.rho_c 
 
-    N = (rho_m / m) * 1. / (2 * np.pi * np.sqrt(S(beta * m)) * pow(S(m) - S(beta * m), 3/2))
+    N = (rho_m / m) * 1. / (2 * np.pi * np.sqrt(S(beta * m)) 
+        * pow(S(m) - S(beta * m), 3/2))
 
     A = S(m) / (2 * S(beta * m) *(S(m) - S(beta * m)))
     B = delta_c_0(a) / 2 / (S(m) - S(beta * m))
@@ -185,7 +200,8 @@ def CDF(rho, beta:float = 1.3, m:float = pms.M_200, a:float = 1):
 
 def dn(beta, rho, m:float = pms.M_200, a:float = 1):
     """
-        Calculate the double distribution of number density w/r/t mass and local overdensity
+        Calculate the double distribution of number density w/r/t mass and 
+        local overdensity
     """
 
     delta = rho - 1
@@ -193,10 +209,13 @@ def dn(beta, rho, m:float = pms.M_200, a:float = 1):
     delta_tilde = delta_c * (1 - pow(1 + delta, -1/delta_c))
     rho_m = pms.Omega_m * pms.rho_c 
 
-    mass_removal = (delta_c_0(a) - delta_tilde) * np.exp(-(delta_c_0(a) - delta_tilde)**2 / (2 *(S(m) - S(beta*m)))) 
+    mass_removal = (delta_c_0(a) - delta_tilde) 
+    mass_removal *= np.exp(-(delta_c_0(a) - delta_tilde)**2 
+                            / (2 *(S(m) - S(beta*m)))) 
     mass_removal /= pow(S(m) - S(beta*m), 3/2)
 
-    random_walk = (rho_m / m) * (np.exp(-(delta_tilde ** 2) / (2 * S(beta * m))) / (2 * np.pi * np.sqrt(S(beta*m))))
+    random_walk = (rho_m / m) * (np.exp(-(delta_tilde ** 2) / (2 * S(beta * m))) 
+                    / (2 * np.pi * np.sqrt(S(beta*m))))
 
     jacobian = pow(rho, (-1 - 1/delta_c))
 
@@ -229,7 +248,8 @@ def dn(beta, rho, m:float = pms.M_200, a:float = 1):
 
 def pdf_sample_expectation(pdf : list, rho_vals : NDArray):
     """
-        Calculate the mode of the double distribution (i.e. the most probable profile)
+        Calculate the mode of the double distribution 
+        (i.e. the most probable profile)
         and the standard deviation of the mode, sliced at m.
     """
 
@@ -237,7 +257,7 @@ def pdf_sample_expectation(pdf : list, rho_vals : NDArray):
 
     sample_mode_variance = 0
     for i in range(len(rho_vals)):
-        sample_mode_variance += pdf[i] * pow(rho_vals[i] - sample_mode, 2) # / sample_norm
+        sample_mode_variance += pdf[i] * pow(rho_vals[i] - sample_mode, 2)
 
     return sample_mode, np.sqrt(sample_mode_variance)
 

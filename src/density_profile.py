@@ -13,9 +13,6 @@ import matplotlib.pyplot as plt
 import util.parameters as pms 
 import util.functions as func
 
-print("Visualising density profile.")
-func.make_directory("plots")
-
 # Problem-specific quantities
 gamma = [0.55, 0.525, 0.50]     # taken as mean of figure given in Pavlidou 2024
 delta_ta = 11 * (pms.Omega_m)   # turnaround overdensity (provided by Vaso)
@@ -34,38 +31,43 @@ print("Omega_m = "+str(pms.Omega_m))
 print("Omega_L = "+str(pms.Omega_L))
 print("delta_c = "+str(pms.delta_c))
 
-if pms.power_law_approx == True:
-    print("Using power law approximation for S(m).\n gamma = "+str(gamma))
-    print("--------")
+def run():
+    """
+        Calculate and plot the density profile for given model of S(m)
+    """
+    if pms.power_law_approx == True:
+        print("Using power law approximation for S(m).\n gamma = "+str(gamma))
 
-    # Solve for rho and r parametrically 
-    rhos = [[func.rho(b, pms.delta_c, gamma = g) for b in beta_range] for g in gamma]
-    rs = [[func.r(b, pms.delta_c, delta_ta, gamma = g) for b in beta_range] for g in gamma]
+        # Solve for rho and r parametrically 
+        rhos = [[func.rho(b, pms.delta_c, gamma = g) for b in beta_range] 
+                 for g in gamma]
+        rs = [[func.r(b, pms.delta_c, delta_ta, gamma = g) for b in beta_range] 
+               for g in gamma]
 
-    # Plot this
-    for i in np.arange(0, len(gamma)):
-        plt.plot(rs[i], rhos[i], label=r"$\gamma =$ "+str(gamma[i]))
+        # Plot this
+        for i in np.arange(0, len(gamma)):
+            plt.plot(rs[i], rhos[i], label=r"$\gamma =$ "+str(gamma[i]))
 
-else:
-    print("Using Bardeen transfer function for S(m)")
-    masses = [2e13, 4e13, 6e13, 8e13, 1e14]  # Solar masses
+    else:
+        print("Using Bardeen transfer function for S(m)")
+        masses = [2e13, 4e13, 6e13, 8e13, 1e14]  # Solar masses
 
-    rhos = [[func.rho(beta, pms.delta_c, m = mass) for beta in beta_range] for mass in masses]
-    rs = [[func.r(beta, pms.delta_c, delta_ta, m = mass) for beta in beta_range] for mass in masses]
+        rhos = [[func.rho(beta, pms.delta_c, m = mass) 
+                 for beta in beta_range] 
+                 for mass in masses]
+        rs = [[func.r(beta, pms.delta_c, delta_ta, m = mass) 
+               for beta in beta_range] 
+               for mass in masses]
 
-    for m in np.arange(0, len(masses)):
-        plt.plot(rs[m], rhos[m], label=rf"$m = {masses[m]:.1e}$")
+        for m in np.arange(0, len(masses)):
+            plt.plot(rs[m], rhos[m], label=rf"$m = {masses[m]:.1e}$")
 
-plt.xlabel(r"$r$ ($R/R_{\mathrm{ta}}$)")
-plt.xscale('log')
-plt.ylabel(r"$\tilde{\rho}$ $(\rho/\rho_{m})$")
-plt.yscale('log')
-plt.title(r"Mock density profile (today, LambdaCDM)")
-plt.legend()
-plt.grid(True)
-plt.savefig("plots/density-profile.pdf")
-plt.close()
-
-
-
-print("Figure printed.")
+    plt.xlabel(r"$r$ ($R/R_{\mathrm{ta}}$)")
+    plt.xscale('log')
+    plt.ylabel(r"$\tilde{\rho}$ $(\rho/\rho_{m})$")
+    plt.yscale('log')
+    plt.title(r"Mock density profile (today, LambdaCDM)")
+    plt.legend()
+    plt.grid(True)
+    plt.savefig("plots/density-profile.pdf")
+    plt.close()

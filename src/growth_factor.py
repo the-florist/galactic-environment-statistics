@@ -17,9 +17,10 @@ from typing import List, cast
 import util.parameters as pms
 import util.functions as func
 
-func.make_directory("plots")
-
-def run_growth_factor():
+def run():
+    """
+        Compute and plot the growth factor of linear perturbations, D(a)
+    """
 
     # Compute D(a) for a single value
     D_i, err = func.D(pms.a_f, return_full = True)
@@ -27,7 +28,8 @@ def run_growth_factor():
     print("D(a) error: "+str(err))
 
     a_vals = np.linspace(pms.a_i, pms.a_f, pms.num_steps)
-    D_vals: List[float] = [cast(float, func.D(a, return_full=False)) for a in a_vals]
+    D_vals: List[float] = [cast(float, func.D(a, return_full=False)) 
+                          for a in a_vals]
 
     # Plot D(a)
     if(pms.print_D_a == True):
@@ -42,7 +44,9 @@ def run_growth_factor():
 
     # Check the matter-only case works
     if(pms.compare_case_1 == True):
-        matter_model: List[float] = [cast(float, func.D(a, return_full=False, Om = 1, Ol = 0)) for a in a_vals]
+        matter_model: List[float] = [cast(float, func.D(a, return_full=False, 
+                                                         Om=1, Ol=0)) 
+                                      for a in a_vals]
         slope_est = (matter_model[-1] - matter_model[0])/(pms.a_f - pms.a_i)
         
         plt.plot(a_vals, matter_model, label="D(a), Omega_m = 1")
@@ -63,7 +67,9 @@ def run_growth_factor():
             print(Omega_m, Omega_L, Omega_m + Omega_L)
             raise Exception("For test 2, Omega_m and Omega_L must sum to 1")
 
-        even_evaluation: List[float] = [cast(float, func.D(a, return_full=False, Om = Omega_m, Ol = Omega_L)) for a in a_vals]
+        even_evaluation: List[float] = [cast(float, func.D(a, return_full=False, 
+                                                           Om=Omega_m, Ol=Omega_L)) 
+                                         for a in a_vals]
         even_model = [func.A(func.x_of_a(a)) for a in a_vals]
 
         rescale = pow(Omega_L, -3/2) * pow(2 * pms.w, 2/3) * np.sqrt(Omega_L) 
