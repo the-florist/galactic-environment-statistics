@@ -25,9 +25,11 @@ and the most probable profile, for a given cosmological model.
 ## Repository Structure
 ```
 galactic-environment-statistics/
-├── growth-factor.py # Calculate and plot the growth factor
-├── double-distribution.py # Calculate and plot the double distribution
-├── density-profile.py # Calculate and plot the most probable density profile 
+├── main.py # Main program
+├── src/
+│ ├── growth-factor.py # Calculate and plot the growth factor
+│ ├──  double-distribution.py # Calculate and plot the double distribution
+│ ├──  density-profile.py # Calculate and plot the most probable density profile 
 ├── utils/ # Utilities
 │ ├── functions.py # Functions used by the src/ programs
 │ ├── parameters.py # Parameters used by the src/ programs
