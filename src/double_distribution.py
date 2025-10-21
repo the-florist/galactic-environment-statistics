@@ -8,6 +8,7 @@
 """
 
 import numpy as np
+from time import time
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 
@@ -29,6 +30,9 @@ dr = (pms.rho_tilde_max - pms.rho_tilde_min) / (pms.num_rho)
 # print("Density contrast range: ("+str(pms.rho_tilde_min)+", "
 #       +str(pms.rho_tilde_max)+")")
 
+# def print_progress(i, j, start:float, last:float, interval:float):
+    
+
 def run():
     # Create meshgrid for beta and rhos
     BTS, RHOS = np.meshgrid(beta_vals, rho_vals, indexing='ij')
@@ -37,12 +41,25 @@ def run():
 
     # Compute un-normalised joint PDF
     PDF = np.zeros_like(BTS)
+
+    # Set up the timer
+    start = time()
+    intv = 15
+    last = start
+
     for i in range(pms.num_beta):
         for j in range(pms.num_rho):
             try:
                 PDF[i, j] = ddfunc.dn(BTS[i, j], RHOS[i, j])
             except Exception:
                 PDF[i, j] = 0
+
+        now = time()
+        if now - last > intv:
+            frac = ((i * pms.num_rho) + j + 1) / (pms.num_beta * pms.num_rho)
+            elapsed = now - start
+            print(f"{elapsed:.2g} sec. passed, {frac * 100}% finished...")
+            last = now
 
     # Normalise the joint PDF
     norm = np.sum(PDF)
