@@ -114,6 +114,12 @@ def run():
             PDF = [func.dn(beta, rho) for rho in rho_vals]
             numeric_mode, _ = func.pdf_sample_expectation(PDF, rho_vals)
             analytic_mode = func.most_probable_rho(beta)
+            analytic_mode_transformed = func.most_probable_rho_transformed(beta)
+
+            print(numeric_mode, analytic_mode)
+            print(analytic_mode_transformed)
+            exit()
+
             mode_diffs.append(abs(numeric_mode - analytic_mode) / numeric_mode)
 
             num_beta += 1

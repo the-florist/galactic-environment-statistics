@@ -9,12 +9,14 @@
 from math import exp
 import string
 from numpy.typing import NDArray
+from pandas._testing import can_set_locale
 import scipy.integrate as integrate
 from scipy.optimize import minimize
 from scipy.special import erf
 import numpy as np
 from typing import overload, Literal, Tuple, Union
 import os
+import numpy.polynomial.polynomial as poly
 
 # parameters
 import util.parameters as pms
@@ -264,6 +266,36 @@ def pdf_sample_expectation(pdf : list, rho_vals : NDArray):
 def most_probable_rho(beta:float, gamma:float = 0.52, a:float = 1):
     delta_c = delta_c_0(a) * D(a) / D(1)
     return pow(1 - pow(beta, -gamma), -delta_c + 1)
+
+
+def most_probable_rho_transformed(beta:float, gamma:float = 0.52, 
+                                    m:float = pms.M_200, a:float = 1):
+    """
+        Calculate the expected rho from the correctly transformed double dist.
+    """
+
+    delta_c = delta_c_0(a) * D(a) / D(1)
+    eta = delta_c_0(a) - delta_c
+    A = S(m) / (2 * S(beta * m) *(S(m) - S(beta * m)))
+    B = delta_c_0(a) / 2 / (S(m) - S(beta * m))
+
+    Ap = A * pow(delta_c, 2)
+    Bp = Ap - 2 * delta_c * B
+
+    a = 2 * Ap * delta_c
+    b = 2 * (Ap * eta - Bp * delta_c)
+    c = - (2 * Bp * eta + 2 * delta_c + pow(delta_c, 2))
+    d = - eta * (1 + delta_c)
+
+    roots = poly.polyroots([d, c, b, a])
+    candidates = []
+    for i in range(len(roots)):
+        if roots[i] > 0:
+            candidates.append(pow(roots[i], -delta_c))
+
+    return candidates
+
+    
 
 """
 def convergence_test(my_analytic_function, my_analytic_diagnostic, my_sample_diagnostic, param_1, param_2, 
