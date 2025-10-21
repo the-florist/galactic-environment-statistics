@@ -151,7 +151,7 @@ def run():
         plt.xlabel(r"$\tilde{\rho}$")
         plt.ylabel(r"$P_n$")
         plt.xscale("log")
-        plt.title(r"CDF slices along $\beta$")
+        plt.title(r"PDF slices along $\beta$")
         plt.grid(True)
         plt.legend()
         plt.savefig("plots/joint-pdf-slice.pdf")
