@@ -18,9 +18,8 @@ import numpy.polynomial.polynomial as poly
 # parameters
 import util.parameters as pms
 
-
 """
-    Functions used in growth-factor, to calculate D(a)
+    General purpose functions
 """
 
 def make_directory(output_dir):
@@ -30,6 +29,10 @@ def make_directory(output_dir):
 def clear_file(file_name):
     if os.path.exists(file_name):
         os.remove(file_name)
+
+"""
+    Functions used to calculate D(a)
+"""
 
 x_of_a = lambda a: pow(2 * pms.w, 1/3) * a
 A_integrand = lambda u: pow(u / (pow(u, 3) + 2), 3/2)
@@ -65,14 +68,11 @@ def D(a: float, return_full: bool = False, Om: float = pms.Omega_m, Ol: float = 
 
 
 """
-    Functions used in density-profile.py to calculate (r, rho)
+    Functions used in density_profile.py to calculate (r, rho)
 """
 
 k_of_m = lambda m: pow(6 * (np.pi ** 2) * (pms.Omega_m * pms.rho_c) / m, 1/3)
 q_of_k = lambda k: k / pms.Omega_m / pow(pms.h, 2)
-
-def rho_avg(Sbm, Sm, delta_c):
-    return (pms.Omega_m * pms.rho_c) * pow(1 - Sbm/Sm, -delta_c)
 
 def transfer_function_integrand(k):
     """
@@ -105,39 +105,7 @@ def S(m, power_law_approx = pms.power_law_approx, gamma:float = pms.default_gamm
         S_temp *= pms.s_8
         S_temp /= (integrate.quad(lambda k: transfer_function_integrand(k), 0, k_of_m(pms.m_8))[0])
         return S_temp 
-
-def rho(beta, delta_c, gamma:float = pms.default_gamma, a = 1, m:float = pms.M_200):
-    """
-        Find rho(beta) for power law approximation of S(m),
-        or rho(beta, m) for transfer function version of S(m).
-    """
-    if pms.power_law_approx == True:
-        return ((pms.Omega_m * pms.rho_c) * (a ** -3) 
-                * pow(1 - pow(beta, -gamma), -delta_c + 1) 
-                / (pms.Omega_m * pms.rho_c))
-
-    else:
-        C = pms.s_8 / (integrate.quad(lambda k: transfer_function_integrand(k), 
-                                        0, k_of_m(pms.m_8)))[0]
-        temp = delta_c * pow(1 - S(beta * m)/S(m), -1) * k_of_m(beta * m) 
-        temp *= transfer_function_integrand(k_of_m(m)) / 3 / S(m)
-        denominator = 1 - temp * C
-        return rho_avg(S(beta * m), S(m), delta_c) / denominator
         
-
-def r(beta, delta_c, delta_ta, gamma:float = pms.default_gamma, m:float = pms.M_200):
-    """
-        Find r(beta) for power law approximation of S(m), where r = R/R_ta,
-        or r(beta, m) for transfer function version of S(m).
-    """
-    if pms.power_law_approx == True:
-            w = (1 + delta_ta) * pow(1 - pow(1 + delta_ta, -1/delta_c), 1/gamma)
-            return pow(w * beta * pow(1 - pow(beta, -gamma), delta_c), 1/3)
-
-    else:
-        temp = beta * pow(1 - S(beta * m)/S(m), delta_c) * (1 + delta_ta) / pms.beta_ta # FIXME
-        return pow(temp, 1/3)
-
 """
     Functions used in double-dsitribution.py, to find the double distribution.
 """
