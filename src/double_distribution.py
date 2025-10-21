@@ -30,30 +30,31 @@ dr = (pms.rho_tilde_max - pms.rho_tilde_min) / (pms.num_rho)
 #       +str(pms.rho_tilde_max)+")")
 
 def run():
+    # Create meshgrid for beta and rhos
+    BTS, RHOS = np.meshgrid(beta_vals, rho_vals, indexing='ij')
+
+    print("Starting loop over rho/beta domain...")
+
+    # Compute un-normalised joint PDF
+    PDF = np.zeros_like(BTS)
+    for i in range(pms.num_beta):
+        for j in range(pms.num_rho):
+            try:
+                PDF[i, j] = ddfunc.dn(BTS[i, j], RHOS[i, j])
+            except Exception:
+                PDF[i, j] = 0
+
+    # Normalise the joint PDF
+    norm = np.sum(PDF)
+    PDF /= norm
+
+    print(f"PDF norm precision: {abs(np.sum(PDF) - 1.):.15}")
+    print(f"Starting {pms.plot_dimension}D plot generation...")
 
     if pms.plot_dimension == 2:
-        # Create meshgrid for m and delta_l
-        BTS, RHOS = np.meshgrid(beta_vals, rho_vals, indexing='ij')
-
-        print("Starting loop over mass/contrast domain...")
-
-        # Compute joint pdf using dn
-        Z = np.zeros_like(BTS)
-        for i in range(pms.num_beta):
-            for j in range(pms.num_rho):
-                try:
-                    Z[i, j] = ddfunc.dn(BTS[i, j], RHOS[i, j])
-                except Exception:
-                    Z[i, j] = 0
-
-        for i in range(pms.num_beta):
-            norm = (sum(Z[i]) - Z[i, 0]) * dr
-            for j in range(pms.num_rho):
-                Z[i, j] /= norm
-
         # Marginals
-        marginal_m = np.trapezoid(Z, rho_vals, axis=1)
-        marginal_dl = np.trapezoid(Z, beta_vals, axis=0)
+        marginal_m = np.trapezoid(PDF, rho_vals, axis=1)
+        marginal_dl = np.trapezoid(PDF, beta_vals, axis=0)
 
         fig = plt.figure(figsize=(8, 8))
         gs = GridSpec(4, 4, hspace=0.05, wspace=0.05)
@@ -63,7 +64,7 @@ def run():
         ax_marg_dl = fig.add_subplot(gs[1:,3], sharey=ax_joint)
 
         # Joint pdf heatmap
-        c = ax_joint.pcolormesh(beta_vals, rho_vals, Z.T, shading='auto', 
+        c = ax_joint.pcolormesh(beta_vals, rho_vals, PDF.T, shading='auto', 
                                                           cmap='viridis')
         ax_joint.set_xlabel(r'$\beta$')
         ax_joint.set_ylabel(r'$\tilde{\rho}$')
@@ -105,47 +106,38 @@ def run():
         fname = "output/mpp-info.txt"
         func.clear_file(fname)
 
-        beta_slices = [i * np.floor(pms.num_beta/5) for i in range(5)]
+        beta_slices = [i * np.floor(pms.num_beta/pms.num_beta_slices) 
+                        for i in range(pms.num_beta_slices)]
         mode_diffs = []
 
         print("Beginning loop over betas.")
-        for idx, beta in enumerate(beta_vals):
-            # Calculate and normalise the PDF numerically
-            PDF = [ddfunc.dn(beta, rho) for rho in rho_vals]
-            if pms.normalise_pdf:
-                CDF = [sum(PDF[:i]) * dr for i in range(len(PDF))]
-                norm = (CDF[-1] - CDF[0])
-                for i in range(len(PDF)):
-                    PDF[i] /= norm
-            
+        for i in range(pms.num_beta):
             # Calculate the mode of the PDF numerically and analytically
-            numeric_mode, _ = ddfunc.pdf_sample_expectation(PDF, rho_vals)
-            analytic_mode = ddfunc.most_probable_rho(beta)
+            numeric_mode, _ = ddfunc.pdf_sample_expectation(PDF[i], rho_vals)
+            analytic_mode = ddfunc.most_probable_rho(beta_vals[i])
+
+            # Take the absolute difference, to be plotted later
+            diff = abs(numeric_mode - analytic_mode) / numeric_mode
+            mode_diffs.append(diff)
 
             # analytic_mode_transformed = func.most_probable_rho_transformed(beta)
             # print(numeric_mode, analytic_mode)
             # print(analytic_mode_transformed)
             # exit()
 
-            # Take the absolute difference, to be plotted later
-            diff = abs(numeric_mode - analytic_mode) / numeric_mode
-            mode_diffs.append(diff)
-            sample_norm = sum(PDF) * dr
-
             # Write the difference out to a file
             with open(fname, "a") as file:
-                if (idx == 0):
-                    file.write("beta\tnorm-error\tmpr-analytic\tmpr-numeric"
+                if (i == 0):
+                    file.write("beta\tmpr-analytic\tmpr-numeric"
                                "\trelative-difference\n")
-                file.write(f"{beta:.4E}\t{abs(sample_norm - 1.)}"
-                           f"\t{analytic_mode}\t{numeric_mode}"
-                           f"\t{diff}\n")
+                file.write(f"{beta_vals[i]:.4E}\t{analytic_mode}"
+                           f"\t{numeric_mode}\t{diff}\n")
 
             # Generate slice of PDF at beta_slice
-            if idx in beta_slices:
-                plt.plot(rho_vals, PDF, label=rf"$\beta$ = {beta:.2}")
-                plt.plot(numeric_mode, max(PDF), 'ro', label='_nolegend_')
-                print(f"PDF slice {idx} generated...")
+            if i in beta_slices:
+                plt.plot(rho_vals, PDF[i], label=rf"$\beta$ = {beta_vals[i]:.2}")
+                plt.plot(numeric_mode, max(PDF[i]), 'ro', label='_nolegend_')
+                print(f"PDF slice {i} generated...")
         
         # Finish plot of PDF slices
         plt.xlabel(r"$\tilde{\rho}$")

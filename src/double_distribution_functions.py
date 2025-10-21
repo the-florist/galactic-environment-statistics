@@ -112,14 +112,14 @@ def dn(beta, rho, m:float = pms.M_200, a:float = 1):
     else:
         return dn
 
-def pdf_sample_expectation(pdf : list, rho_vals : NDArray):
+def pdf_sample_expectation(pdf : NDArray, rho_vals : NDArray):
     """
         Calculate the mode of the double distribution 
         (i.e. the most probable profile)
         and the standard deviation of the mode, sliced at m.
     """
 
-    sample_mode = rho_vals[pdf.index(max(pdf))]
+    sample_mode = rho_vals[np.argmax(pdf)]
 
     sample_mode_variance = 0
     for i in range(len(rho_vals)):

@@ -24,13 +24,14 @@ root_finder_precision = 1e-5 # Precision used for root finding
 
 # Parameters for double-distribution.py
 # Both independent vars. are unitless
-beta_min, beta_max, num_beta = 1.5, 5, 25
-rho_tilde_min, rho_tilde_max, num_rho = 0, 3, 100 # 60
-
 plot_dimension = 1
 enforce_positive_pdf = True
 transform_pdf = True
 normalise_pdf = True
+
+num_beta_slices = 5
+beta_min, beta_max, num_beta = 1.5, 5, 25
+rho_tilde_min, rho_tilde_max, num_rho = 0, 3, 100 # 60
 
 # Concordance cosmology
 concordance_model = True
