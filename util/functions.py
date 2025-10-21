@@ -6,10 +6,7 @@
 """
 
 # libraries
-from math import exp
-import string
 from numpy.typing import NDArray
-from pandas._testing import can_set_locale
 import scipy.integrate as integrate
 from scipy.optimize import minimize
 from scipy.special import erf
@@ -94,7 +91,7 @@ def transfer_function_integrand(k):
     return temp
 
 
-def S(m, gamma:float = 0.52, power_law_approx = pms.power_law_approx):
+def S(m, power_law_approx = pms.power_law_approx, gamma:float = pms.default_gamma):
     """
         Variance of the density field 
         calculated both in the power law approximation
@@ -109,7 +106,7 @@ def S(m, gamma:float = 0.52, power_law_approx = pms.power_law_approx):
         S_temp /= (integrate.quad(lambda k: transfer_function_integrand(k), 0, k_of_m(pms.m_8))[0])
         return S_temp 
 
-def rho(beta, delta_c, gamma:float = 0.52, a = 1, m:float = pms.M_200):
+def rho(beta, delta_c, gamma:float = pms.default_gamma, a = 1, m:float = pms.M_200):
     """
         Find rho(beta) for power law approximation of S(m),
         or rho(beta, m) for transfer function version of S(m).
@@ -128,7 +125,7 @@ def rho(beta, delta_c, gamma:float = 0.52, a = 1, m:float = pms.M_200):
         return rho_avg(S(beta * m), S(m), delta_c) / denominator
         
 
-def r(beta, delta_c, delta_ta, gamma:float = 0.52, m:float = pms.M_200):
+def r(beta, delta_c, delta_ta, gamma:float = pms.default_gamma, m:float = pms.M_200):
     """
         Find r(beta) for power law approximation of S(m), where r = R/R_ta,
         or r(beta, m) for transfer function version of S(m).
@@ -172,6 +169,10 @@ def a_coll() -> float:
     return solution.x[0]
 
 def delta_c_0(a_i : float) -> float:
+    """
+        Calculate the critical overdensity today using a_coll and the growth 
+        factor.
+    """
     a_c = a_coll()
     delta_c = 3 * pms.Omega_m * (pms.kappa - pms.phi) * D(a_c) / 2
     temp = D(1) * delta_c / D(a_i)
@@ -231,23 +232,6 @@ def dn(beta, rho, m:float = pms.M_200, a:float = 1):
     else:
         return dn
 
-# def pdf_analytic_expectation(m : float, beta : float, a : float = 1):
-#     """
-#         Calculate the expectation value of the double distribution sliced at m.
-#     """
-
-#     A = S(beta * m)
-#     B = delta_c_0(a)
-#     C = S(m)
-
-#     temp = A * (A - C) * (-B**2 + C) * np.exp(-B**2/2/C)
-#     temp /= (C**2 * np.sqrt(-C/(2 * A**2 * np.pi - 2 * A * C * np.pi)))
-
-#     norm = B * (-A+C) * np.exp(-B**2/2/C)
-#     norm /= (C * np.sqrt(-C/(2 * A**2 * np.pi - 2 * A * C * np.pi)))
-
-#     return norm, temp/norm
-
 def pdf_sample_expectation(pdf : list, rho_vals : NDArray):
     """
         Calculate the mode of the double distribution 
@@ -263,13 +247,12 @@ def pdf_sample_expectation(pdf : list, rho_vals : NDArray):
 
     return sample_mode, np.sqrt(sample_mode_variance)
 
-def most_probable_rho(beta:float, gamma:float = 0.52, a:float = 1):
+def most_probable_rho(beta:float, gamma:float = pms.default_gamma, a:float = 1):
     delta_c = delta_c_0(a) * D(a) / D(1)
     return pow(1 - pow(beta, -gamma), -delta_c + 1)
 
 
-def most_probable_rho_transformed(beta:float, gamma:float = 0.52, 
-                                    m:float = pms.M_200, a:float = 1):
+def most_probable_rho_transformed(beta:float, m:float = pms.M_200, a:float = 1):
     """
         Calculate the expected rho from the correctly transformed double dist.
     """
@@ -319,10 +302,8 @@ def convergence_test(my_analytic_function, my_analytic_diagnostic, my_sample_dia
                 f.write(f"{res}\t{fixed_point:.8e}\t{guess:.8e}\t{norm_diff:.3e}\n")
 """
 
+"""
 def IQR(beta, guess_l, guess_h, m:float = pms.M_200/pms.m_8, a:float = 1):
-    """
-        Calculate the IQR at a slice in beta using a root finding method.
-    """
     
     cdf_slice = lambda rho : CDF(rho, beta, m, a)
     diff_l = lambda rho : cdf_slice(rho) - 0.25
@@ -332,3 +313,4 @@ def IQR(beta, guess_l, guess_h, m:float = pms.M_200/pms.m_8, a:float = 1):
     iqr_h = minimize(diff_h, guess_h, bounds=[(1, 1e6)], tol=pms.root_finder_precision)
 
     return iqr_l.x[0], iqr_h.x[0]
+"""

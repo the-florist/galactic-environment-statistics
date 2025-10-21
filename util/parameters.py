@@ -19,6 +19,7 @@ compare_case_2 = True      # Flat Universe
 
 # Parameters and flags for density-profile.py
 power_law_approx = True
+default_gamma = 0.52
 root_finder_precision = 1e-5 # Precision used for root finding
 
 # Parameters for double-distribution.py
