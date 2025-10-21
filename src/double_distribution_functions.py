@@ -75,16 +75,23 @@ def CDF(rho, beta:float = 1.3, m:float = pms.M_200, a:float = 1):
 
     return cdf_temp
 
-def dn(beta, rho, m:float = pms.M_200, a:float = 1):
+def dn(beta, x, m:float = pms.M_200, a:float = 1):
     """
         Calculate the double distribution of number density w/r/t mass and 
         local overdensity
     """
 
-    delta = rho - 1
     delta_c = delta_c_0(a) * func.D(a) / func.D(1)
-    delta_tilde = delta_c * (1 - pow(1 + delta, -1/delta_c))
     rho_m = pms.Omega_m * pms.rho_c 
+
+    if pms.transform_pdf:
+        delta = x - 1
+        delta_tilde = delta_c * (1 - pow(1 + delta, -1/delta_c))
+        jacobian = pow(x, (-1 - 1/delta_c))
+    
+    else:
+        delta_tilde = x
+        jacobian = 1.0
 
     mass_removal = (delta_c_0(a) - delta_tilde) 
     mass_removal *= np.exp(-(delta_c_0(a) - delta_tilde)**2 
@@ -93,8 +100,6 @@ def dn(beta, rho, m:float = pms.M_200, a:float = 1):
 
     random_walk = (rho_m / m) * (np.exp(-(delta_tilde ** 2) / (2 * func.S(beta * m))) 
                     / (2 * np.pi * np.sqrt(func.S(beta*m))))
-
-    jacobian = pow(rho, (-1 - 1/delta_c))
 
     dn = random_walk * mass_removal * jacobian
 

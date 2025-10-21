@@ -29,7 +29,8 @@ rho_tilde_min, rho_tilde_max, num_rho = 0, 3, 100 # 60
 
 plot_dimension = 1
 enforce_positive_pdf = True
-# run_convergence_tests = False
+transform_pdf = True
+normalise_pdf = True
 
 # Concordance cosmology
 concordance_model = True

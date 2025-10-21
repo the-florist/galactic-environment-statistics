@@ -15,7 +15,6 @@ import util.parameters as pms
 import util.functions as func
 import src.double_distribution_functions as ddfunc
 
-print("Plotting the double distribution.")
 if pms.plot_dimension != 1 and pms.plot_dimension != 2:
     raise ValueError("double-distribution.py : plot_dimension impossible" 
                      "or is not implemented.")
@@ -25,10 +24,10 @@ lin_rho_vals = np.linspace(pms.rho_tilde_min, pms.rho_tilde_max, pms.num_rho)
 rho_vals = np.array([pow(10, r) for r in lin_rho_vals])
 dr = (pms.rho_tilde_max - pms.rho_tilde_min) / (pms.num_rho)
 
-print("-----\nDomain: ")
-print(rf"Mass range: ({pms.beta_min:.1e}, {pms.beta_max:.1e})")
-print("Density contrast range: ("+str(pms.rho_tilde_min)+", "
-      +str(pms.rho_tilde_max)+")")
+# print("-----\nDomain: ")
+# print(rf"Mass range: ({pms.beta_min:.1e}, {pms.beta_max:.1e})")
+# print("Density contrast range: ("+str(pms.rho_tilde_min)+", "
+#       +str(pms.rho_tilde_max)+")")
 
 def run():
 
@@ -107,45 +106,48 @@ def run():
         func.clear_file(fname)
 
         beta_slices = [i * np.floor(pms.num_beta/5) for i in range(5)]
-        num_beta = 0
         mode_diffs = []
 
+        print("Beginning loop over betas.")
         for idx, beta in enumerate(beta_vals):
+            # Calculate and normalise the PDF numerically
             PDF = [ddfunc.dn(beta, rho) for rho in rho_vals]
-            numeric_mode, _ = ddfunc.pdf_sample_expectation(PDF, rho_vals)
-            analytic_mode = ddfunc.most_probable_rho(beta)
-            # analytic_mode_transformed = func.most_probable_rho_transformed(beta)
-
-            # print(numeric_mode, analytic_mode)
-            # print(analytic_mode_transformed)
-            # exit()
-
-            mode_diffs.append(abs(numeric_mode - analytic_mode) / numeric_mode)
-
-            num_beta += 1
-            with open(fname, "a") as file:
-                diff = abs(numeric_mode - analytic_mode) / numeric_mode
-                if (num_beta == 1):
-                    file.write("beta\tmpr-analytic\tmpr-numeric"
-                               "\trelative-difference\n")
-                file.write(f"{beta:.4E}\t{analytic_mode}\t{numeric_mode}"
-                           f"\t{diff}\n")
-
-            if idx in beta_slices:
+            if pms.normalise_pdf:
                 CDF = [sum(PDF[:i]) * dr for i in range(len(PDF))]
                 norm = (CDF[-1] - CDF[0])
                 for i in range(len(PDF)):
                     PDF[i] /= norm
-                sample_norm = sum(PDF) * dr
+            
+            # Calculate the mode of the PDF numerically and analytically
+            numeric_mode, _ = ddfunc.pdf_sample_expectation(PDF, rho_vals)
+            analytic_mode = ddfunc.most_probable_rho(beta)
 
-                print(f"PDF sample norm accuracy: {abs(1-sample_norm)}")
-                print(f"Most probable rho, DD: {numeric_mode}")
-                print(f"Most probable rho, analytic model: {analytic_mode}")
-                print("-----------")
+            # analytic_mode_transformed = func.most_probable_rho_transformed(beta)
+            # print(numeric_mode, analytic_mode)
+            # print(analytic_mode_transformed)
+            # exit()
 
+            # Take the absolute difference, to be plotted later
+            diff = abs(numeric_mode - analytic_mode) / numeric_mode
+            mode_diffs.append(diff)
+            sample_norm = sum(PDF) * dr
+
+            # Write the difference out to a file
+            with open(fname, "a") as file:
+                if (idx == 0):
+                    file.write("beta\tnorm-error\tmpr-analytic\tmpr-numeric"
+                               "\trelative-difference\n")
+                file.write(f"{beta:.4E}\t{abs(sample_norm - 1.)}"
+                           f"\t{analytic_mode}\t{numeric_mode}"
+                           f"\t{diff}\n")
+
+            # Generate slice of PDF at beta_slice
+            if idx in beta_slices:
                 plt.plot(rho_vals, PDF, label=rf"$\beta$ = {beta:.2}")
                 plt.plot(numeric_mode, max(PDF), 'ro', label='_nolegend_')
+                print(f"PDF slice {idx} generated...")
         
+        # Finish plot of PDF slices
         plt.xlabel(r"$\tilde{\rho}$")
         plt.ylabel(r"$P_n$")
         plt.xscale("log")
@@ -155,6 +157,7 @@ def run():
         plt.savefig("plots/joint-pdf-slice.pdf")
         plt.close()
 
+        # Plot difference between analytic and numeric modes.
         plt.plot(beta_vals, mode_diffs)
         plt.xlabel(r"$\beta$")
         plt.ylabel(r"$|\hat{M} - M|/\hat{M}$")
