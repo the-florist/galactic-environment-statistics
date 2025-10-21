@@ -13,6 +13,7 @@ from matplotlib.gridspec import GridSpec
 
 import util.parameters as pms
 import util.functions as func
+import src.double_distribution_functions as ddfunc
 
 print("Plotting the double distribution.")
 if pms.plot_dimension != 1 and pms.plot_dimension != 2:
@@ -42,7 +43,7 @@ def run():
         for i in range(pms.num_beta):
             for j in range(pms.num_rho):
                 try:
-                    Z[i, j] = func.dn(BTS[i, j], RHOS[i, j])
+                    Z[i, j] = ddfunc.dn(BTS[i, j], RHOS[i, j])
                 except Exception:
                     Z[i, j] = 0
 
@@ -110,9 +111,9 @@ def run():
         mode_diffs = []
 
         for idx, beta in enumerate(beta_vals):
-            PDF = [func.dn(beta, rho) for rho in rho_vals]
-            numeric_mode, _ = func.pdf_sample_expectation(PDF, rho_vals)
-            analytic_mode = func.most_probable_rho(beta)
+            PDF = [ddfunc.dn(beta, rho) for rho in rho_vals]
+            numeric_mode, _ = ddfunc.pdf_sample_expectation(PDF, rho_vals)
+            analytic_mode = ddfunc.most_probable_rho(beta)
             # analytic_mode_transformed = func.most_probable_rho_transformed(beta)
 
             # print(numeric_mode, analytic_mode)
@@ -161,10 +162,3 @@ def run():
         plt.grid(True)
         plt.savefig("plots/mode-diffs.pdf")
         plt.close()
-
-    """
-    num_deltas = [25, 50, 100, 200]
-    if pms.run_convergence_tests:
-        func.convergence_test(func.dn, func.pdf_analytic_expectation, func.pdf_sample_expectation, 
-                                m_min, pms.beta_dd, delta_l_min, delta_l_max, num_deltas)
-    """
