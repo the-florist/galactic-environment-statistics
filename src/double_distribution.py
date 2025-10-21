@@ -62,10 +62,11 @@ def run():
             last = now
 
     # Normalise the joint PDF
-    norm = np.sum(PDF)
-    PDF /= norm
+    if pms.normalise_pdf:
+        norm = np.sum(PDF)
+        PDF /= norm
+        print(f"PDF norm precision: {abs(np.sum(PDF) - 1.):.15}")
 
-    print(f"PDF norm precision: {abs(np.sum(PDF) - 1.):.15}")
     print(f"Starting {pms.plot_dimension}D plot generation...")
 
     if pms.plot_dimension == 2:
@@ -154,7 +155,6 @@ def run():
             if i in beta_slices:
                 plt.plot(rho_vals, PDF[i], label=rf"$\beta$ = {beta_vals[i]:.2}")
                 plt.plot(numeric_mode, max(PDF[i]), 'ro', label='_nolegend_')
-                print(f"PDF slice {i} generated...")
         
         # Finish plot of PDF slices
         plt.xlabel(r"$\tilde{\rho}$")
