@@ -8,10 +8,8 @@
 import numpy as np
 from time import time
 import matplotlib.pyplot as plt
-from matplotlib.gridspec import GridSpec
 
 import util.parameters as pms
-import util.functions as func
 import src.double_distribution_functions as ddfunc
 
 beta_vals = np.logspace(np.log10(pms.beta_min), np.log10(pms.beta_max), pms.num_beta)
@@ -23,10 +21,9 @@ m_vals = np.array([(1 - pms.mass_percent_diff) * pms.M_200, pms.M_200,
 def run():
     # Create meshgrid for beta and rhos
     BTS, RHOS = np.meshgrid(beta_vals, rho_vals, indexing='ij')
+    mode_diffs = np.zeros(shape=(3, pms.num_beta))
 
-    print("Starting loop over rho/beta domain...")
-
-    for m in m_vals:
+    for mi, m in enumerate(m_vals):
         # Compute un-normalised joint PDF
         PDF = np.zeros_like(BTS)
 
@@ -35,16 +32,18 @@ def run():
         intv = 15
         last = start
 
-        for i in range(pms.num_beta):
-            for j in range(pms.num_rho):
+        print("Starting loop over rho/beta domain...")
+
+        for bi in range(pms.num_beta):
+            for ri in range(pms.num_rho):
                 try:
-                    PDF[i, j] = ddfunc.dn(BTS[i, j], RHOS[i, j])
+                    PDF[bi, ri] = ddfunc.dn(BTS[bi, ri], RHOS[bi, ri], m)
                 except Exception:
-                    PDF[i, j] = 0
+                    PDF[bi, ri] = 0
 
             now = time()
             if now - last > intv:
-                frac = ((i * pms.num_rho) + j + 1) / (pms.num_beta * pms.num_rho)
+                frac = ((bi * pms.num_rho) + ri + 1) / (pms.num_beta * pms.num_rho)
                 elapsed = now - start
                 print(f"{elapsed:.2g} sec. passed, {frac * 100}% finished...")
                 last = now
@@ -55,23 +54,24 @@ def run():
             PDF /= norm
             print(f"PDF norm precision: {abs(np.sum(PDF) - 1.):.15}")
 
-        print(f"Starting {pms.plot_dimension}D plot generation at mass {m}...")
+        print(f"Starting mode difference calculation at mass {m:.2E}...")
 
-        mode_diffs = []
-        for i in range(pms.num_beta):
+        for bi in range(pms.num_beta):
             # Calculate the mode of the PDF numerically and analytically
-            numeric_mode, _ = ddfunc.pdf_sample_expectation(PDF[i], rho_vals)
-            analytic_mode = ddfunc.most_probable_rho(beta_vals[i])
+            numeric_mode, _ = ddfunc.pdf_sample_expectation(PDF[bi], rho_vals)
+            analytic_mode = ddfunc.most_probable_rho(beta_vals[bi])
 
             # Take the absolute difference, to be plotted later
-            diff = abs(numeric_mode - analytic_mode) / numeric_mode
-            mode_diffs.append(diff)
+            diff = abs(numeric_mode - analytic_mode) / analytic_mode
+            mode_diffs[mi][bi] = diff
 
-        # Plot difference between analytic and numeric modes.
-        plt.plot(beta_vals, mode_diffs)
-        plt.xlabel(r"$\beta$")
-        plt.ylabel(r"$|\hat{M} - M|/\hat{M}$")
-        plt.title("Absolute difference between sample and predicted modes")
-        plt.grid(True)
-        plt.savefig("plots/mode-diffs.pdf")
-        plt.close()
+    # Plot difference between analytic and numeric modes.
+    for mi in range(len(m_vals)):
+        plt.plot(beta_vals, mode_diffs[mi])
+        # print(mode_diffs[mi])
+    plt.xlabel(r"$\beta$")
+    plt.ylabel(r"$|\hat{M} - M|/\hat{M}$")
+    plt.title("Absolute difference between sample and predicted modes")
+    plt.grid(True)
+    plt.savefig("plots/mode-diffs.pdf")
+    plt.close()

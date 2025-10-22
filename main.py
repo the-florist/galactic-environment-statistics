@@ -20,6 +20,10 @@ if __name__ == '__main__':
             print("Visualising double distribution.")
             import src.double_distribution as dd 
             dd.run()
+        case "4":
+            print("Plotting mode difference over a range of masses.")
+            import util.multi_mass_plots as mmp 
+            mmp.run()
         case _:
             print(f"Mode {mode} not supported.")
             exit()
