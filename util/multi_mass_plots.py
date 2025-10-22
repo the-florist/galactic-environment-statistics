@@ -7,6 +7,7 @@
 
 import numpy as np
 from time import time
+from datetime import timedelta
 import matplotlib.pyplot as plt
 
 import util.parameters as pms
@@ -44,8 +45,9 @@ def run():
             now = time()
             if now - last > intv:
                 frac = ((bi * pms.num_rho) + ri + 1) / (pms.num_beta * pms.num_rho)
-                elapsed = now - start
-                print(f"{elapsed:.2g} sec. passed, {frac * 100}% finished...")
+                elapsed = timedelta(seconds=(now - start))
+                print(f"{str(elapsed)} sec. passed,"
+                      f" {(frac * 100):.2g}% finished...")
                 last = now
 
         # Normalise the joint PDF
@@ -66,12 +68,13 @@ def run():
             mode_diffs[mi][bi] = diff
 
     # Plot difference between analytic and numeric modes.
-    for mi in range(len(m_vals)):
-        plt.plot(beta_vals, mode_diffs[mi])
+    for mi, m in enumerate(m_vals):
+        plt.plot(beta_vals, mode_diffs[mi], label=rf"$m = {m:.2e}$")
         # print(mode_diffs[mi])
     plt.xlabel(r"$\beta$")
     plt.ylabel(r"$|\hat{M} - M|/\hat{M}$")
     plt.title("Absolute difference between sample and predicted modes")
     plt.grid(True)
+    plt.legend()
     plt.savefig("plots/mode-diffs.pdf")
     plt.close()
