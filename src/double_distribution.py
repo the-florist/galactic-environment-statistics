@@ -139,9 +139,9 @@ def run():
             mode_diffs.append(diff)
 
             analytic_mode_transformed = ddfunc.most_probable_rho_transformed(beta_vals[i])
-            print(numeric_mode, analytic_mode)
-            print(analytic_mode_transformed)
-            exit()
+            # print(numeric_mode, analytic_mode)
+            # print(analytic_mode_transformed)
+            # exit()
 
             # Write the difference out to a file
             with open(fname, "a") as file:
@@ -153,8 +153,10 @@ def run():
 
             # Generate slice of PDF at beta_slice
             if i in beta_slices:
-                plt.plot(rho_vals, PDF[i], label=rf"$\beta$ = {beta_vals[i]:.2}")
-                plt.plot(numeric_mode, max(PDF[i]), 'ro', label='_nolegend_')
+                line, = plt.plot(rho_vals, PDF[i], label=rf"$\beta$ = {beta_vals[i]:.2}")
+                plot_color = line.get_color()
+                for mode_val in analytic_mode_transformed:
+                    plt.axvline(x=mode_val, color=plot_color, linestyle='--', linewidth=1, label='_nolegend_')
         
         # Finish plot of PDF slices
         plt.xlabel(r"$\tilde{\rho}$")

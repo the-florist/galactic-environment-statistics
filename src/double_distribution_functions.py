@@ -128,6 +128,7 @@ def pdf_sample_expectation(pdf : NDArray, rho_vals : NDArray):
     return sample_mode, np.sqrt(sample_mode_variance)
 
 def most_probable_rho(beta:float, gamma:float = pms.default_gamma, a:float = 1):
+    # From Eqn. 2 of arXiv:2404.11183v2 
     delta_c = delta_c_0(a) * func.D(a) / func.D(1)
     return pow(1 - pow(beta, -gamma), -delta_c + 1)
 
