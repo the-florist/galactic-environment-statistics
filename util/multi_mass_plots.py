@@ -22,7 +22,8 @@ m_vals = np.array([(1 - pms.mass_percent_diff) * pms.M_200, pms.M_200,
 def run():
     # Create meshgrid for beta and rhos
     BTS, RHOS = np.meshgrid(beta_vals, rho_vals, indexing='ij')
-    mode_diffs = np.zeros(shape=(3, pms.num_beta))
+    mode_diffs1 = np.zeros(shape=(3, pms.num_beta))
+    mode_diffs2 = np.zeros(shape=(3, pms.num_beta))
 
     for mi, m in enumerate(m_vals):
         # Compute un-normalised joint PDF
@@ -61,19 +62,23 @@ def run():
         for bi in range(pms.num_beta):
             # Calculate the mode of the PDF numerically and analytically
             numeric_mode, _ = ddfunc.pdf_sample_expectation(PDF[bi], rho_vals)
-            analytic_mode = ddfunc.most_probable_rho(beta_vals[bi])
+            full_analytic_mode = ddfunc.most_probable_rho_transformed(beta_vals[bi], m)
+            us_analytic_mode = ddfunc.most_probable_rho(beta_vals[bi])
 
             # Take the absolute difference, to be plotted later
-            diff = abs(numeric_mode - analytic_mode) / analytic_mode
-            mode_diffs[mi][bi] = diff
+            mode_diffs1[mi][bi] = ((full_analytic_mode - us_analytic_mode) 
+                                    / full_analytic_mode)
+            mode_diffs2[mi][bi] = ((numeric_mode - us_analytic_mode) 
+                                    / numeric_mode)
 
     # Plot difference between analytic and numeric modes.
     for mi, m in enumerate(m_vals):
-        plt.plot(beta_vals, mode_diffs[mi], label=rf"$m = {m:.2e}$")
-        # print(mode_diffs[mi])
+        line, = plt.plot(beta_vals, mode_diffs1[mi], label=rf"$m = {m:.2e}$")
+        plt.plot(beta_vals, mode_diffs2[mi], color=line.get_color(), 
+                linestyle='--', linewidth=1, label='_nolegend_')
     plt.xlabel(r"$\beta$")
-    plt.ylabel(r"$|\hat{M} - M|/\hat{M}$")
-    plt.title("Absolute difference between sample and predicted modes")
+    plt.ylabel(r"($M_{full} - M_{us})/M_{full}$")
+    plt.title("Abs diff between cubic and universal-scaling modes")
     plt.grid(True)
     plt.legend()
     plt.savefig("plots/mode-diffs.pdf")

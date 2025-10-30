@@ -54,7 +54,7 @@ def delta_c_0(a_i : float) -> float:
 
 def CDF(rho, m:float = pms.M_200, beta:float = 1.3, a:float = 1):
     """
-        Calculate the CDF as a function of rho (delta_l)
+        Calculate the CDF as a function of delta_l(rho)
     """
     delta = rho - 1
     delta_c = delta_c_0(a) * func.D(a) / func.D(1)
