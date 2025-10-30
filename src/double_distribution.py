@@ -138,10 +138,10 @@ def run():
             diff = abs(numeric_mode - analytic_mode) / numeric_mode
             mode_diffs.append(diff)
 
-            # analytic_mode_transformed = func.most_probable_rho_transformed(beta)
-            # print(numeric_mode, analytic_mode)
-            # print(analytic_mode_transformed)
-            # exit()
+            analytic_mode_transformed = ddfunc.most_probable_rho_transformed(beta_vals[i])
+            print(numeric_mode, analytic_mode)
+            print(analytic_mode_transformed)
+            exit()
 
             # Write the difference out to a file
             with open(fname, "a") as file:

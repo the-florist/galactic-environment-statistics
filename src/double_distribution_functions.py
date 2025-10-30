@@ -143,7 +143,7 @@ def most_probable_rho_transformed(beta:float, m:float = pms.M_200, a:float = 1):
     B = delta_c_0(a) / 2 / (func.S(m) - func.S(beta * m))
 
     Ap = A * pow(delta_c, 2)
-    Bp = Ap - 2 * delta_c * B
+    Bp = delta_c * (delta_c * A - B)
 
     a = 2 * Ap * delta_c
     b = 2 * (Ap * eta - Bp * delta_c)
