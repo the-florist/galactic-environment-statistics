@@ -52,7 +52,7 @@ def delta_c_0(a_i : float) -> float:
     temp = func.D(1) * delta_c / func.D(a_i)
     return temp
 
-def CDF(rho, beta:float = 1.3, m:float = pms.M_200, a:float = 1):
+def CDF(rho, m:float = pms.M_200, beta:float = 1.3, a:float = 1):
     """
         Calculate the CDF as a function of rho (delta_l)
     """
@@ -65,7 +65,7 @@ def CDF(rho, beta:float = 1.3, m:float = pms.M_200, a:float = 1):
         * pow(func.S(m) - func.S(beta * m), 3/2))
 
     A = func.S(m) / (2 * func.S(beta * m) *(func.S(m) - func.S(beta * m)))
-    B = delta_c_0(a) / 2 / (func.S(m) - func.S(beta * m))
+    B = delta_c_0(a) / (2 * (func.S(m) - func.S(beta * m)))
     C = (delta_c_0(a) ** 2) / (2 * (func.S(m) - func.S(beta * m)))
 
     cdf_temp = np.sqrt(np.pi / A) * (delta_c_0(a) - B / A) / 2. # 0.5 * np.sqrt(np.pi / A) * (delta_c_0(a) - B / (2 * A))
@@ -74,6 +74,56 @@ def CDF(rho, beta:float = 1.3, m:float = pms.M_200, a:float = 1):
     cdf_temp *= N
 
     return cdf_temp
+
+def pdf_sample_expectation(pdf : NDArray, rho_vals : NDArray):
+    """
+        Calculate the mode of the double distribution 
+        (i.e. the most probable profile)
+        and the standard deviation of the mode, sliced at m.
+    """
+
+    sample_mode = rho_vals[np.argmax(pdf)]
+
+    sample_mode_variance = 0
+    for i in range(len(rho_vals)):
+        sample_mode_variance += pdf[i] * pow(rho_vals[i] - sample_mode, 2)
+
+    return sample_mode, np.sqrt(sample_mode_variance)
+
+def analytic_IQR(sample_mode, sample_stdev, beta,
+                 m:float = pms.M_200, a:float = 1) -> tuple[float, float]:
+    """
+        Find the analytic IQR by calculating CDF^-1(0.25), CDF^-1(0.75) via 
+        root finding, then transform this value into rho from delta_tilde.
+    """
+    def find_IQR(q):
+        if q == "l": 
+            zscore = 0.25
+            guess = sample_mode - sample_stdev
+        elif q == "h":
+            zscore = 0.75
+            guess = sample_mode + sample_stdev
+        else:
+            print("Quantile specified cannot be computed.")
+            exit()
+
+        norm = (CDF(pow(10, pms.rho_tilde_max), m, beta, a) - CDF(pow(10, pms.rho_tilde_min), m, beta, a))
+        cdf_diff = lambda x: abs(CDF(x, m, beta, a) / norm - zscore)
+        soln = minimize(cdf_diff, guess, 
+                        bounds=[(pow(10, pms.rho_tilde_min), pow(10, pms.rho_tilde_max))],
+                        tol=pms.root_finder_precision)
+
+        print("-----")
+        print(sample_mode, sample_stdev, norm)
+        print(guess, soln.x[0], soln.status)
+        print(CDF(pow(10, pms.rho_tilde_max), m, beta, a) / norm, CDF(pow(10, pms.rho_tilde_min), m, beta, a) / norm)
+        print(cdf_diff(soln.x[0]), cdf_diff(guess))
+        
+
+        return soln.x[0]
+
+    return find_IQR("l"), find_IQR("h")
+
 
 def dn(beta, rho, m:float = pms.M_200, a:float = 1):
     """
@@ -111,21 +161,6 @@ def dn(beta, rho, m:float = pms.M_200, a:float = 1):
             return dn
     else:
         return dn
-
-def pdf_sample_expectation(pdf : NDArray, rho_vals : NDArray):
-    """
-        Calculate the mode of the double distribution 
-        (i.e. the most probable profile)
-        and the standard deviation of the mode, sliced at m.
-    """
-
-    sample_mode = rho_vals[np.argmax(pdf)]
-
-    sample_mode_variance = 0
-    for i in range(len(rho_vals)):
-        sample_mode_variance += pdf[i] * pow(rho_vals[i] - sample_mode, 2)
-
-    return sample_mode, np.sqrt(sample_mode_variance)
 
 def most_probable_rho(beta:float, gamma:float = pms.default_gamma, a:float = 1):
     # From Eqn. 2 of arXiv:2404.11183v2 
