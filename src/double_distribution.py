@@ -26,14 +26,6 @@ rho_vals = np.array([pow(10, r) for r in lin_rho_vals])
 dr = (pms.rho_tilde_max - pms.rho_tilde_min) / (pms.num_rho)
 
 
-# print("-----\nDomain: ")
-# print(rf"Mass range: ({pms.beta_min:.1e}, {pms.beta_max:.1e})")
-# print("Density contrast range: ("+str(pms.rho_tilde_min)+", "
-#       +str(pms.rho_tilde_max)+")")
-
-# def print_progress(i, j, start:float, last:float, interval:float):
-    
-
 def run():
     # Create meshgrid for beta and rhos
     BTS, RHOS = np.meshgrid(beta_vals, rho_vals, indexing='ij')
@@ -125,37 +117,8 @@ def run():
         slices = np.array([np.floor(i * pms.num_beta/pms.num_beta_slices) 
                         for i in range(pms.num_beta_slices)])
         beta_slices = [beta_vals[s] for s in slices.astype(np.int64)]
-        
-        # func.make_directory("output")
-        # fname = "output/mpp-info.txt"
-        # func.clear_file(fname)
-        # mode_diffs = []
 
-        # for i in range(pms.num_beta):
-            # if pms.plot_mode_diffs:
-                
-            # Calculate the mode of the PDF numerically and analytically
-            # numeric_mode, numeric_stdev = ddfunc.pdf_sample_expectation(PDF[i], rho_vals)
-            # analytic_mode = ddfunc.most_probable_rho(beta_vals[i])
-            # analytic_mode_transformed = ddfunc.most_probable_rho_transformed(beta_vals[i])
-
-            # aIQRl, aIQRu = ddfunc.analytic_IQR(norm, numeric_mode, numeric_stdev)
-            # print(aIQRl, aIQRu)
-            # exit()
-
-            # Take the absolute difference, to be plotted later
-            # diff = abs(numeric_mode - analytic_mode) / numeric_mode
-            # mode_diffs.append(diff)
-
-            # Write the difference out to a file
-            # with open(fname, "a") as file:
-            #     if (i == 0):
-            #         file.write("beta\tmpr-analytic\tmpr-numeric"
-            #                    "\trelative-difference\n")
-            #     file.write(f"{beta_vals[i]:.4E}\t{analytic_mode}"
-            #                f"\t{numeric_mode}\t{diff}\n")
-
-            # Generate slice of PDF at beta_slice
+        # Generate slice of PDF at beta_slice
         for b in beta_slices:
             cond_PDF = []
             for r in rho_vals:
@@ -169,11 +132,12 @@ def run():
             print("Analytic IQR diff: ", (numeric_mode + aIQRu))
             print("--------------------------------")
 
-            plt.plot(rho_vals, cond_PDF, label=rf"PDF cond.") # cond_PDF = []
+            plt.plot(rho_vals, cond_PDF, label=rf"PDF cond.")
             # plot_color = line.get_color()
             # plt.plot(rho_vals, PDF[i], color=plot_color, linestyle='--', linewidth=1, label='PDF slice')
             # # for mode_val in analytic_mode_transformed:
             #     # plt.axvline(x=mode_val, color=plot_color, linestyle='--', linewidth=1, label='_nolegend_')
+
             print("Plot finished for beta = "+str(b))
         
         # Finish plot of PDF slices
@@ -185,12 +149,3 @@ def run():
         plt.legend()
         plt.savefig("plots/joint-pdf-slice.pdf")
         plt.close()
-
-        # Plot difference between analytic and numeric modes.
-        # plt.plot(beta_vals, mode_diffs)
-        # plt.xlabel(r"$\beta$")
-        # plt.ylabel(r"$|\hat{M} - M|/\hat{M}$")
-        # plt.title("Absolute difference between sample and predicted modes")
-        # plt.grid(True)
-        # plt.savefig("plots/mode-diffs.pdf")
-        # plt.close()
