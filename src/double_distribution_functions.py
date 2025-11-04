@@ -113,11 +113,11 @@ def analytic_IQR(sample_mode, sample_stdev, beta,
                         bounds=[(pow(10, pms.rho_tilde_min), pow(10, pms.rho_tilde_max))],
                         tol=pms.root_finder_precision)
 
-        print("-----")
-        print(sample_mode, sample_stdev, norm)
-        print(guess, soln.x[0], soln.status)
-        print(CDF(pow(10, pms.rho_tilde_max), m, beta, a) / norm, CDF(pow(10, pms.rho_tilde_min), m, beta, a) / norm)
-        print(cdf_diff(soln.x[0]), cdf_diff(guess))
+        # print("-----")
+        # print(sample_mode, sample_stdev, norm)
+        # print(guess, soln.x[0], soln.status)
+        # print(CDF(pow(10, pms.rho_tilde_max), m, beta, a) / norm, CDF(pow(10, pms.rho_tilde_min), m, beta, a) / norm)
+        # print(cdf_diff(soln.x[0]), cdf_diff(guess))
         
 
         return soln.x[0]

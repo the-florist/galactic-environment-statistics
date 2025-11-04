@@ -38,39 +38,40 @@ def run():
     # Create meshgrid for beta and rhos
     BTS, RHOS = np.meshgrid(beta_vals, rho_vals, indexing='ij')
 
-    print("Starting loop over rho/beta domain...")
-
-    # Compute un-normalised joint PDF
-    PDF = np.zeros_like(BTS)
-
-    # Set up the timer
-    start = time()
-    intv = 15
-    last = start
-
-    for i in range(pms.num_beta):
-        for j in range(pms.num_rho):
-            try:
-                PDF[i, j] = ddfunc.dn(BTS[i, j], RHOS[i, j])
-            except Exception:
-                PDF[i, j] = 0
-
-        now = time()
-        if now - last > intv:
-            frac = ((i * pms.num_rho) + j + 1) / (pms.num_beta * pms.num_rho)
-            elapsed = now - start
-            print(f"{elapsed:.2g} sec. passed, {frac * 100}% finished...")
-            last = now
-
-    # Normalise the joint PDF
-    if pms.normalise_pdf:
-        norm = np.sum(PDF)
-        PDF /= norm
-        print(f"PDF norm precision: {abs(np.sum(PDF) - 1.):.15}")
-
     print(f"Starting {pms.plot_dimension}D plot generation...")
 
     if pms.plot_dimension == 2:
+        """
+            Calculate the normalised joint PDF and plot it.
+        """
+
+        PDF = np.zeros_like(BTS)
+
+        # Set up the timer
+        start = time()
+        intv = 15
+        last = start
+
+        for i in range(pms.num_beta):
+            for j in range(pms.num_rho):
+                try:
+                    PDF[i, j] = ddfunc.dn(BTS[i, j], RHOS[i, j])
+                except Exception:
+                    PDF[i, j] = 0
+
+            now = time()
+            if now - last > intv:
+                frac = ((i * pms.num_rho) + j + 1) / (pms.num_beta * pms.num_rho)
+                elapsed = now - start
+                print(f"{elapsed:.2g} sec. passed, {frac * 100}% finished...")
+                last = now
+
+        # Normalise the joint PDF
+        if pms.normalise_pdf:
+            norm = np.sum(PDF)
+            PDF /= norm
+            print(f"PDF norm precision: {abs(np.sum(PDF) - 1.):.15}")
+
         # Marginals
         marginal_m = np.trapezoid(PDF, rho_vals, axis=1)
         marginal_dl = np.trapezoid(PDF, beta_vals, axis=0)
@@ -117,20 +118,22 @@ def run():
 
     elif pms.plot_dimension == 1:
         """
-            Calculate the PDF at slices of beta, and plot alongside the mode 
+            Calculate the conditional PDF at slices of beta, and plot alongside the mode 
             and stdev of the mode.
         """
 
-        func.make_directory("output")
-        fname = "output/mpp-info.txt"
-        func.clear_file(fname)
+        slices = np.array([np.floor(i * pms.num_beta/pms.num_beta_slices) 
+                        for i in range(pms.num_beta_slices)])
+        beta_slices = [beta_vals[s] for s in slices.astype(np.int64)]
+        
+        # func.make_directory("output")
+        # fname = "output/mpp-info.txt"
+        # func.clear_file(fname)
+        # mode_diffs = []
 
-        beta_slices = [i * np.floor(pms.num_beta/pms.num_beta_slices) 
-                        for i in range(pms.num_beta_slices)]
-        mode_diffs = []
-
-        print("Beginning loop over betas.")
-        for i in range(pms.num_beta):
+        # for i in range(pms.num_beta):
+            # if pms.plot_mode_diffs:
+                
             # Calculate the mode of the PDF numerically and analytically
             # numeric_mode, numeric_stdev = ddfunc.pdf_sample_expectation(PDF[i], rho_vals)
             # analytic_mode = ddfunc.most_probable_rho(beta_vals[i])
@@ -152,43 +155,36 @@ def run():
             #     file.write(f"{beta_vals[i]:.4E}\t{analytic_mode}"
             #                f"\t{numeric_mode}\t{diff}\n")
 
-            # print(np.array(CDF).shape, rho_vals.shape)
-            # exit()
-            # plt.plot(rho_vals, CDF, linestyle='--', linewidth=1, label='_nolegend_')
-
-
             # Generate slice of PDF at beta_slice
-            if i in beta_slices:
-                CDF = []
-                for r in rho_vals:
-                    CDF.append(ddfunc.CDF(r, beta=beta_vals[i]))
+        for b in beta_slices:
+            cond_PDF = []
+            for r in rho_vals:
+                cond_PDF.append(ddfunc.dn(b, r))
+            cond_PDF /= (sum(cond_PDF) - cond_PDF[0])
 
-                cdf_norm = (CDF[-1] - CDF[0])
-                # CDF /= cdf_norm
-                # print((CDF[-1], CDF[0], CDF[-1] - CDF[0]), (max(CDF), min(CDF)))
+            numeric_mode, numeric_stdev = ddfunc.pdf_sample_expectation(cond_PDF, rho_vals)
+            aIQRl, aIQRu = ddfunc.analytic_IQR(numeric_mode, numeric_stdev, b)
 
-                numeric_mode, numeric_stdev = ddfunc.pdf_sample_expectation(PDF[i], rho_vals)
-                aIQRl, aIQRu = ddfunc.analytic_IQR(numeric_mode, numeric_stdev, beta_vals[i])
-                exit()
+            print("Numeric stats from slice: ", (numeric_mode + numeric_stdev))
+            print("Analytic IQR diff: ", (numeric_mode + aIQRu))
+            print("--------------------------------")
 
-                # cond_PDF = PDF[i] / (sum(PDF[i]) - PDF[i,0])
-
-                # line, = plt.plot(rho_vals, cond_PDF, label=rf"$\beta$ = {beta_vals[i]:.2}")
-                # plot_color = line.get_color()
-                # plt.plot(rho_vals, np.array(CDF), color=plot_color, linestyle='--', linewidth=1, label='_nolegend_')
-                # # for mode_val in analytic_mode_transformed:
-                #     # plt.axvline(x=mode_val, color=plot_color, linestyle='--', linewidth=1, label='_nolegend_')
-                # print("Plot finished for beta = "+str(beta_vals[i]))
+            plt.plot(rho_vals, cond_PDF, label=rf"PDF cond.") # cond_PDF = []
+            # plot_color = line.get_color()
+            # plt.plot(rho_vals, PDF[i], color=plot_color, linestyle='--', linewidth=1, label='PDF slice')
+            # # for mode_val in analytic_mode_transformed:
+            #     # plt.axvline(x=mode_val, color=plot_color, linestyle='--', linewidth=1, label='_nolegend_')
+            print("Plot finished for beta = "+str(b))
         
         # Finish plot of PDF slices
-        # plt.xlabel(r"$\tilde{\rho}$")
-        # plt.ylabel(r"$P_n$")
-        # plt.xscale("log")
-        # plt.title(r"PDF slices along $\beta$")
-        # plt.grid(True)
-        # plt.legend()
-        # plt.savefig("plots/joint-pdf-slice.pdf")
-        # plt.close()
+        plt.xlabel(r"$\tilde{\rho}$")
+        plt.ylabel(r"$P_n$")
+        plt.xscale("log")
+        plt.title(r"PDF slices along $\beta$")
+        plt.grid(True)
+        plt.legend()
+        plt.savefig("plots/joint-pdf-slice.pdf")
+        plt.close()
 
         # Plot difference between analytic and numeric modes.
         # plt.plot(beta_vals, mode_diffs)
