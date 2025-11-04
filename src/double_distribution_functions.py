@@ -75,6 +75,15 @@ def CDF(rho, m:float = pms.M_200, beta:float = 1.3, a:float = 1):
 
     return cdf_temp
 
+def conditional_CDF(rho, m:float = pms.M_200, beta:float = 1.3, a:float = 1):
+    norm = (CDF(pow(10, pms.rho_tilde_max), m, beta, a) 
+            - CDF(pow(10, pms.rho_tilde_min), m, beta, a))
+    return CDF(rho, m, beta, a) / norm
+
+def numeric_CDF(pdf, x_vals, x):
+    i = np.argmin(np.abs(x_vals - x))
+    return sum(pdf[:(i+1)])
+
 def pdf_sample_expectation(pdf : NDArray, rho_vals : NDArray):
     """
         Calculate the mode of the double distribution 
@@ -87,6 +96,7 @@ def pdf_sample_expectation(pdf : NDArray, rho_vals : NDArray):
     sample_mode_variance = 0
     for i in range(len(rho_vals)):
         sample_mode_variance += pdf[i] * pow(rho_vals[i] - sample_mode, 2)
+    sample_mode_variance /= (pms.num_rho - 1)
 
     return sample_mode, np.sqrt(sample_mode_variance)
 
@@ -107,23 +117,39 @@ def analytic_IQR(sample_mode, sample_stdev, beta,
             print("Quantile specified cannot be computed.")
             exit()
 
-        norm = (CDF(pow(10, pms.rho_tilde_max), m, beta, a) - CDF(pow(10, pms.rho_tilde_min), m, beta, a))
-        cdf_diff = lambda x: abs(CDF(x, m, beta, a) / norm - zscore)
+        cdf_diff = lambda x: abs(conditional_CDF(x, m, beta, a) - zscore)
         soln = minimize(cdf_diff, guess, 
                         bounds=[(pow(10, pms.rho_tilde_min), pow(10, pms.rho_tilde_max))],
                         tol=pms.root_finder_precision)
 
         # print("-----")
-        # print(sample_mode, sample_stdev, norm)
+        # print(sample_mode, sample_stdev)
         # print(guess, soln.x[0], soln.status)
-        # print(CDF(pow(10, pms.rho_tilde_max), m, beta, a) / norm, CDF(pow(10, pms.rho_tilde_min), m, beta, a) / norm)
+        # print(conditional_CDF(pow(10, pms.rho_tilde_max), m, beta, a), conditional_CDF(pow(10, pms.rho_tilde_min), m, beta, a))
         # print(cdf_diff(soln.x[0]), cdf_diff(guess))
+        # print(conditional_CDF(soln.x[0], m, beta, a))
         
 
         return soln.x[0]
 
     return find_IQR("l"), find_IQR("h")
 
+def numeric_IQR(pdf, x_range):
+    sm = 0
+    iqrl, iqru = 0, 0
+    cl, cu = 0, 0
+
+    for idx, x in enumerate(x_range):
+        sm += pdf[idx]
+        if sm > 0.25 and cl == 0:
+            iqrl = x
+            cl += 1
+        elif sm > 0.75 and cu == 0:
+            iqru = x
+            cu += 1
+            break
+    
+    return iqrl, iqru
 
 def dn(beta, rho, m:float = pms.M_200, a:float = 1):
     """
@@ -167,7 +193,6 @@ def most_probable_rho(beta:float, gamma:float = pms.default_gamma, a:float = 1):
     delta_c = delta_c_0(a) * func.D(a) / func.D(1)
     return pow(1 - pow(beta, -gamma), -delta_c + 1)
 
-
 def most_probable_rho_transformed(beta:float, m:float = pms.M_200, a:float = 1):
     """
         Calculate the expected rho from the correctly transformed double dist.
@@ -187,9 +212,9 @@ def most_probable_rho_transformed(beta:float, m:float = pms.M_200, a:float = 1):
     d = - eta * (1 + delta_c)
 
     roots = poly.polyroots([d, c, b, a])
-    candidates = []
+    candidate = 0
     for i in range(len(roots)):
         if roots[i] > 0:
-            candidates.append(pow(roots[i], -delta_c))
+            candidate = pow(roots[i], -delta_c)
 
-    return candidates
+    return candidate

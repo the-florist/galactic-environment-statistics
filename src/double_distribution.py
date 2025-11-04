@@ -24,6 +24,7 @@ beta_vals = np.logspace(np.log10(pms.beta_min), np.log10(pms.beta_max), pms.num_
 lin_rho_vals = np.linspace(pms.rho_tilde_min, pms.rho_tilde_max, pms.num_rho)
 rho_vals = np.array([pow(10, r) for r in lin_rho_vals])
 dr = (pms.rho_tilde_max - pms.rho_tilde_min) / (pms.num_rho)
+db = (pms.beta_min - pms.beta_max) / (pms.num_beta)
 
 
 def run():
@@ -123,20 +124,26 @@ def run():
             cond_PDF = []
             for r in rho_vals:
                 cond_PDF.append(ddfunc.dn(b, r))
-            cond_PDF /= (sum(cond_PDF) - cond_PDF[0])
+            norm = (sum(cond_PDF) - cond_PDF[0])
+            cond_PDF /= norm
 
             numeric_mode, numeric_stdev = ddfunc.pdf_sample_expectation(cond_PDF, rho_vals)
+            analytic_mode_transformed = ddfunc.most_probable_rho_transformed(b)
             aIQRl, aIQRu = ddfunc.analytic_IQR(numeric_mode, numeric_stdev, b)
+            nIQRl, nIQRu = ddfunc.numeric_IQR(cond_PDF, rho_vals)
 
-            print("Numeric stats from slice: ", (numeric_mode + numeric_stdev))
-            print("Analytic IQR diff: ", (numeric_mode + aIQRu))
+            print("Numeric IQR estimate: ", ddfunc.numeric_CDF(cond_PDF, rho_vals, nIQRl), ddfunc.numeric_CDF(cond_PDF, rho_vals, nIQRu))
+            print("Analytic IQR estimate: ", ddfunc.numeric_CDF(cond_PDF, rho_vals, aIQRl), ddfunc.numeric_CDF(cond_PDF, rho_vals, aIQRu))
             print("--------------------------------")
 
             plt.plot(rho_vals, cond_PDF, label=rf"PDF cond.")
+            plt.plot(analytic_mode_transformed, 
+                    ddfunc.dn(b, analytic_mode_transformed) / norm, 
+                    'o', color='red', label='__nolabel__')
             # plot_color = line.get_color()
             # plt.plot(rho_vals, PDF[i], color=plot_color, linestyle='--', linewidth=1, label='PDF slice')
-            # # for mode_val in analytic_mode_transformed:
-            #     # plt.axvline(x=mode_val, color=plot_color, linestyle='--', linewidth=1, label='_nolegend_')
+            # for mode_val in analytic_mode_transformed:
+                # plt.axvline(x=mode_val, color=plot_color, linestyle='--', linewidth=1, label='_nolegend_')
 
             print("Plot finished for beta = "+str(b))
         
