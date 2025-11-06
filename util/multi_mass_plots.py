@@ -13,71 +13,44 @@ import matplotlib.pyplot as plt
 import util.parameters as pms
 import src.double_distribution_functions as ddfunc
 
-beta_vals = np.logspace(np.log10(pms.beta_min), np.log10(pms.beta_max), pms.num_beta)
-lin_rho_vals = np.linspace(pms.rho_tilde_min, pms.rho_tilde_max, pms.num_rho)
-rho_vals = np.array([pow(10, r) for r in lin_rho_vals])
-m_vals = np.array([(1 - pms.mass_percent_diff) * pms.M_200, pms.M_200, 
-                   (1 + pms.mass_percent_diff) * pms.M_200])
+beta_vals = np.linspace(pms.beta_min, pms.beta_max, pms.num_beta)
+rho_vals = np.linspace(pms.rho_tilde_min, pms.rho_tilde_max, pms.num_rho)
+mass_vals = np.linspace(pms.mass_min, pms.mass_max, pms.num_mass)
+
+slices = np.array([2, 3, 4])
 
 def run():
-    # Create meshgrid for beta and rhos
-    BTS, RHOS = np.meshgrid(beta_vals, rho_vals, indexing='ij')
-    mode_diffs1 = np.zeros(shape=(3, pms.num_beta))
-    mode_diffs2 = np.zeros(shape=(3, pms.num_beta))
+    mode_diffs1 = np.zeros(shape=(3, pms.num_mass))
+    mode_diffs2 = np.zeros(shape=(3, pms.num_mass))
+    b = pms.beta_heuristic
 
-    for mi, m in enumerate(m_vals):
-        # Compute un-normalised joint PDF
-        PDF = np.zeros_like(BTS)
+    # Compute un-normalised joint PDF
+    for bi, b in enumerate(slices):
+        print(r"Starting plot for beta = "+str(b))
 
-        # Set up the timer
-        start = time()
-        intv = 15
-        last = start
-
-        print("Starting loop over rho/beta domain...")
-
-        for bi in range(pms.num_beta):
-            for ri in range(pms.num_rho):
-                try:
-                    PDF[bi, ri] = ddfunc.dn(BTS[bi, ri], RHOS[bi, ri], m)
-                except Exception:
-                    PDF[bi, ri] = 0
-
-            now = time()
-            if now - last > intv:
-                frac = ((bi * pms.num_rho) + ri + 1) / (pms.num_beta * pms.num_rho)
-                elapsed = timedelta(seconds=(now - start))
-                print(f"{str(elapsed)} sec. passed,"
-                      f" {(frac * 100):.2g}% finished...")
-                last = now
-
-        # Normalise the joint PDF
-        if pms.normalise_pdf:
-            norm = np.sum(PDF)
-            PDF /= norm
-            print(f"PDF norm precision: {abs(np.sum(PDF) - 1.):.15}")
-
-        print(f"Starting mode difference calculation at mass {m:.2E}...")
-
-        for bi in range(pms.num_beta):
+        for mi, m in enumerate(mass_vals):
+            cond_PDF = np.zeros(pms.num_rho)
+            for ri, r in enumerate(rho_vals):
+                cond_PDF[ri] = ddfunc.dn(r, m, b)
+        
             # Calculate the mode of the PDF numerically and analytically
-            numeric_mode, _ = ddfunc.pdf_sample_expectation(PDF[bi], rho_vals)
-            full_analytic_mode = ddfunc.most_probable_rho_transformed(beta_vals[bi], m)
-            us_analytic_mode = ddfunc.most_probable_rho(beta_vals[bi])
+            numeric_mode, _ = ddfunc.pdf_sample_expectation(cond_PDF, rho_vals)
+            full_analytic_mode = ddfunc.most_probable_rho_transformed(b, m)
+            us_analytic_mode = ddfunc.most_probable_rho(b)
 
             # Take the absolute difference, to be plotted later
-            mode_diffs1[mi][bi] = ((full_analytic_mode - us_analytic_mode) 
+            mode_diffs1[bi][mi] = ((full_analytic_mode - us_analytic_mode) 
                                     / full_analytic_mode)
-            mode_diffs2[mi][bi] = ((numeric_mode - us_analytic_mode) 
-                                    / numeric_mode)
+            mode_diffs2[bi][mi] = ((numeric_mode - us_analytic_mode) 
+                                / numeric_mode)
 
-    # Plot difference between analytic and numeric modes.
-    for mi, m in enumerate(m_vals):
-        line, = plt.plot(beta_vals, mode_diffs1[mi], label=rf"$m = {m:.2e}$")
-        plt.plot(beta_vals, mode_diffs2[mi], color=line.get_color(), 
+        # Plot difference between analytic and numeric modes.
+        line, = plt.plot(mass_vals, mode_diffs1[bi], label=rf"$m = {m:.2e}$")
+        plt.plot(mass_vals, mode_diffs2[bi], color=line.get_color(), 
                 linestyle='--', linewidth=1, label='_nolegend_')
-    plt.xlabel(r"$\beta$")
-    plt.ylabel(r"($M_{full} - M_{us})/M_{full}$")
+
+    plt.xlabel(r"$m$")
+    plt.ylabel(r"($\hat{\rho}_{full} - \hat{\rho}_{us})/\hat{\rho}_{full}$")
     plt.title("Abs diff between cubic and universal-scaling modes")
     plt.grid(True)
     plt.legend()

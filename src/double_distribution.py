@@ -21,7 +21,7 @@ if pms.plot_dimension != 1 and pms.plot_dimension != 2:
     raise ValueError("double-distribution.py : plot_dimension impossible" 
                      "or is not implemented.")
 
-beta_vals = np.logspace(np.log10(pms.beta_min), np.log10(pms.beta_max), pms.num_beta)
+beta_vals = np.linspace(pms.beta_min, pms.beta_max, pms.num_beta)
 rho_vals = np.linspace(pms.rho_tilde_min, pms.rho_tilde_max, pms.num_rho)
 mass_vals = np.linspace(pms.mass_min, pms.mass_max, pms.num_mass)
 # rho_vals = np.array([pow(10, r) for r in lin_rho_vals])
