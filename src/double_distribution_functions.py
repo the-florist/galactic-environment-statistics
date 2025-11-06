@@ -151,7 +151,7 @@ def numeric_IQR(pdf, x_range):
     
     return iqrl, iqru
 
-def dn(beta, rho, m:float = pms.M_200, a:float = 1):
+def dn(rho, m, beta, a:float = 1):
     """
         Calculate the double distribution of number density w/r/t mass and 
         local overdensity

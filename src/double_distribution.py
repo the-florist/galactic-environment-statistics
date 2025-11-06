@@ -22,14 +22,15 @@ if pms.plot_dimension != 1 and pms.plot_dimension != 2:
 
 beta_vals = np.logspace(np.log10(pms.beta_min), np.log10(pms.beta_max), pms.num_beta)
 rho_vals = np.linspace(pms.rho_tilde_min, pms.rho_tilde_max, pms.num_rho)
+mass_vals = np.linspace(pms.mass_min, pms.mass_max, pms.num_mass)
 # rho_vals = np.array([pow(10, r) for r in lin_rho_vals])
 # dr = (pms.rho_tilde_max - pms.rho_tilde_min) / (pms.num_rho)
 # db = (pms.beta_min - pms.beta_max) / (pms.num_beta)
 
 
 def run():
-    # Create meshgrid for beta and rhos
-    BTS, RHOS = np.meshgrid(beta_vals, rho_vals, indexing='ij')
+    # Create meshgrid with axes ordered as (beta, rho, mass)
+    BTS, RHOS, MS = np.meshgrid(beta_vals, rho_vals, mass_vals, indexing='ij')
 
     print(f"Starting {pms.plot_dimension}D plot generation...")
 
@@ -38,7 +39,7 @@ def run():
             Calculate the normalised joint PDF and plot it.
         """
 
-        PDF = np.zeros_like(BTS)
+        PDF = np.zeros((pms.num_beta_slices, pms.num_rho, pms.num_mass))
 
         # Set up the timer
         start = time()
@@ -47,27 +48,31 @@ def run():
 
         for i in range(pms.num_beta):
             for j in range(pms.num_rho):
-                try:
-                    PDF[i, j] = ddfunc.dn(BTS[i, j], RHOS[i, j])
-                except Exception:
-                    PDF[i, j] = 0
+                for k in range(pms.num_mass):
+                    try:
+                        PDF[i, j, k] = ddfunc.dn(RHOS[i, j, k], MS[i, j, k], BTS[i, j, k])
+                    except Exception:
+                        PDF[i, j, k] = 0
 
-            now = time()
-            if now - last > intv:
-                frac = ((i * pms.num_rho) + j + 1) / (pms.num_beta * pms.num_rho)
-                elapsed = now - start
-                print(f"{elapsed:.2g} sec. passed, {frac * 100}% finished...")
-                last = now
+                now = time()
+                if now - last > intv:
+                    frac = ((j * pms.num_rho) + k + 1) / (pms.num_mass * pms.num_rho)
+                    elapsed = now - start
+                    print(f"{elapsed:.2g} sec. passed for beta = "+str(beta_vals[i])+f", {frac * 100}% finished...")
+                    last = now
 
         # Normalise the joint PDF
         if pms.normalise_pdf:
-            norm = np.sum(PDF)
-            PDF /= norm
-            print(f"PDF norm precision: {abs(np.sum(PDF) - 1.):.15}")
+            for i in range(pms.num_beta):
+                norm = np.sum(PDF[i])
+                PDF[i] /= norm
+                print(f"PDF norm precision: {abs(np.sum(PDF[i]) - 1.):.15}")
+
+        b = pms.beta_heuristic
 
         # Marginals
-        marginal_m = np.trapezoid(PDF, rho_vals, axis=1)
-        marginal_dl = np.trapezoid(PDF, beta_vals, axis=0)
+        marginal_dl = np.trapezoid(PDF[b], mass_vals, axis=1)
+        marginal_m = np.trapezoid(PDF[b], rho_vals, axis=0)
 
         fig = plt.figure(figsize=(8, 8))
         gs = GridSpec(4, 4, hspace=0.05, wspace=0.05)
@@ -77,23 +82,32 @@ def run():
         ax_marg_dl = fig.add_subplot(gs[1:,3], sharey=ax_joint)
 
         # Joint pdf heatmap
-        c = ax_joint.pcolormesh(beta_vals, rho_vals, PDF.T, shading='auto', 
+        c = ax_joint.pcolormesh(rho_vals, mass_vals, PDF[b].T, shading='auto', 
                                                           cmap='viridis')
-        ax_joint.set_xlabel(r'$\beta$')
-        ax_joint.set_ylabel(r'$\tilde{\rho}$')
-        ax_joint.set_xscale('log')
-        ax_joint.set_yscale('log')
+        ax_joint.set_xlabel(r'$\rho/\rho_m$')
+        ax_joint.set_ylabel(r'$m$')
+        # ax_joint.set_xscale('log')
+        # ax_joint.set_yscale('log')
+
+        # Make mass-axis (y) scientific offset (e.g., 1e15) vertical on the left
+        ax_joint.ticklabel_format(axis='y', style='sci', scilimits=(0, 0))
+        y_off = ax_joint.yaxis.get_offset_text()
+        y_off.set_rotation(90)
+        y_off.set_verticalalignment('bottom')
+        y_off.set_horizontalalignment('right')
+        y_off.set_x(-0.1)
+        y_off.set_clip_on(False)
 
         # Marginal for m
-        ax_marg_m.plot(beta_vals, marginal_m, color='tab:blue')
-        ax_marg_m.set_xscale('log')
-        ax_marg_m.set_ylabel(r'Marginal ($\beta$)')
+        ax_marg_m.plot(rho_vals, marginal_dl, color='tab:blue')
+        # ax_marg_m.set_xscale('log')
+        ax_marg_m.set_ylabel(r'Marginal ($\bar{\rho}$)')
         ax_marg_m.tick_params(axis='y', labelbottom=False)
         ax_marg_m.grid(True, which='both', ls='--', alpha=0.3)
 
         # Marginal for delta_l
-        ax_marg_dl.plot(marginal_dl, rho_vals, color='tab:orange')
-        ax_marg_dl.set_xlabel(r'Marginal ($\tilde{\rho}$)')
+        ax_marg_dl.plot(marginal_m, mass_vals, color='tab:orange')
+        ax_marg_dl.set_xlabel(r'Marginal ($m$)')
         ax_marg_dl.tick_params(axis='y', labelleft=False)
         ax_marg_dl.grid(True, which='both', ls='--', alpha=0.3)
         ax_marg_dl.xaxis.get_offset_text().set_x(1.2)  # Move right
@@ -103,7 +117,7 @@ def run():
         plt.setp(ax_marg_m.get_xticklabels(), visible=False)
         plt.setp(ax_marg_dl.get_yticklabels(), visible=False)
 
-        ax_joint.set_title(r'Joint PDF of $\beta$ and $\tilde{\rho}$ with marginals')
+        ax_joint.set_title(r'Joint PDF of $m$ and $\tilde{\rho}$ at $\beta = $'+str(b))
 
         func.make_directory("plots")
         plt.savefig("plots/joint-pdf.pdf")
@@ -123,7 +137,7 @@ def run():
         for b in beta_slices:
             cond_PDF = []
             for r in rho_vals:
-                cond_PDF.append(ddfunc.dn(b, r))
+                cond_PDF.append(ddfunc.dn(r, pms.M_200, b))
             norm = (sum(cond_PDF) - cond_PDF[0])
             cond_PDF /= norm
 
@@ -138,7 +152,7 @@ def run():
 
             plt.plot(rho_vals, cond_PDF, label=rf"PDF cond.")
             plt.plot(analytic_mode_transformed, 
-                    ddfunc.dn(b, analytic_mode_transformed) / norm, 
+                    ddfunc.dn(analytic_mode_transformed, pms.M_200, b) / norm, 
                     'o', color='red', label='__nolabel__')
             # plot_color = line.get_color()
             # plt.plot(rho_vals, PDF[i], color=plot_color, linestyle='--', linewidth=1, label='PDF slice')
