@@ -21,10 +21,10 @@ if pms.plot_dimension != 1 and pms.plot_dimension != 2:
                      "or is not implemented.")
 
 beta_vals = np.logspace(np.log10(pms.beta_min), np.log10(pms.beta_max), pms.num_beta)
-lin_rho_vals = np.linspace(pms.rho_tilde_min, pms.rho_tilde_max, pms.num_rho)
-rho_vals = np.array([pow(10, r) for r in lin_rho_vals])
-dr = (pms.rho_tilde_max - pms.rho_tilde_min) / (pms.num_rho)
-db = (pms.beta_min - pms.beta_max) / (pms.num_beta)
+rho_vals = np.linspace(pms.rho_tilde_min, pms.rho_tilde_max, pms.num_rho)
+# rho_vals = np.array([pow(10, r) for r in lin_rho_vals])
+# dr = (pms.rho_tilde_max - pms.rho_tilde_min) / (pms.num_rho)
+# db = (pms.beta_min - pms.beta_max) / (pms.num_beta)
 
 
 def run():
@@ -150,7 +150,7 @@ def run():
         # Finish plot of PDF slices
         plt.xlabel(r"$\tilde{\rho}$")
         plt.ylabel(r"$P_n$")
-        plt.xscale("log")
+        # plt.xscale("log")
         plt.title(r"PDF slices along $\beta$")
         plt.grid(True)
         plt.legend()

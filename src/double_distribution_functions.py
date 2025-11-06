@@ -76,8 +76,8 @@ def CDF(rho, m:float = pms.M_200, beta:float = 1.3, a:float = 1):
     return cdf_temp
 
 def conditional_CDF(rho, m:float = pms.M_200, beta:float = 1.3, a:float = 1):
-    norm = (CDF(pow(10, pms.rho_tilde_max), m, beta, a) 
-            - CDF(pow(10, pms.rho_tilde_min), m, beta, a))
+    norm = (CDF(pms.rho_tilde_max, m, beta, a) 
+            - CDF(pms.rho_tilde_min, m, beta, a))
     return CDF(rho, m, beta, a) / norm
 
 def numeric_CDF(pdf, x_vals, x):
@@ -119,13 +119,13 @@ def analytic_IQR(sample_mode, sample_stdev, beta,
 
         cdf_diff = lambda x: abs(conditional_CDF(x, m, beta, a) - zscore)
         soln = minimize(cdf_diff, guess, 
-                        bounds=[(pow(10, pms.rho_tilde_min), pow(10, pms.rho_tilde_max))],
+                        bounds=[(pms.rho_tilde_min, pms.rho_tilde_max)],
                         tol=pms.root_finder_precision)
 
         # print("-----")
         # print(sample_mode, sample_stdev)
         # print(guess, soln.x[0], soln.status)
-        # print(conditional_CDF(pow(10, pms.rho_tilde_max), m, beta, a), conditional_CDF(pow(10, pms.rho_tilde_min), m, beta, a))
+        # print(conditional_CDF(pms.rho_tilde_max, m, beta, a), conditional_CDF(pms.rho_tilde_min, m, beta, a))
         # print(cdf_diff(soln.x[0]), cdf_diff(guess))
         # print(conditional_CDF(soln.x[0], m, beta, a))
         

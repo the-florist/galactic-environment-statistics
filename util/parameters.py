@@ -31,7 +31,7 @@ normalise_pdf = True
 
 num_beta_slices = 5
 beta_min, beta_max, num_beta = 1.5, 5, 25
-rho_tilde_min, rho_tilde_max, num_rho = 0, 3, 25 # 60
+rho_tilde_min, rho_tilde_max, num_rho = 1, 10, 50 # 60
 
 # Concordance cosmology
 concordance_model = True
