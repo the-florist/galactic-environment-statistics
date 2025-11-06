@@ -129,43 +129,48 @@ def run():
             and stdev of the mode.
         """
 
-        slices = np.array([np.floor(i * pms.num_beta/pms.num_beta_slices) 
-                        for i in range(pms.num_beta_slices)])
-        beta_slices = [beta_vals[s] for s in slices.astype(np.int64)]
+        slices = np.array([mass_vals[i] for i in range(0, int(pms.num_mass), 
+                                                    round(pms.num_mass/5))])
+        b = pms.beta_heuristic
 
         # Generate slice of PDF at beta_slice
-        for b in beta_slices:
+        for m in slices:
             cond_PDF = []
             for r in rho_vals:
-                cond_PDF.append(ddfunc.dn(r, pms.M_200, b))
+                cond_PDF.append(ddfunc.dn(r, m, b))
             norm = (sum(cond_PDF) - cond_PDF[0])
             cond_PDF /= norm
+            print(f"PDF norm precision: {abs(np.sum(cond_PDF) - 1.):.15}")
 
             numeric_mode, numeric_stdev = ddfunc.pdf_sample_expectation(cond_PDF, rho_vals)
-            analytic_mode_transformed = ddfunc.most_probable_rho_transformed(b)
-            aIQRl, aIQRu = ddfunc.analytic_IQR(numeric_mode, numeric_stdev, b)
-            nIQRl, nIQRu = ddfunc.numeric_IQR(cond_PDF, rho_vals)
+            analytic_mode_transformed = ddfunc.most_probable_rho_transformed(m, b)
+            # aIQRl, aIQRu = ddfunc.analytic_IQR(numeric_mode, numeric_stdev, b)
+            # nIQRl, nIQRu = ddfunc.numeric_IQR(cond_PDF, rho_vals)
 
-            print("Numeric IQR estimate: ", ddfunc.numeric_CDF(cond_PDF, rho_vals, nIQRl), ddfunc.numeric_CDF(cond_PDF, rho_vals, nIQRu))
-            print("Analytic IQR estimate: ", ddfunc.numeric_CDF(cond_PDF, rho_vals, aIQRl), ddfunc.numeric_CDF(cond_PDF, rho_vals, aIQRu))
-            print("--------------------------------")
+            # print("Numeric IQR estimate: ", ddfunc.numeric_CDF(cond_PDF, rho_vals, nIQRl), ddfunc.numeric_CDF(cond_PDF, rho_vals, nIQRu))
+            # print("Analytic IQR estimate: ", ddfunc.numeric_CDF(cond_PDF, rho_vals, aIQRl), ddfunc.numeric_CDF(cond_PDF, rho_vals, aIQRu))
+            # print("--------------------------------")
 
-            plt.plot(rho_vals, cond_PDF, label=rf"PDF cond.")
+            plt.plot(rho_vals, cond_PDF, label=rf"$m = {m:.2E}$")
             plt.plot(analytic_mode_transformed, 
-                    ddfunc.dn(analytic_mode_transformed, pms.M_200, b) / norm, 
+                    ddfunc.dn(analytic_mode_transformed, m, b) / norm, 
                     'o', color='red', label='__nolabel__')
+            plt.plot(numeric_mode, 
+                    ddfunc.dn(analytic_mode_transformed, m, b) / norm,
+                    "*", color="blue", label='__nolabel__')
+
             # plot_color = line.get_color()
             # plt.plot(rho_vals, PDF[i], color=plot_color, linestyle='--', linewidth=1, label='PDF slice')
             # for mode_val in analytic_mode_transformed:
                 # plt.axvline(x=mode_val, color=plot_color, linestyle='--', linewidth=1, label='_nolegend_')
 
-            print("Plot finished for beta = "+str(b))
+            print(f"Plot finished for mass = {m:.2E}")
         
         # Finish plot of PDF slices
         plt.xlabel(r"$\tilde{\rho}$")
         plt.ylabel(r"$P_n$")
         # plt.xscale("log")
-        plt.title(r"PDF slices along $\beta$")
+        plt.title(r"PDF slices along mass")
         plt.grid(True)
         plt.legend()
         plt.savefig("plots/joint-pdf-slice.pdf")

@@ -193,7 +193,7 @@ def most_probable_rho(beta:float, gamma:float = pms.default_gamma, a:float = 1):
     delta_c = delta_c_0(a) * func.D(a) / func.D(1)
     return pow(1 - pow(beta, -gamma), -delta_c + 1)
 
-def most_probable_rho_transformed(beta:float, m:float = pms.M_200, a:float = 1):
+def most_probable_rho_transformed(m:float, beta:float, a:float = 1):
     """
         Calculate the expected rho from the correctly transformed double dist.
     """
