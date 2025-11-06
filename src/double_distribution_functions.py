@@ -151,7 +151,7 @@ def numeric_IQR(pdf, x_range):
     
     return iqrl, iqru
 
-def dn(rho, m, beta, a:float = 1):
+def dn(rho, m, beta, a:float = 1, transform_pdf:bool = pms.transform_pdf):
     """
         Calculate the double distribution of number density w/r/t mass and 
         local overdensity
@@ -176,7 +176,7 @@ def dn(rho, m, beta, a:float = 1):
     dn = random_walk * mass_removal
 
     # Apply Jacobian to get the transformed PDF
-    if pms.transform_pdf:
+    if transform_pdf:
         dn *= pow(rho, (-1 - 1/delta_c))
 
     # Enforce the PDF to be positive

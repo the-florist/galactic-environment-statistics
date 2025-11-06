@@ -7,6 +7,7 @@
             as derived in Pavlidou and Fields 2005.
 """
 
+from matplotlib import style
 import numpy as np
 from time import time
 import matplotlib.pyplot as plt
@@ -129,21 +130,27 @@ def run():
             and stdev of the mode.
         """
 
-        slices = np.array([mass_vals[i] for i in range(0, int(pms.num_mass), 
-                                                    round(pms.num_mass/5))])
+        slices = np.array([1e14, 1e15]) # np.array([mass_vals[i] for i in range(0, int(pms.num_mass), 
+                 #                                   round(pms.num_mass/5))])
         b = pms.beta_heuristic
 
         # Generate slice of PDF at beta_slice
         for m in slices:
             cond_PDF = []
             for r in rho_vals:
-                cond_PDF.append(ddfunc.dn(r, m, b))
+                cond_PDF.append(ddfunc.dn(r, m, b, transform_pdf=True))
             norm = (sum(cond_PDF) - cond_PDF[0])
             cond_PDF /= norm
             print(f"PDF norm precision: {abs(np.sum(cond_PDF) - 1.):.15}")
 
-            numeric_mode, numeric_stdev = ddfunc.pdf_sample_expectation(cond_PDF, rho_vals)
-            analytic_mode_transformed = ddfunc.most_probable_rho_transformed(m, b)
+            cond_PDF_no_transform = []
+            for r in rho_vals:
+                cond_PDF_no_transform.append(ddfunc.dn(r, m, b, transform_pdf=False))
+            norm = (sum(cond_PDF_no_transform) - cond_PDF_no_transform[0])
+            cond_PDF_no_transform /= norm
+
+            # numeric_mode, numeric_stdev = ddfunc.pdf_sample_expectation(cond_PDF, rho_vals)
+            # analytic_mode_transformed = ddfunc.most_probable_rho_transformed(m, b)
             # aIQRl, aIQRu = ddfunc.analytic_IQR(numeric_mode, numeric_stdev, b)
             # nIQRl, nIQRu = ddfunc.numeric_IQR(cond_PDF, rho_vals)
 
@@ -151,13 +158,16 @@ def run():
             # print("Analytic IQR estimate: ", ddfunc.numeric_CDF(cond_PDF, rho_vals, aIQRl), ddfunc.numeric_CDF(cond_PDF, rho_vals, aIQRu))
             # print("--------------------------------")
 
-            plt.plot(rho_vals, cond_PDF, label=rf"$m = {m:.2E}$")
-            plt.plot(analytic_mode_transformed, 
-                    ddfunc.dn(analytic_mode_transformed, m, b) / norm, 
-                    'o', color='red', label='__nolabel__')
-            plt.plot(numeric_mode, 
-                    ddfunc.dn(analytic_mode_transformed, m, b) / norm,
-                    "*", color="blue", label='__nolabel__')
+            line, = plt.plot(rho_vals, cond_PDF, label=rf"$m = {m:.2E}$")
+            plot_color = line.get_color()
+            plt.plot(rho_vals, cond_PDF_no_transform, color=plot_color, linestyle="--", label=rf"__nolabel__")
+
+            # plt.plot(analytic_mode_transformed, 
+            #         ddfunc.dn(analytic_mode_transformed, m, b) / norm, 
+            #         'o', color='red', label='__nolabel__')
+            # plt.plot(numeric_mode, 
+            #         ddfunc.dn(analytic_mode_transformed, m, b) / norm,
+            #         "*", color="blue", label='__nolabel__')
 
             # plot_color = line.get_color()
             # plt.plot(rho_vals, PDF[i], color=plot_color, linestyle='--', linewidth=1, label='PDF slice')
@@ -175,3 +185,21 @@ def run():
         plt.legend()
         plt.savefig("plots/joint-pdf-slice.pdf")
         plt.close()
+
+        def rho_derivative(rho):
+            delta_c = ddfunc.delta_c_0(1) * func.D(1) / func.D(1)
+            return pow(rho, (-1 - 1/delta_c))
+
+        # Plot rho_derivative using rho_vals
+        y_vals = [rho_derivative(r) for r in rho_vals]
+        plt.figure()
+        plt.plot(rho_vals, y_vals)
+        plt.xlabel(r"$\bar{\rho}$")
+        plt.ylabel(r"$d \tilde{\delta}_l / d \bar{\rho}$")
+        plt.grid(True, which='both', ls='--', alpha=0.3)
+        plt.title(r"rho derivative: $\bar{\rho}^{-1/\tilde{\delta}_{c}-1}$")
+        func.make_directory("plots")
+        plt.savefig("plots/rho-derivative.pdf")
+        plt.close()
+
+        
