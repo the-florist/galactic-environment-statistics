@@ -10,55 +10,107 @@ from numpy.typing import NDArray
 import numpy.polynomial.polynomial as poly
 from scipy.optimize import minimize
 from scipy.special import erf
-import scipy.integrate as integrate
 
 import util.parameters as pms
 import util.functions as func
+from util.functions import delta_c_0
 
+"""
+    Functions related to the double distribution (PDF).
+"""
 
-def a_coll_integrand(x, c1, c2) -> float:
-    return np.sqrt(x / (c1 * x**3 - c2 * x + 1))
-
-def a_coll() -> float:
+def dn(rho, m, beta, a:float = 1, transform_pdf:bool = pms.transform_pdf):
     """
-        Calculate a_coll by minimizing the integral to a_coll and the integral 
-        to a_pta
+        Calculate the double distribution of number density w/r/t mass and 
+        local overdensity
     """
-    a_init = 1
 
-    a_pta = pow(pms.w, -1/3) 
-    a_pta *= np.sqrt(4 * pms.kappa / 3 / pow(pms.w, 1/3)) 
-    a_pta *= np.cos(1/3 * (np.arccos(np.sqrt(27 * 
-                pow(pms.kappa/pow(pms.w, 1/3), -3) / 4)) + np.pi))
+    # Set some useful constants
+    delta_c = delta_c_0(a) * func.D(a) / func.D(1)
+    rho_m = pms.Omega_m * pms.rho_c 
 
-    C = 2 * integrate.quad(lambda x: a_coll_integrand(x, pms.w, pms.kappa), 
-                            pms.a_i, a_pta)[0]
+    # Transform rho into \tilde{\delta}_l
+    delta_tilde = func.rho_to_delta_tilde(rho)
 
-    def diff(a):
-        return abs(integrate.quad(lambda x: a_coll_integrand(x, pms.w, pms.phi), 
-                                    pms.a_i, a)[0] - C)
+    # Calculate the component distributions
+    mass_removal = (delta_c_0(a) - delta_tilde) 
+    mass_removal *= np.exp(-(delta_c_0(a) - delta_tilde)**2 
+                            / (2 *(func.S(m) - func.S(beta*m)))) 
+    mass_removal /= pow(func.S(m) - func.S(beta*m), 3/2)
 
-    solution = minimize(diff, a_init, bounds=[(0, 1)], tol=pms.root_finder_precision)
+    random_walk = (rho_m / m) * (np.exp(-(delta_tilde ** 2) / (2 * func.S(beta * m))) 
+                    / (2 * np.pi * np.sqrt(func.S(beta*m))))
 
-    return solution.x[0]
+    # Construct the raw PDF
+    dn = random_walk * mass_removal # * func.dS(m)
 
-def delta_c_0(a_i : float) -> float:
+    # Apply inverse derivative to get the transformed PDF of rho
+    if transform_pdf:
+        dn *= pow(rho, (-1 - 1/delta_c))
+
+    # Enforce the PDF to be positive
+    if pms.enforce_positive_pdf == True:
+        if dn < 0:
+            return 0
+        else:
+            return dn
+    else:
+        return dn
+
+def most_probable_rho(beta:float, gamma:float = pms.default_gamma, a:float = 1,
+                        inc_mass_scaling:bool = False, m:float = pms.M_200):
+    # From Eqn. 2 of arXiv:2404.11183v2 
+    delta_c = delta_c_0(a) * func.D(a) / func.D(1)
+    us_mode_rho = pow(1 - pow(beta, -gamma), -delta_c + 1)
+    us_mode_delta = delta_c_0(a) * func.S(beta * m) / func.S(m)
+    
+    if inc_mass_scaling:
+        A = 1 / (func.S(m) - func.S(beta * m)) + 1 / (func.S(beta * m))
+        B = - delta_c_0(a) * (2 / (func.S(m) - func.S(beta * m)) + 1 / func.S(beta * m))
+        C = pow(delta_c_0(a), 2) / (func.S(m) - func.S(beta * m)) - 1
+
+        candidates = poly.polyroots([C, B, A])
+        root = candidates[np.argmin(abs(candidates - us_mode_delta))]
+        return func.delta_tilde_to_rho(root)
+
+    else:
+        return us_mode_rho
+
+def most_probable_rho_transformed(m:float, beta:float, a:float = 1):
     """
-        Calculate the critical overdensity today using a_coll and the growth 
-        factor.
+        Calculate the expected rho from the correctly transformed double dist.
     """
-    a_c = a_coll()
-    delta_c = 3 * pms.Omega_m * (pms.kappa - pms.phi) * func.D(a_c) / 2
-    temp = func.D(1) * delta_c / func.D(a_i)
-    return temp
+
+    delta_c = delta_c_0(a) * func.D(a) / func.D(1)
+    eta = delta_c_0(a) - delta_c
+    A = func.S(m) / (2 * func.S(beta * m) *(func.S(m) - func.S(beta * m)))
+    B = delta_c_0(a) / 2 / (func.S(m) - func.S(beta * m))
+
+    Ap = A * pow(delta_c, 2)
+    Bp = delta_c * (delta_c * A - B)
+
+    a = 2 * Ap * delta_c
+    b = 2 * (Ap * eta - Bp * delta_c)
+    c = - (2 * Bp * eta + 2 * delta_c + pow(delta_c, 2))
+    d = - eta * (1 + delta_c)
+
+    roots = poly.polyroots([d, c, b, a])
+    candidate = 0
+    for i in range(len(roots)):
+        if roots[i] > 0:
+            candidate = pow(roots[i], -delta_c)
+
+    return candidate
+
+"""
+    Functions related to the CDF.
+"""
 
 def CDF(rho, m:float = pms.M_200, beta:float = 1.3, a:float = 1):
     """
         Calculate the CDF as a function of delta_l(rho)
     """
-    delta = rho - 1
-    delta_c = delta_c_0(a) * func.D(a) / func.D(1)
-    delta_tilde = delta_c * (1 - pow(1 + delta, -1/delta_c))
+    delta_tilde = func.rho_to_delta_tilde(rho)
     rho_m = pms.Omega_m * pms.rho_c 
 
     N = (rho_m / m) * 1. / (2 * np.pi * np.sqrt(func.S(beta * m)) 
@@ -84,6 +136,10 @@ def numeric_CDF(pdf, x_vals, x):
     i = np.argmin(np.abs(x_vals - x))
     return sum(pdf[:(i+1)])
 
+"""
+    Functions related to the IQR.
+"""
+
 def pdf_sample_expectation(pdf : NDArray, rho_vals : NDArray):
     """
         Calculate the mode of the double distribution 
@@ -93,12 +149,12 @@ def pdf_sample_expectation(pdf : NDArray, rho_vals : NDArray):
 
     sample_mode = rho_vals[np.argmax(pdf)]
 
-    # sample_mode_variance = 0
-    # for i in range(len(rho_vals)):
-    #     sample_mode_variance += pdf[i] * pow(rho_vals[i] - sample_mode, 2)
-    # sample_mode_variance /= (pms.num_rho - 1)
+    sample_mode_variance = 0
+    for i in range(len(rho_vals)):
+        sample_mode_variance += pdf[i] * pow(rho_vals[i] - sample_mode, 2)
+    sample_mode_variance /= (pms.num_rho - 1)
 
-    return sample_mode #, np.sqrt(sample_mode_variance)
+    return sample_mode, np.sqrt(sample_mode_variance)
 
 def analytic_IQR(sample_mode, sample_stdev, beta,
                  m:float = pms.M_200, a:float = 1) -> tuple[float, float]:
@@ -150,87 +206,3 @@ def numeric_IQR(pdf, x_range):
             break
     
     return iqrl, iqru
-
-def dn(rho, m, beta, a:float = 1, transform_pdf:bool = pms.transform_pdf):
-    """
-        Calculate the double distribution of number density w/r/t mass and 
-        local overdensity
-    """
-
-    delta_c = delta_c_0(a) * func.D(a) / func.D(1)
-    rho_m = pms.Omega_m * pms.rho_c 
-
-    # Transform rho into \tilde{\delta}_l
-    delta = rho - 1
-    delta_tilde = delta_c * (1 - pow(1 + delta, -1/delta_c))
-
-    mass_removal = (delta_c_0(a) - delta_tilde) 
-    mass_removal *= np.exp(-(delta_c_0(a) - delta_tilde)**2 
-                            / (2 *(func.S(m) - func.S(beta*m)))) 
-    mass_removal /= pow(func.S(m) - func.S(beta*m), 3/2)
-
-    random_walk = (rho_m / m) * (np.exp(-(delta_tilde ** 2) / (2 * func.S(beta * m))) 
-                    / (2 * np.pi * np.sqrt(func.S(beta*m))))
-
-    # Construct the PDF
-    dn = random_walk * mass_removal # * func.dS(m)
-
-    # Apply Jacobian to get the transformed PDF
-    if transform_pdf:
-        dn *= pow(rho, (-1 - 1/delta_c))
-
-    # Enforce the PDF to be positive
-    if pms.enforce_positive_pdf == True:
-        if dn < 0:
-            return 0
-        else:
-            return dn
-    else:
-        return dn
-
-def most_probable_rho(beta:float, gamma:float = pms.default_gamma, a:float = 1,
-                        inc_mass_scaling:bool = False, m:float = pms.M_200):
-    # From Eqn. 2 of arXiv:2404.11183v2 
-    delta_c = delta_c_0(a) * func.D(a) / func.D(1)
-    us_mode_rho = pow(1 - pow(beta, -gamma), -delta_c + 1)
-    us_mode_delta = delta_c_0(a) * func.S(beta * m) / func.S(m)
-    
-    if inc_mass_scaling:
-        A = 1 / (func.S(m) - func.S(beta * m)) + 1 / (func.S(beta * m))
-        B = - delta_c_0(a) * (2 / (func.S(m) - func.S(beta * m)) + 1 / func.S(beta * m))
-        C = pow(delta_c_0(a), 2) / (func.S(m) - func.S(beta * m)) - 1
-
-        candidates = poly.polyroots([C, B, A])
-        root = candidates[np.argmin(abs(candidates - us_mode_delta))]
-
-        delta_c = delta_c_0(a) * func.D(a) / func.D(1)
-        return pow(1 - root / delta_c, -delta_c)
-
-    else:
-        return us_mode_rho
-
-def most_probable_rho_transformed(m:float, beta:float, a:float = 1):
-    """
-        Calculate the expected rho from the correctly transformed double dist.
-    """
-
-    delta_c = delta_c_0(a) * func.D(a) / func.D(1)
-    eta = delta_c_0(a) - delta_c
-    A = func.S(m) / (2 * func.S(beta * m) *(func.S(m) - func.S(beta * m)))
-    B = delta_c_0(a) / 2 / (func.S(m) - func.S(beta * m))
-
-    Ap = A * pow(delta_c, 2)
-    Bp = delta_c * (delta_c * A - B)
-
-    a = 2 * Ap * delta_c
-    b = 2 * (Ap * eta - Bp * delta_c)
-    c = - (2 * Bp * eta + 2 * delta_c + pow(delta_c, 2))
-    d = - eta * (1 + delta_c)
-
-    roots = poly.polyroots([d, c, b, a])
-    candidate = 0
-    for i in range(len(roots)):
-        if roots[i] > 0:
-            candidate = pow(roots[i], -delta_c)
-
-    return candidate

@@ -33,7 +33,7 @@ def run():
                 cond_PDF[ri] = ddfunc.dn(r, m, b, transform_pdf=False)
         
             # Calculate the mode of the PDF numerically and analytically
-            numeric_mode = ddfunc.pdf_sample_expectation(cond_PDF, rho_vals)
+            numeric_mode, _ = ddfunc.pdf_sample_expectation(cond_PDF, rho_vals)
             full_analytic_mode = ddfunc.most_probable_rho_transformed(m, b)
             us_analytic_mode = ddfunc.most_probable_rho(b)
             us_analytic_mode_with_mass = ddfunc.most_probable_rho(b, inc_mass_scaling=True, m=m)

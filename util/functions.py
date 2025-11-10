@@ -10,6 +10,7 @@ import os
 import numpy as np
 import scipy.integrate as integrate
 from typing import overload, Literal, Tuple, Union
+from scipy.optimize import minimize
 
 # parameters
 import util.parameters as pms
@@ -109,6 +110,55 @@ def dS(m, power_law_approx = pms.power_law_approx, gamma:float = pms.default_gam
     else:
         print("Numerical derivative not yet implemented.")
         exit()
+
+"""
+    Functions used to convert delta tilde and rho into each other.
+"""
+
+def a_coll_integrand(x, c1, c2) -> float:
+    return np.sqrt(x / (c1 * x**3 - c2 * x + 1))
+
+def a_coll() -> float:
+    """
+        Calculate a_coll by minimizing the integral to a_coll and the integral 
+        to a_pta
+    """
+    a_init = 1
+
+    a_pta = pow(pms.w, -1/3) 
+    a_pta *= np.sqrt(4 * pms.kappa / 3 / pow(pms.w, 1/3)) 
+    a_pta *= np.cos(1/3 * (np.arccos(np.sqrt(27 * 
+                pow(pms.kappa/pow(pms.w, 1/3), -3) / 4)) + np.pi))
+
+    C = 2 * integrate.quad(lambda x: a_coll_integrand(x, pms.w, pms.kappa), 
+                            pms.a_i, a_pta)[0]
+
+    def diff(a):
+        return abs(integrate.quad(lambda x: a_coll_integrand(x, pms.w, pms.phi), 
+                                    pms.a_i, a)[0] - C)
+
+    solution = minimize(diff, a_init, bounds=[(0, 1)], tol=pms.root_finder_precision)
+
+    return solution.x[0]
+
+def delta_c_0(a_i : float) -> float:
+    """
+        Calculate the critical overdensity today using a_coll and the growth 
+        factor.
+    """
+    a_c = a_coll()
+    delta_c = 3 * pms.Omega_m * (pms.kappa - pms.phi) * D(a_c) / 2
+    temp = D(1) * delta_c / D(a_i)
+    return temp
+
+def rho_to_delta_tilde(rho:float, a:float = 1):
+    delta_c = delta_c_0(a) * D(a) / D(1)
+    return delta_c * (1 - pow(rho, -1/delta_c))
+
+def delta_tilde_to_rho(delta_tilde:float, a:float = 1):
+    delta_c = delta_c_0(a) * D(a) / D(1)
+    return pow(1 - delta_tilde / delta_c, -delta_c)
+
 """
     Functions yet to be implimented
 """
