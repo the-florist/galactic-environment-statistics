@@ -13,11 +13,10 @@ import matplotlib.pyplot as plt
 import util.parameters as pms
 import src.double_distribution_functions as ddfunc
 
-beta_vals = np.linspace(pms.beta_min, pms.beta_max, pms.num_beta)
 rho_vals = np.linspace(pms.rho_tilde_min, pms.rho_tilde_max, pms.num_rho)
 mass_vals = np.linspace(pms.mass_min, pms.mass_max, pms.num_mass)
 
-slices = np.array([2, 3, 4])
+slices = np.array([2])
 
 def run():
     mode_diffs1 = np.zeros(shape=(3, pms.num_mass))
@@ -34,23 +33,29 @@ def run():
                 cond_PDF[ri] = ddfunc.dn(r, m, b)
         
             # Calculate the mode of the PDF numerically and analytically
-            numeric_mode, _ = ddfunc.pdf_sample_expectation(cond_PDF, rho_vals)
-            full_analytic_mode = ddfunc.most_probable_rho_transformed(b, m)
+            numeric_mode = ddfunc.pdf_sample_expectation(cond_PDF, rho_vals)
+            full_analytic_mode = ddfunc.most_probable_rho_transformed(m, b)
             us_analytic_mode = ddfunc.most_probable_rho(b)
 
             # Take the absolute difference, to be plotted later
-            mode_diffs1[bi][mi] = ((full_analytic_mode - us_analytic_mode) 
-                                    / full_analytic_mode)
-            mode_diffs2[bi][mi] = ((numeric_mode - us_analytic_mode) 
-                                / numeric_mode)
+            mode_diffs1[bi][mi] = ((us_analytic_mode - full_analytic_mode) 
+                                    / us_analytic_mode)
+            mode_diffs2[bi][mi] = ((us_analytic_mode - numeric_mode) 
+                                / us_analytic_mode)
+            
+            if m == 1e14 or m == 1e15:
+                print(f"Mass: {m:.2E}")
+                print(f"US mode: {us_analytic_mode:.6E}")
+                print(f"Full mode: {full_analytic_mode:.6E}")
+                print("------")
 
         # Plot difference between analytic and numeric modes.
-        line, = plt.plot(mass_vals, mode_diffs1[bi], label=rf"$m = {m:.2e}$")
+        line, = plt.plot(mass_vals, mode_diffs1[bi], label=rf"$beta = {b:.2e}$")
         plt.plot(mass_vals, mode_diffs2[bi], color=line.get_color(), 
                 linestyle='--', linewidth=1, label='_nolegend_')
 
     plt.xlabel(r"$m$")
-    plt.ylabel(r"($\hat{\rho}_{full} - \hat{\rho}_{us})/\hat{\rho}_{full}$")
+    plt.ylabel(r"($\hat{\rho}_{us} - \hat{\rho}_{full})/\hat{\rho}_{us}$")
     plt.title("Abs diff between cubic and universal-scaling modes")
     plt.grid(True)
     plt.legend()

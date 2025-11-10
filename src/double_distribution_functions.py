@@ -93,12 +93,12 @@ def pdf_sample_expectation(pdf : NDArray, rho_vals : NDArray):
 
     sample_mode = rho_vals[np.argmax(pdf)]
 
-    sample_mode_variance = 0
-    for i in range(len(rho_vals)):
-        sample_mode_variance += pdf[i] * pow(rho_vals[i] - sample_mode, 2)
-    sample_mode_variance /= (pms.num_rho - 1)
+    # sample_mode_variance = 0
+    # for i in range(len(rho_vals)):
+    #     sample_mode_variance += pdf[i] * pow(rho_vals[i] - sample_mode, 2)
+    # sample_mode_variance /= (pms.num_rho - 1)
 
-    return sample_mode, np.sqrt(sample_mode_variance)
+    return sample_mode #, np.sqrt(sample_mode_variance)
 
 def analytic_IQR(sample_mode, sample_stdev, beta,
                  m:float = pms.M_200, a:float = 1) -> tuple[float, float]:
