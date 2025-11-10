@@ -173,7 +173,7 @@ def dn(rho, m, beta, a:float = 1, transform_pdf:bool = pms.transform_pdf):
                     / (2 * np.pi * np.sqrt(func.S(beta*m))))
 
     # Construct the PDF
-    dn = random_walk * mass_removal
+    dn = random_walk * mass_removal # * func.dS(m)
 
     # Apply Jacobian to get the transformed PDF
     if transform_pdf:
@@ -188,10 +188,22 @@ def dn(rho, m, beta, a:float = 1, transform_pdf:bool = pms.transform_pdf):
     else:
         return dn
 
-def most_probable_rho(beta:float, gamma:float = pms.default_gamma, a:float = 1):
+def most_probable_rho(beta:float, gamma:float = pms.default_gamma, a:float = 1,
+                        inc_mass_scaling:bool = False, m:float = pms.M_200):
     # From Eqn. 2 of arXiv:2404.11183v2 
     delta_c = delta_c_0(a) * func.D(a) / func.D(1)
-    return pow(1 - pow(beta, -gamma), -delta_c + 1)
+    us_mode = pow(1 - pow(beta, -gamma), -delta_c + 1)
+    
+    if inc_mass_scaling:
+        A = 1 / (func.S(m) - func.S(beta * m)) + 1 / (func.S(beta * m))
+        B = - delta_c_0(a) * (2 / (func.S(m) - func.S(beta * m)) + 1 / func.S(beta * m))
+        C = pow(delta_c_0(a), 2) / (func.S(m) - func.S(beta * m)) - 1
+
+        roots = poly.polyroots([C, B, A])
+        return roots[np.argmin(abs(roots - us_mode))]
+
+    else:
+        return us_mode
 
 def most_probable_rho_transformed(m:float, beta:float, a:float = 1):
     """

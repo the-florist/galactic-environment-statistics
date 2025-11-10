@@ -30,12 +30,13 @@ def run():
         for mi, m in enumerate(mass_vals):
             cond_PDF = np.zeros(pms.num_rho)
             for ri, r in enumerate(rho_vals):
-                cond_PDF[ri] = ddfunc.dn(r, m, b)
+                cond_PDF[ri] = ddfunc.dn(r, m, b, transform_pdf=False)
         
             # Calculate the mode of the PDF numerically and analytically
             numeric_mode = ddfunc.pdf_sample_expectation(cond_PDF, rho_vals)
             full_analytic_mode = ddfunc.most_probable_rho_transformed(m, b)
             us_analytic_mode = ddfunc.most_probable_rho(b)
+            us_analytic_mode_with_mass = ddfunc.most_probable_rho(b, inc_mass_scaling=True, m=m)
 
             # Take the absolute difference, to be plotted later
             mode_diffs1[bi][mi] = ((us_analytic_mode - full_analytic_mode) 
@@ -46,7 +47,9 @@ def run():
             if m == 1e14 or m == 1e15:
                 print(f"Mass: {m:.2E}")
                 print(f"US mode: {us_analytic_mode:.6E}")
-                print(f"Full mode: {full_analytic_mode:.6E}")
+                print(f"US mode with mass: {us_analytic_mode_with_mass:.6E}")
+                print(f"Numeric mode corresponding: {rho_vals[np.argmax(cond_PDF)]:.6E}")
+                # print(f"Full mode: {full_analytic_mode:.6E}")
                 print("------")
 
         # Plot difference between analytic and numeric modes.

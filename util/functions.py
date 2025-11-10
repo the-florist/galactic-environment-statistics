@@ -101,7 +101,14 @@ def S(m, power_law_approx = pms.power_law_approx, gamma:float = pms.default_gamm
         S_temp *= pms.s_8
         S_temp /= (integrate.quad(lambda k: transfer_function_integrand(k), 0, k_of_m(pms.m_8))[0])
         return S_temp 
-        
+
+def dS(m, power_law_approx = pms.power_law_approx, gamma:float = pms.default_gamma):
+    if power_law_approx:
+        dS = - pms.s_8 * gamma * pow(m / pms.m_8, - gamma - 1) / pms.m_8
+        return dS
+    else:
+        print("Numerical derivative not yet implemented.")
+        exit()
 """
     Functions yet to be implimented
 """
