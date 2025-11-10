@@ -59,12 +59,19 @@ def dn(rho, m, beta, a:float = 1, transform_pdf:bool = pms.transform_pdf):
 
 def most_probable_rho(beta:float, gamma:float = pms.default_gamma, a:float = 1,
                         inc_mass_scaling:bool = False, m:float = pms.M_200):
-    # From Eqn. 2 of arXiv:2404.11183v2 
+    """
+        Find the most probable rho under the most restrictive assumptions,
+        either with or without mass dependence.
+    """
+
     delta_c = delta_c_0(a) * func.D(a) / func.D(1)
+    # From Eqn. 2 of arXiv:2404.11183v2 
     us_mode_rho = pow(1 - pow(beta, -gamma), -delta_c + 1)
+    # From Eqn. 3 of arXiv:2402.18634v2
     us_mode_delta = delta_c_0(a) * func.S(beta * m) / func.S(m)
     
     if inc_mass_scaling:
+        # Solve the quadratic, which keeps the dependence of the mode on mass.
         A = 1 / (func.S(m) - func.S(beta * m)) + 1 / (func.S(beta * m))
         B = - delta_c_0(a) * (2 / (func.S(m) - func.S(beta * m)) + 1 / func.S(beta * m))
         C = pow(delta_c_0(a), 2) / (func.S(m) - func.S(beta * m)) - 1
@@ -74,33 +81,39 @@ def most_probable_rho(beta:float, gamma:float = pms.default_gamma, a:float = 1,
         return func.delta_tilde_to_rho(root)
 
     else:
+        # Return the universal profile, which does not depend on mass.
         return us_mode_rho
 
 def most_probable_rho_transformed(m:float, beta:float, a:float = 1):
     """
-        Calculate the expected rho from the correctly transformed double dist.
+        Calculate the most probable rho, correctly transforming delta_tilde -> rho.
+        Involves solving the roots of a third-order polynomial.
     """
 
+    # Set up first layer of constants
     delta_c = delta_c_0(a) * func.D(a) / func.D(1)
     eta = delta_c_0(a) - delta_c
     A = func.S(m) / (2 * func.S(beta * m) *(func.S(m) - func.S(beta * m)))
     B = delta_c_0(a) / 2 / (func.S(m) - func.S(beta * m))
 
+    # Set up second layer of constants
     Ap = A * pow(delta_c, 2)
     Bp = delta_c * (delta_c * A - B)
 
+    # Set up third layer of constants
     a = 2 * Ap * delta_c
     b = 2 * (Ap * eta - Bp * delta_c)
     c = - (2 * Bp * eta + 2 * delta_c + pow(delta_c, 2))
     d = - eta * (1 + delta_c)
 
+    # Solve the cubic
     roots = poly.polyroots([d, c, b, a])
-    candidate = 0
     for i in range(len(roots)):
         if roots[i] > 0:
-            candidate = pow(roots[i], -delta_c)
-
-    return candidate
+            return pow(roots[i], -delta_c)
+    else:
+        print("Error : most_probable_rho_transformed, Root not found.")
+        exit()
 
 """
     Functions related to the CDF.
@@ -108,8 +121,10 @@ def most_probable_rho_transformed(m:float, beta:float, a:float = 1):
 
 def CDF(rho, m:float = pms.M_200, beta:float = 1.3, a:float = 1):
     """
-        Calculate the CDF as a function of delta_l(rho)
+        Calculate the analytic CDF as a function of delta_l(rho).
     """
+
+    # Convert rho -> delta_tilde and set constants.
     delta_tilde = func.rho_to_delta_tilde(rho)
     rho_m = pms.Omega_m * pms.rho_c 
 
@@ -120,6 +135,7 @@ def CDF(rho, m:float = pms.M_200, beta:float = 1.3, a:float = 1):
     B = delta_c_0(a) / (2 * (func.S(m) - func.S(beta * m)))
     C = (delta_c_0(a) ** 2) / (2 * (func.S(m) - func.S(beta * m)))
 
+    # Calculate the CDF in layers.
     cdf_temp = np.sqrt(np.pi / A) * (delta_c_0(a) - B / A) / 2. # 0.5 * np.sqrt(np.pi / A) * (delta_c_0(a) - B / (2 * A))
     cdf_temp *= np.exp(B**2 / A - C) * (1 - erf((B - A * delta_tilde) / np.sqrt(A))) # -1 np.sqrt(A) * delta_tilde - B / np.sqrt(A)
     cdf_temp += np.exp(-A * (delta_tilde**2) + 2 * B * delta_tilde - C) / (2 * A)
@@ -128,11 +144,19 @@ def CDF(rho, m:float = pms.M_200, beta:float = 1.3, a:float = 1):
     return cdf_temp
 
 def conditional_CDF(rho, m:float = pms.M_200, beta:float = 1.3, a:float = 1):
+    """
+        Calculate the normalised analytic CDF as a function of delta_l(rho).
+    """
+
     norm = (CDF(pms.rho_tilde_max, m, beta, a) 
             - CDF(pms.rho_tilde_min, m, beta, a))
     return CDF(rho, m, beta, a) / norm
 
 def numeric_CDF(pdf, x_vals, x):
+    """
+        Find the numerical CDF given a numerical PDF and axis.
+    """
+
     i = np.argmin(np.abs(x_vals - x))
     return sum(pdf[:(i+1)])
 
@@ -191,10 +215,16 @@ def analytic_IQR(sample_mode, sample_stdev, beta,
     return find_IQR("l"), find_IQR("h")
 
 def numeric_IQR(pdf, x_range):
+    """
+        Calculate the IQR numerically, on a numeric PDF with axis.
+    """
+
+    # Track the CDF, and iqrs found
     sm = 0
     iqrl, iqru = 0, 0
     cl, cu = 0, 0
 
+    # Use the numerical CDF to find the iqrs
     for idx, x in enumerate(x_range):
         sm += pdf[idx]
         if sm > 0.25 and cl == 0:
