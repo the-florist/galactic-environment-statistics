@@ -192,18 +192,22 @@ def most_probable_rho(beta:float, gamma:float = pms.default_gamma, a:float = 1,
                         inc_mass_scaling:bool = False, m:float = pms.M_200):
     # From Eqn. 2 of arXiv:2404.11183v2 
     delta_c = delta_c_0(a) * func.D(a) / func.D(1)
-    us_mode = pow(1 - pow(beta, -gamma), -delta_c + 1)
+    us_mode_rho = pow(1 - pow(beta, -gamma), -delta_c + 1)
+    us_mode_delta = delta_c_0(a) * func.S(beta * m) / func.S(m)
     
     if inc_mass_scaling:
         A = 1 / (func.S(m) - func.S(beta * m)) + 1 / (func.S(beta * m))
         B = - delta_c_0(a) * (2 / (func.S(m) - func.S(beta * m)) + 1 / func.S(beta * m))
         C = pow(delta_c_0(a), 2) / (func.S(m) - func.S(beta * m)) - 1
 
-        roots = poly.polyroots([C, B, A])
-        return roots[np.argmin(abs(roots - us_mode))]
+        candidates = poly.polyroots([C, B, A])
+        root = candidates[np.argmin(abs(candidates - us_mode_delta))]
+
+        delta_c = delta_c_0(a) * func.D(a) / func.D(1)
+        return pow(1 - root / delta_c, -delta_c)
 
     else:
-        return us_mode
+        return us_mode_rho
 
 def most_probable_rho_transformed(m:float, beta:float, a:float = 1):
     """
