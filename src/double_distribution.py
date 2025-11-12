@@ -175,10 +175,11 @@ def run():
                         ddfunc.dn(numeric_mode, m, b, transform_pdf=True) / norm,
                         "*", color="blue", label='__nolabel__')
 
-                plt.axvline(x=aIQRl, color=mass_plot_color, linestyle="-", label=rf"__nolabel__")
-                plt.axvline(x=aIQRu, color=mass_plot_color, linestyle="-", label=rf"__nolabel__")
-                plt.axvline(x=nIQRl, color=mass_plot_color, linestyle="-.", label=rf"__nolabel__")
-                plt.axvline(x=nIQRu, color=mass_plot_color, linestyle="-.", label=rf"__nolabel__")
+                a_mask = np.logical_and(rho_vals >= aIQRl, rho_vals <= aIQRu).tolist()
+                n_mask = np.logical_and(rho_vals >= nIQRl, rho_vals <= nIQRu).tolist()
+
+                plt.fill_between(rho_vals, cond_PDF, 0, where = a_mask, alpha=0.5, color=mass_plot_color)
+                plt.fill_between(rho_vals, cond_PDF, 0, where = n_mask, alpha=0.5, color=mass_plot_color)
 
                 if pms.plot_untransformed_PDF:
                     analytic_mode_no_transform = ddfunc.most_probable_rho(b, inc_mass_scaling=True, m=m)
