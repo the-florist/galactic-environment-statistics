@@ -149,14 +149,14 @@ def run():
             norm = (sum(cond_PDF_no_transform) - cond_PDF_no_transform[0])
             cond_PDF_no_transform /= norm
 
-            # numeric_mode, numeric_stdev = ddfunc.pdf_sample_expectation(cond_PDF, rho_vals)
+            numeric_mode, numeric_stdev = ddfunc.pdf_sample_expectation(cond_PDF, rho_vals)
             # analytic_mode_transformed = ddfunc.most_probable_rho_transformed(m, b)
-            # aIQRl, aIQRu = ddfunc.analytic_IQR(numeric_mode, numeric_stdev, b)
-            # nIQRl, nIQRu = ddfunc.numeric_IQR(cond_PDF, rho_vals)
+            aIQRl, aIQRu = ddfunc.analytic_IQR(numeric_mode, numeric_stdev, b, m)
+            nIQRl, nIQRu = ddfunc.numeric_IQR(cond_PDF, rho_vals)
 
-            # print("Numeric IQR estimate: ", ddfunc.numeric_CDF(cond_PDF, rho_vals, nIQRl), ddfunc.numeric_CDF(cond_PDF, rho_vals, nIQRu))
-            # print("Analytic IQR estimate: ", ddfunc.numeric_CDF(cond_PDF, rho_vals, aIQRl), ddfunc.numeric_CDF(cond_PDF, rho_vals, aIQRu))
-            # print("--------------------------------")
+            print("Numeric IQR estimate: ", ddfunc.numeric_CDF(cond_PDF, rho_vals, nIQRl), ddfunc.numeric_CDF(cond_PDF, rho_vals, nIQRu))
+            print("Analytic IQR estimate: ", ddfunc.numeric_CDF(cond_PDF, rho_vals, aIQRl), ddfunc.numeric_CDF(cond_PDF, rho_vals, aIQRu))
+            print("--------------------------------")
 
             line, = plt.plot(rho_vals, cond_PDF, label=rf"$m = {m:.2E}$")
             plot_color = line.get_color()

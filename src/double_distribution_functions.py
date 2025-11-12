@@ -143,7 +143,7 @@ def CDF(rho, m:float = pms.M_200, beta:float = 1.3, a:float = 1):
 
     return cdf_temp
 
-def conditional_CDF(rho, m:float = pms.M_200, beta:float = 1.3, a:float = 1):
+def conditional_CDF(rho, m, beta, a:float = 1):
     """
         Calculate the normalised analytic CDF as a function of delta_l(rho).
     """
@@ -180,8 +180,8 @@ def pdf_sample_expectation(pdf : NDArray, rho_vals : NDArray):
 
     return sample_mode, np.sqrt(sample_mode_variance)
 
-def analytic_IQR(sample_mode, sample_stdev, beta,
-                 m:float = pms.M_200, a:float = 1) -> tuple[float, float]:
+def analytic_IQR(sample_mode, sample_stdev, beta, mass, 
+                 a:float = 1) -> tuple[float, float]:
     """
         Find the analytic IQR by calculating CDF^-1(0.25), CDF^-1(0.75) via 
         root finding, then transform this value into rho from delta_tilde.
@@ -197,7 +197,7 @@ def analytic_IQR(sample_mode, sample_stdev, beta,
             print("Quantile specified cannot be computed.")
             exit()
 
-        cdf_diff = lambda x: abs(conditional_CDF(x, m, beta, a) - zscore)
+        cdf_diff = lambda x: abs(conditional_CDF(x, mass, beta, a) - zscore)
         soln = minimize(cdf_diff, guess, 
                         bounds=[(pms.rho_tilde_min, pms.rho_tilde_max)],
                         tol=pms.root_finder_precision)
