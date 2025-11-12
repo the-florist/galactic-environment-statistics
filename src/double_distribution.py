@@ -142,69 +142,82 @@ def run():
                 cond_PDF.append(ddfunc.dn(r, m, b, transform_pdf=True))
             norm = (sum(cond_PDF) - cond_PDF[0])
             cond_PDF /= norm
-            print(f"PDF norm precision: {abs(np.sum(cond_PDF) - 1.):.15}")
-
-            cond_PDF_no_transform = []
-            for r in rho_vals:
-                cond_PDF_no_transform.append(ddfunc.dn(r, m, b, transform_pdf=False))
-            norm_no_transform = (sum(cond_PDF_no_transform) - cond_PDF_no_transform[0])
-            cond_PDF_no_transform /= norm_no_transform
-
-            numeric_mode, numeric_stdev = ddfunc.pdf_sample_expectation(cond_PDF, rho_vals)
-            analytic_mode_transformed = ddfunc.most_probable_rho_transformed(m, b)
-            analytic_mode_no_transform = ddfunc.most_probable_rho(b, inc_mass_scaling=True, m=m)
-            aIQRl, aIQRu = ddfunc.analytic_IQR(numeric_mode, numeric_stdev, b, m)
-            nIQRl, nIQRu = ddfunc.numeric_IQR(cond_PDF, rho_vals)
-
-            print("Numeric IQR estimate: ", ddfunc.numeric_CDF(cond_PDF, rho_vals, nIQRl), ddfunc.numeric_CDF(cond_PDF, rho_vals, nIQRu))
-            print("Analytic IQR estimate: ", ddfunc.numeric_CDF(cond_PDF, rho_vals, aIQRl), ddfunc.numeric_CDF(cond_PDF, rho_vals, aIQRu))
-            print("--------------------------------")
+            if pms.verbose:
+                print(f"PDF norm precision: {abs(np.sum(cond_PDF) - 1.):.15}")
 
             line, = plt.plot(rho_vals, cond_PDF, label=rf"$m = {m:.2E}$")
-            plot_color = line.get_color()
-            plt.plot(rho_vals, cond_PDF_no_transform, color=plot_color, linestyle="--", label=rf"__nolabel__")
+            mass_plot_color = line.get_color()
 
-            plt.plot(analytic_mode_transformed, 
-                    ddfunc.dn(analytic_mode_transformed, m, b, transform_pdf=True) / norm, 
-                    'o', color='red', label='__nolabel__')
-            plt.plot(analytic_mode_no_transform, 
-                    ddfunc.dn(analytic_mode_no_transform, m, b, transform_pdf=False) / norm_no_transform, 
-                    'o', color='red', label='__nolabel__')
-            plt.plot(numeric_mode, 
-                    ddfunc.dn(numeric_mode, m, b, transform_pdf=True) / norm,
-                    "*", color="blue", label='__nolabel__')
+            if pms.plot_untransformed_PDF:
+                cond_PDF_no_transform = []
+                for r in rho_vals:
+                    cond_PDF_no_transform.append(ddfunc.dn(r, m, b, transform_pdf=False))
+                norm_no_transform = (sum(cond_PDF_no_transform) - cond_PDF_no_transform[0])
+                cond_PDF_no_transform /= norm_no_transform
 
-            plt.axvline(x=aIQRl, color=plot_color, linestyle="-", label=rf"__nolabel__")
-            plt.axvline(x=aIQRu, color=plot_color, linestyle="-", label=rf"__nolabel__")
-            plt.axvline(x=nIQRl, color=plot_color, linestyle="-.", label=rf"__nolabel__")
-            plt.axvline(x=nIQRu, color=plot_color, linestyle="-.", label=rf"__nolabel__")
+                plt.plot(rho_vals, cond_PDF_no_transform, color=mass_plot_color, linestyle="--", label=rf"__nolabel__")
 
-            print(f"Plot finished for mass = {m:.2E}")
+            if pms.plot_statistics:
+                numeric_mode, numeric_stdev = ddfunc.pdf_sample_expectation(cond_PDF, rho_vals)
+                analytic_mode_transformed = ddfunc.most_probable_rho_transformed(m, b)
+                aIQRl, aIQRu = ddfunc.analytic_IQR(numeric_mode, numeric_stdev, b, m)
+                nIQRl, nIQRu = ddfunc.numeric_IQR(cond_PDF, rho_vals)
+
+                if pms.verbose:
+                    print("Numeric IQR estimate: ", ddfunc.numeric_CDF(cond_PDF, rho_vals, nIQRl), ddfunc.numeric_CDF(cond_PDF, rho_vals, nIQRu))
+                    print("Analytic IQR estimate: ", ddfunc.numeric_CDF(cond_PDF, rho_vals, aIQRl), ddfunc.numeric_CDF(cond_PDF, rho_vals, aIQRu))
+                    print("--------------------------------")
+
+                plt.plot(analytic_mode_transformed, 
+                        ddfunc.dn(analytic_mode_transformed, m, b, transform_pdf=True) / norm, 
+                        'o', color='red', label='__nolabel__')
+                plt.plot(numeric_mode, 
+                        ddfunc.dn(numeric_mode, m, b, transform_pdf=True) / norm,
+                        "*", color="blue", label='__nolabel__')
+
+                plt.axvline(x=aIQRl, color=mass_plot_color, linestyle="-", label=rf"__nolabel__")
+                plt.axvline(x=aIQRu, color=mass_plot_color, linestyle="-", label=rf"__nolabel__")
+                plt.axvline(x=nIQRl, color=mass_plot_color, linestyle="-.", label=rf"__nolabel__")
+                plt.axvline(x=nIQRu, color=mass_plot_color, linestyle="-.", label=rf"__nolabel__")
+
+                if pms.plot_untransformed_PDF:
+                    analytic_mode_no_transform = ddfunc.most_probable_rho(b, inc_mass_scaling=True, m=m)
+                    numeric_mode_no_transform, _ = ddfunc.pdf_sample_expectation(cond_PDF_no_transform, rho_vals)
+
+                    plt.plot(analytic_mode_no_transform, 
+                        ddfunc.dn(analytic_mode_no_transform, m, b, transform_pdf=False) / norm_no_transform, 
+                        'o', color='red', label='__nolabel__')
+                    plt.plot(numeric_mode_no_transform, 
+                        ddfunc.dn(numeric_mode_no_transform, m, b, transform_pdf=False) / norm_no_transform,
+                        "*", color="blue", label='__nolabel__')
+            
+            if pms.verbose:
+                print(f"Plot finished for mass = {m:.2E}")
         
         # Finish plot of PDF slices
         plt.xlabel(r"$\tilde{\rho}$")
         plt.ylabel(r"$P_n$")
-        # plt.xscale("log")
         plt.title(r"PDF slices along mass")
         plt.grid(True)
         plt.legend()
         plt.savefig("plots/joint-pdf-slice.pdf")
         plt.close()
 
-        def rho_derivative(rho):
-            delta_c = ddfunc.delta_c_0(1) * func.D(1) / func.D(1)
-            return pow(rho, (-1 - 1/delta_c))
+        if pms.plot_rho_derivative:
+            def rho_derivative(rho):
+                delta_c = ddfunc.delta_c_0(1) * func.D(1) / func.D(1)
+                return pow(rho, (-1 - 1/delta_c))
 
-        # Plot rho_derivative using rho_vals
-        y_vals = [rho_derivative(r) for r in rho_vals]
-        plt.figure()
-        plt.plot(rho_vals, y_vals)
-        plt.xlabel(r"$\bar{\rho}$")
-        plt.ylabel(r"$d \tilde{\delta}_l / d \bar{\rho}$")
-        plt.grid(True, which='both', ls='--', alpha=0.3)
-        plt.title(r"rho derivative: $\bar{\rho}^{-1/\tilde{\delta}_{c}-1}$")
-        func.make_directory("plots")
-        plt.savefig("plots/rho-derivative.pdf")
-        plt.close()
+            # Plot rho_derivative using rho_vals
+            y_vals = [rho_derivative(r) for r in rho_vals]
+            plt.figure()
+            plt.plot(rho_vals, y_vals)
+            plt.xlabel(r"$\bar{\rho}$")
+            plt.ylabel(r"$d \tilde{\delta}_l / d \bar{\rho}$")
+            plt.grid(True, which='both', ls='--', alpha=0.3)
+            plt.title(r"rho derivative: $\bar{\rho}^{-1/\tilde{\delta}_{c}-1}$")
+            func.make_directory("plots")
+            plt.savefig("plots/rho-derivative.pdf")
+            plt.close()
 
         

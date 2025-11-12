@@ -7,6 +7,8 @@
         Pavlidou & Fields, PRD 71 043510 (2005), page 7
 """
 
+verbose = False
+
 # Scale factor range
 a_f = 1
 a_i = 0.01                  # Avoids divide by zero in integration
@@ -35,6 +37,10 @@ beta_heuristic = 2
 beta_min, beta_max, num_beta = 1.5, 5, num_beta_slices
 rho_tilde_min, rho_tilde_max, num_rho = 1, 10, 100 # 60
 mass_min, mass_max, num_mass = 1e14, 1e15, 25
+
+plot_untransformed_PDF = True
+plot_statistics = True
+plot_rho_derivative = False
 
 # Concordance cosmology
 concordance_model = True
