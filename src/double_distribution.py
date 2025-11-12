@@ -8,6 +8,7 @@
 """
 
 from matplotlib import style
+from matplotlib.lines import lineStyles
 import numpy as np
 from time import time
 import matplotlib.pyplot as plt
@@ -146,11 +147,12 @@ def run():
             cond_PDF_no_transform = []
             for r in rho_vals:
                 cond_PDF_no_transform.append(ddfunc.dn(r, m, b, transform_pdf=False))
-            norm = (sum(cond_PDF_no_transform) - cond_PDF_no_transform[0])
-            cond_PDF_no_transform /= norm
+            norm_no_transform = (sum(cond_PDF_no_transform) - cond_PDF_no_transform[0])
+            cond_PDF_no_transform /= norm_no_transform
 
             numeric_mode, numeric_stdev = ddfunc.pdf_sample_expectation(cond_PDF, rho_vals)
-            # analytic_mode_transformed = ddfunc.most_probable_rho_transformed(m, b)
+            analytic_mode_transformed = ddfunc.most_probable_rho_transformed(m, b)
+            analytic_mode_no_transform = ddfunc.most_probable_rho(b, inc_mass_scaling=True, m=m)
             aIQRl, aIQRu = ddfunc.analytic_IQR(numeric_mode, numeric_stdev, b, m)
             nIQRl, nIQRu = ddfunc.numeric_IQR(cond_PDF, rho_vals)
 
@@ -162,17 +164,20 @@ def run():
             plot_color = line.get_color()
             plt.plot(rho_vals, cond_PDF_no_transform, color=plot_color, linestyle="--", label=rf"__nolabel__")
 
-            # plt.plot(analytic_mode_transformed, 
-            #         ddfunc.dn(analytic_mode_transformed, m, b) / norm, 
-            #         'o', color='red', label='__nolabel__')
-            # plt.plot(numeric_mode, 
-            #         ddfunc.dn(analytic_mode_transformed, m, b) / norm,
-            #         "*", color="blue", label='__nolabel__')
+            plt.plot(analytic_mode_transformed, 
+                    ddfunc.dn(analytic_mode_transformed, m, b, transform_pdf=True) / norm, 
+                    'o', color='red', label='__nolabel__')
+            plt.plot(analytic_mode_no_transform, 
+                    ddfunc.dn(analytic_mode_no_transform, m, b, transform_pdf=False) / norm_no_transform, 
+                    'o', color='red', label='__nolabel__')
+            plt.plot(numeric_mode, 
+                    ddfunc.dn(numeric_mode, m, b, transform_pdf=True) / norm,
+                    "*", color="blue", label='__nolabel__')
 
-            # plot_color = line.get_color()
-            # plt.plot(rho_vals, PDF[i], color=plot_color, linestyle='--', linewidth=1, label='PDF slice')
-            # for mode_val in analytic_mode_transformed:
-                # plt.axvline(x=mode_val, color=plot_color, linestyle='--', linewidth=1, label='_nolegend_')
+            plt.axvline(x=aIQRl, color=plot_color, linestyle="-", label=rf"__nolabel__")
+            plt.axvline(x=aIQRu, color=plot_color, linestyle="-", label=rf"__nolabel__")
+            plt.axvline(x=nIQRl, color=plot_color, linestyle="-.", label=rf"__nolabel__")
+            plt.axvline(x=nIQRu, color=plot_color, linestyle="-.", label=rf"__nolabel__")
 
             print(f"Plot finished for mass = {m:.2E}")
         
