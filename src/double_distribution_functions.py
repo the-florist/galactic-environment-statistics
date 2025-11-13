@@ -188,10 +188,10 @@ def analytic_IQR(sample_mode, sample_stdev, beta, mass,
     """
     def find_IQR(q):
         if q == "l": 
-            zscore = 0.25
+            zscore = pms.lqr
             guess = sample_mode - sample_stdev
         elif q == "h":
-            zscore = 0.75
+            zscore = pms.uqr
             guess = sample_mode + sample_stdev
         else:
             print("Quantile specified cannot be computed.")
@@ -227,10 +227,10 @@ def numeric_IQR(pdf, x_range):
     # Use the numerical CDF to find the iqrs
     for idx, x in enumerate(x_range):
         sm += pdf[idx]
-        if sm > 0.25 and cl == 0:
+        if sm > pms.lqr and cl == 0:
             iqrl = x
             cl += 1
-        elif sm > 0.75 and cu == 0:
+        elif sm > pms.uqr and cu == 0:
             iqru = x
             cu += 1
             break
