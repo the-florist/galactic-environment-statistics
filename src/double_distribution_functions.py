@@ -180,16 +180,19 @@ def pdf_sample_expectation(pdf : NDArray, rho_vals : NDArray):
 
     return sample_mode, np.sqrt(sample_mode_variance)
 
-def analytic_IQR(sample_mode, sample_stdev, beta, mass, 
-                 a:float = 1) -> tuple[float, float]:
+def analytic_median_and_IQR(sample_mode, sample_stdev, beta, mass, 
+                 a:float = 1) -> tuple[float, float, float]:
     """
         Find the analytic IQR by calculating CDF^-1(0.25), CDF^-1(0.75) via 
         root finding, then transform this value into rho from delta_tilde.
     """
-    def find_IQR(q):
+    def find_median_and_IQR(q):
         if q == "l": 
             zscore = pms.lqr
             guess = sample_mode - sample_stdev
+        elif q == "m":
+            zscore = 0.50
+            guess = sample_mode
         elif q == "h":
             zscore = pms.uqr
             guess = sample_mode + sample_stdev
@@ -199,30 +202,21 @@ def analytic_IQR(sample_mode, sample_stdev, beta, mass,
 
         cdf_diff = lambda x: abs(conditional_CDF(x, mass, beta, a) - zscore)
         soln = minimize(cdf_diff, guess, 
-                        bounds=[(pms.rho_tilde_min, pms.rho_tilde_max)],
+                        bounds=[(0, pms.rho_tilde_max)],
                         tol=pms.root_finder_precision)
-
-        # print("-----")
-        # print(sample_mode, sample_stdev)
-        # print(guess, soln.x[0], soln.status)
-        # print(conditional_CDF(pms.rho_tilde_max, m, beta, a), conditional_CDF(pms.rho_tilde_min, m, beta, a))
-        # print(cdf_diff(soln.x[0]), cdf_diff(guess))
-        # print(conditional_CDF(soln.x[0], m, beta, a))
-        
-
         return soln.x[0]
 
-    return find_IQR("l"), find_IQR("h")
+    return find_median_and_IQR("l"), find_median_and_IQR("h"), find_median_and_IQR("m")
 
-def numeric_IQR(pdf, x_range):
+def numeric_median_and_IQR(pdf, x_range):
     """
         Calculate the IQR numerically, on a numeric PDF with axis.
     """
 
     # Track the CDF, and iqrs found
     sm = 0
-    iqrl, iqru = 0, 0
-    cl, cu = 0, 0
+    iqrl, iqru, median = 0, 0, 0
+    cl, cu, cm = 0, 0, 0
 
     # Use the numerical CDF to find the iqrs
     for idx, x in enumerate(x_range):
@@ -230,9 +224,12 @@ def numeric_IQR(pdf, x_range):
         if sm > pms.lqr and cl == 0:
             iqrl = x
             cl += 1
+        elif sm > 0.5 and cm == 0:
+            median = x
+            cm += 1
         elif sm > pms.uqr and cu == 0:
             iqru = x
             cu += 1
             break
     
-    return iqrl, iqru
+    return iqrl, iqru, median

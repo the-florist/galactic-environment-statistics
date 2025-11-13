@@ -159,12 +159,17 @@ def run():
                 if pms.plot_statistics:
                     numeric_mode, numeric_stdev = ddfunc.pdf_sample_expectation(cond_PDF, rho_vals)
                     analytic_mode_transformed = ddfunc.most_probable_rho_transformed(m, b)
-                    aIQRl, aIQRu = ddfunc.analytic_IQR(numeric_mode, numeric_stdev, b, m)
-                    nIQRl, nIQRu = ddfunc.numeric_IQR(cond_PDF, rho_vals)
+                    analytic_IQRl, analytic_IQRu, analytic_median = ddfunc.analytic_median_and_IQR(numeric_mode, numeric_stdev, b, m)
+                    numeric_IQRl, numeric_IQRu, numeric_median = ddfunc.numeric_median_and_IQR(cond_PDF, rho_vals)
 
                     if pms.verbose:
-                        print("Numeric IQR estimate: ", ddfunc.numeric_CDF(cond_PDF, rho_vals, nIQRl), ddfunc.numeric_CDF(cond_PDF, rho_vals, nIQRu))
-                        print("Analytic IQR estimate: ", ddfunc.numeric_CDF(cond_PDF, rho_vals, aIQRl), ddfunc.numeric_CDF(cond_PDF, rho_vals, aIQRu))
+                        print("Numeric IQR estimate: ", 
+                            ddfunc.numeric_CDF(cond_PDF, rho_vals, numeric_IQRl), 
+                            ddfunc.numeric_CDF(cond_PDF, rho_vals, numeric_IQRu))
+                        print("Analytic IQR estimate: ", 
+                            ddfunc.numeric_CDF(cond_PDF, rho_vals, analytic_IQRl), 
+                            ddfunc.numeric_CDF(cond_PDF, rho_vals, analytic_IQRu))
+                        print("Median estimates: ", numeric_median, analytic_median)
                         print("--------------------------------")
 
                     plt.plot(analytic_mode_transformed, 
@@ -173,12 +178,22 @@ def run():
                     plt.plot(numeric_mode, 
                             ddfunc.dn(numeric_mode, m, b, transform_pdf=True) / norm,
                             "*", color="blue", label='__nolabel__')
+                    plt.plot(analytic_median, 
+                            ddfunc.dn(analytic_median, m, b, transform_pdf=True) / norm, 
+                            'o', color='red', label='__nolabel__')
+                    plt.plot(numeric_median, 
+                            ddfunc.dn(numeric_median, m, b, transform_pdf=True) / norm,
+                            "*", color="blue", label='__nolabel__')
 
-                    a_mask = np.logical_and(rho_vals >= aIQRl, rho_vals <= aIQRu).tolist()
-                    n_mask = np.logical_and(rho_vals >= nIQRl, rho_vals <= nIQRu).tolist()
+                    a_mask = np.logical_and(rho_vals >= analytic_IQRl, rho_vals 
+                                            <= analytic_IQRu).tolist()
+                    n_mask = np.logical_and(rho_vals >= numeric_IQRl, rho_vals 
+                                            <= numeric_IQRu).tolist()
 
-                    plt.fill_between(rho_vals, cond_PDF, 0, where = a_mask, alpha=0.5, color=mass_plot_color)
-                    plt.fill_between(rho_vals, cond_PDF, 0, where = n_mask, alpha=0.5, color=mass_plot_color)
+                    plt.fill_between(rho_vals, cond_PDF, 0, where = a_mask, 
+                                     alpha=0.5, color=mass_plot_color)
+                    plt.fill_between(rho_vals, cond_PDF, 0, where = n_mask, 
+                                     alpha=0.5, color=mass_plot_color)
 
                     if pms.plot_untransformed_PDF:
                         analytic_mode_no_transform = ddfunc.most_probable_rho(b, inc_mass_scaling=True, m=m)
