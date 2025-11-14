@@ -203,14 +203,10 @@ def run():
                     cond_PDF /= cond_PDF.sum(axis=1, keepdims=True)
                     print(f"PDF norm precision: ", abs(cond_PDF.sum(axis=1) - 1.).max())
 
-                numeric_modes, numeric_stdevs = ddfunc.pdf_sample_stats(cond_PDF, rho_vals)
-                print(numeric_modes.shape)
-                print(numeric_stdevs.shape)
-
-                # analytic_modes = ddfunc.most_probable_rho_transformed(MS[:,0,:], 
-                #                     BTS[:,0,:], gamma=g)
-                # print(analytic_modes.shape)
-                # exit()
+                numeric_modes, numeric_stdevs = ddfunc.sample_stats(cond_PDF, 
+                                                                    rho_vals)
+                analytic_modes = ddfunc.most_probable_rho_transformed(MS[:,0,:], 
+                                    BTS[:,0,:], gamma=g)
 
             #     modes[bi, 1], numeric_stdev = ddfunc.pdf_sample_expectation(cond_PDF, rho_vals)
             #     IQRs[bi, 0], IQRs[bi, 1], medians[bi, 0] = ddfunc.analytic_median_and_IQR(modes[bi, 1], numeric_stdev, b, m, gamma=gamma_slices[mi])

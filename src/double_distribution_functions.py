@@ -105,19 +105,14 @@ def most_probable_rho_transformed(m : NDArray, beta : NDArray, gamma, sf:float =
     d = - eta * (1 + delta_c)
 
     # Solve the cubic
-    candidates = np.zeros((len(beta), len(m)))
+    candidates = np.zeros_like(beta)
+
     for i in range(len(beta)):
-        for j in range(len(m)):
+        for j in range(len(beta[0])):
             root = poly.polyroots([d, c[i, j], b[i, j], a[i, j]])
             for r in root:
                 if r > 0:
                     candidates[i, j] = pow(r, -delta_c)
-            # else:
-            #     print("Error : most_probable_rho_transformed, Root not found.")
-            #     print(i, j)
-            #     print(root > 0)
-            #     print(candidates[i, j])
-            #     exit()
 
     return candidates
 
@@ -170,7 +165,7 @@ def numeric_CDF(pdf, x_vals, x):
     Functions related to the IQR.
 """
 
-def pdf_sample_stats(pdf : NDArray, rho_vals : NDArray):
+def sample_stats(pdf : NDArray, rho_vals : NDArray):
     """
         Calculate the mode of the double distribution 
         (i.e. the most probable profile)
@@ -178,7 +173,6 @@ def pdf_sample_stats(pdf : NDArray, rho_vals : NDArray):
     """
 
     sample_mode = rho_vals[np.argmax(pdf, axis=1)]
-    print(sample_mode.shape)
 
     # for r in rho_vals, multiply PDF here times squared diff off sample_mode here
     sample_mode_variance = np.array([[(pdf[j,:,i] * pow(rho_vals - sample_mode[j, i], 2)).sum() 
