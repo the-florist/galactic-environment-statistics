@@ -24,20 +24,12 @@ if pms.plot_dimension != 1 and pms.plot_dimension != 2:
 beta_vals = np.linspace(pms.beta_min, pms.beta_max, pms.num_beta)
 rho_vals = np.linspace(pms.rho_tilde_min, pms.rho_tilde_max, pms.num_rho)
 mass_vals = np.linspace(pms.mass_min, pms.mass_max, pms.num_mass)
-# rho_vals = np.array([pow(10, r) for r in lin_rho_vals])
-# dr = (pms.rho_tilde_max - pms.rho_tilde_min) / (pms.num_rho)
-# db = (pms.beta_min - pms.beta_max) / (pms.num_beta)
+gamma_slices = np.linspace(pms.gamma_min, pms.gamma_max, pms.num_gamma)
 
 
 def run():
     # Create meshgrid with axes ordered as (beta, rho, mass)
     BTS, RHOS, MS = np.meshgrid(beta_vals, rho_vals, mass_vals, indexing='ij')
-
-    PDF = ddfunc.dn(RHOS, MS, BTS)
-    if pms.normalise_pdf:
-        PDF /= PDF.sum(axis=(1, 2), keepdims=True)
-        print(f"PDF norm precision: {abs(PDF[0].sum() - 1.):.15}")
-        print(f"PDF max value: ", PDF[0].max())
 
     print(f"Starting {pms.plot_dimension}D plot generation...")
 
@@ -45,6 +37,12 @@ def run():
         """
             Calculate the normalised joint PDF and plot it.
         """
+
+        PDF = ddfunc.dn(RHOS, MS, BTS)
+        if pms.normalise_pdf:
+            PDF /= PDF.sum(axis=(1, 2), keepdims=True)
+            print(f"PDF norm precision: {abs(PDF[0].sum() - 1.):.15}")
+            print(f"PDF max value: ", PDF[0].max())
 
         b = np.abs(beta_vals - pms.beta_heuristic).argmin()
 
@@ -197,11 +195,22 @@ def run():
 
         else:
             print("Starting most probable profile vs. mass plot...")
-            mass_slices = np.array([1]) * 1e14 #  5.0, 17
-            gamma_slices = np.array([0.4]) # , 0.5, 0.6
 
-            analytic_modes = ddfunc.most_probable_rho_transformed(mass_slices, 
-                                    BTS[:,0,:], gamma=gamma_slices)
+            for g in gamma_slices:
+                cond_PDF = ddfunc.dn(RHOS, MS, BTS, gamma=g)
+                print("PDF shape: ", cond_PDF.shape)
+                if pms.normalise_pdf:
+                    cond_PDF /= cond_PDF.sum(axis=1, keepdims=True)
+                    print(f"PDF norm precision: ", abs(cond_PDF.sum(axis=1) - 1.).max())
+
+                numeric_modes, numeric_stdevs = ddfunc.pdf_sample_stats(cond_PDF, rho_vals)
+                print(numeric_modes.shape)
+                print(numeric_stdevs.shape)
+
+                # analytic_modes = ddfunc.most_probable_rho_transformed(MS[:,0,:], 
+                #                     BTS[:,0,:], gamma=g)
+                # print(analytic_modes.shape)
+                # exit()
 
             #     modes[bi, 1], numeric_stdev = ddfunc.pdf_sample_expectation(cond_PDF, rho_vals)
             #     IQRs[bi, 0], IQRs[bi, 1], medians[bi, 0] = ddfunc.analytic_median_and_IQR(modes[bi, 1], numeric_stdev, b, m, gamma=gamma_slices[mi])

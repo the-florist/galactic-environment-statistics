@@ -20,7 +20,7 @@ from util.functions import delta_c_0
 """
 
 def dn(rho, m, beta, a:float = 1, transform_pdf:bool = pms.transform_pdf, 
-                                  g:float = pms.default_gamma):
+                                  gamma:float = pms.default_gamma):
     """
         Calculate the double distribution of number density w/r/t mass and 
         local overdensity
@@ -36,11 +36,11 @@ def dn(rho, m, beta, a:float = 1, transform_pdf:bool = pms.transform_pdf,
     # Calculate the component distributions
     mass_removal = (delta_c_0(a) - delta_tilde) 
     mass_removal *= np.exp(-(delta_c_0(a) - delta_tilde)**2 
-                            / (2 *(func.S(m, g) - func.S(beta * m, g)))) 
-    mass_removal /= pow(func.S(m, g) - func.S(beta*m, g), 3/2)
+                            / (2 *(func.S(m, gamma) - func.S(beta * m, gamma)))) 
+    mass_removal /= pow(func.S(m, gamma) - func.S(beta*m, gamma), 3/2)
 
-    random_walk = (rho_m / m) * (np.exp(-(delta_tilde ** 2) / (2 * func.S(beta * m, g))) 
-                    / (2 * np.pi * np.sqrt(func.S(beta * m, g))))
+    random_walk = (rho_m / m) * (np.exp(-(delta_tilde ** 2) / (2 * func.S(beta * m, gamma))) 
+                    / (2 * np.pi * np.sqrt(func.S(beta * m, gamma))))
 
     # Construct the raw PDF
     dn = random_walk * mass_removal # * func.dS(m)
@@ -170,18 +170,20 @@ def numeric_CDF(pdf, x_vals, x):
     Functions related to the IQR.
 """
 
-def pdf_sample_expectation(pdf : NDArray, rho_vals : NDArray):
+def pdf_sample_stats(pdf : NDArray, rho_vals : NDArray):
     """
         Calculate the mode of the double distribution 
         (i.e. the most probable profile)
         and the standard deviation of the mode, sliced at m.
     """
 
-    sample_mode = rho_vals[np.argmax(pdf)]
+    sample_mode = rho_vals[np.argmax(pdf, axis=1)]
+    print(sample_mode.shape)
 
-    sample_mode_variance = 0
-    for i in range(len(rho_vals)):
-        sample_mode_variance += pdf[i] * pow(rho_vals[i] - sample_mode, 2)
+    # for r in rho_vals, multiply PDF here times squared diff off sample_mode here
+    sample_mode_variance = np.array([[(pdf[j,:,i] * pow(rho_vals - sample_mode[j, i], 2)).sum() 
+                                    for i in range(len(sample_mode[0]))] 
+                                    for j in range(len(sample_mode))])
     sample_mode_variance /= (pms.num_rho - 1)
 
     return sample_mode, np.sqrt(sample_mode_variance)
