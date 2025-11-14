@@ -7,11 +7,11 @@
             as derived in Pavlidou and Fields 2005.
 """
 
-from matplotlib.lines import lineStyles
 import numpy as np
 from time import time
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
+import matplotlib.ticker as mticker
 
 import util.parameters as pms
 import util.functions as func
@@ -62,13 +62,14 @@ def run():
         ax_marg_dl = fig.add_subplot(gs[1:,3], sharey=ax_joint)
 
         # Joint pdf heatmap
-        c = ax_joint.pcolormesh(rho_vals, mass_vals, PDF[b].T, shading='auto', 
+        c = ax_joint.pcolormesh(rho_vals, mass_vals / 1e14, PDF[b].T, shading='auto', 
                                                           cmap='viridis')
         ax_joint.set_xlabel(r'$\rho/\rho_m$')
-        ax_joint.set_ylabel(r'$m$')
+        ax_joint.set_ylabel(r'$m\ [10^{14} M_{\odot}]$')
+
+        ax_joint.ticklabel_format(style='plain')
 
         # Make mass-axis (y) scientific offset (e.g., 1e15) vertical on the left
-        ax_joint.ticklabel_format(axis='y', style='sci', scilimits=(0, 0))
         y_off = ax_joint.yaxis.get_offset_text()
         y_off.set_rotation(90)
         y_off.set_verticalalignment('bottom')
@@ -79,17 +80,13 @@ def run():
         # Marginal for m
         ax_marg_m.plot(rho_vals, marginal_rho, color='tab:blue')
         ax_marg_m.set_ylabel(r'Marginal ($\bar{\rho}$)')
-        ax_marg_m.tick_params(axis='y', labelbottom=False)
         ax_marg_m.grid(True, which='both', ls='--', alpha=0.3)
         ax_marg_m.set_title(r'Joint PDF of $m$ and $\tilde{\rho}$ at $\beta = $' + str(b), pad=12)
 
         # Marginal for delta_l
-        ax_marg_dl.plot(marginal_m, mass_vals, color='tab:orange')
+        ax_marg_dl.plot(marginal_m, mass_vals / 1e14, color='tab:orange')
         ax_marg_dl.set_xlabel(r'Marginal ($m$)')
-        ax_marg_dl.tick_params(axis='y', labelleft=False)
         ax_marg_dl.grid(True, which='both', ls='--', alpha=0.3)
-        ax_marg_dl.xaxis.get_offset_text().set_x(1.2)  # Move right
-        ax_marg_dl.xaxis.get_offset_text().set_y(-0.15)  # Move down a bit
 
         # Remove tick labels on shared axes
         plt.setp(ax_marg_m.get_xticklabels(), visible=False)
