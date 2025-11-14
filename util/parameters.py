@@ -31,15 +31,13 @@ enforce_positive_pdf = True
 transform_pdf = True
 normalise_pdf = True
 
-num_beta_slices = 2
 beta_heuristic = 2
-
-beta_min, beta_max, num_beta = 1.5, 5, num_beta_slices
+beta_min, beta_max, num_beta = 1.5, 5, 25
 rho_tilde_min, rho_tilde_max, num_rho = 0.001, 10, 100 # 60
 mass_min, mass_max, num_mass = 1e14, 1e15, 10
 lqr, uqr = 0.16, 0.84
 
-slice_in_rho = True
+slice_in_rho = False
 plot_untransformed_PDF = False
 plot_statistics = True
 plot_rho_derivative = False

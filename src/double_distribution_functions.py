@@ -19,7 +19,8 @@ from util.functions import delta_c_0
     Functions related to the double distribution (PDF).
 """
 
-def dn(rho, m, beta, a:float = 1, transform_pdf:bool = pms.transform_pdf):
+def dn(rho, m, beta, a:float = 1, transform_pdf:bool = pms.transform_pdf, 
+                                  g:float = pms.default_gamma):
     """
         Calculate the double distribution of number density w/r/t mass and 
         local overdensity
@@ -35,11 +36,11 @@ def dn(rho, m, beta, a:float = 1, transform_pdf:bool = pms.transform_pdf):
     # Calculate the component distributions
     mass_removal = (delta_c_0(a) - delta_tilde) 
     mass_removal *= np.exp(-(delta_c_0(a) - delta_tilde)**2 
-                            / (2 *(func.S(m) - func.S(beta*m)))) 
-    mass_removal /= pow(func.S(m) - func.S(beta*m), 3/2)
+                            / (2 *(func.S(m, g) - func.S(beta * m, g)))) 
+    mass_removal /= pow(func.S(m, g) - func.S(beta*m, g), 3/2)
 
-    random_walk = (rho_m / m) * (np.exp(-(delta_tilde ** 2) / (2 * func.S(beta * m))) 
-                    / (2 * np.pi * np.sqrt(func.S(beta*m))))
+    random_walk = (rho_m / m) * (np.exp(-(delta_tilde ** 2) / (2 * func.S(beta * m, g))) 
+                    / (2 * np.pi * np.sqrt(func.S(beta * m, g))))
 
     # Construct the raw PDF
     dn = random_walk * mass_removal # * func.dS(m)
@@ -68,13 +69,13 @@ def most_probable_rho(beta:float, gamma:float = pms.default_gamma, a:float = 1,
     # From Eqn. 2 of arXiv:2404.11183v2 
     us_mode_rho = pow(1 - pow(beta, -gamma), -delta_c + 1)
     # From Eqn. 3 of arXiv:2402.18634v2
-    us_mode_delta = delta_c_0(a) * func.S(beta * m) / func.S(m)
+    us_mode_delta = delta_c_0(a) * func.S(beta * m, gamma) / func.S(m, gamma)
     
     if inc_mass_scaling:
         # Solve the quadratic, which keeps the dependence of the mode on mass.
-        A = 1 / (func.S(m) - func.S(beta * m)) + 1 / (func.S(beta * m))
-        B = - delta_c_0(a) * (2 / (func.S(m) - func.S(beta * m)) + 1 / func.S(beta * m))
-        C = pow(delta_c_0(a), 2) / (func.S(m) - func.S(beta * m)) - 1
+        A = 1 / (func.S(m, gamma) - func.S(beta * m, gamma)) + 1 / (func.S(beta * m, gamma))
+        B = - delta_c_0(a) * (2 / (func.S(m, gamma) - func.S(beta * m, gamma)) + 1 / func.S(beta * m, gamma))
+        C = pow(delta_c_0(a), 2) / (func.S(m, gamma) - func.S(beta * m, gamma)) - 1
 
         candidates = poly.polyroots([C, B, A])
         root = candidates[np.argmin(abs(candidates - us_mode_delta))]
@@ -84,7 +85,7 @@ def most_probable_rho(beta:float, gamma:float = pms.default_gamma, a:float = 1,
         # Return the universal profile, which does not depend on mass.
         return us_mode_rho
 
-def most_probable_rho_transformed(m:float, beta:float, a:float = 1):
+def most_probable_rho_transformed(m:float, beta:float, gamma:float = pms.default_gamma, a:float = 1):
     """
         Calculate the most probable rho, correctly transforming delta_tilde -> rho.
         Involves solving the roots of a third-order polynomial.
@@ -93,8 +94,8 @@ def most_probable_rho_transformed(m:float, beta:float, a:float = 1):
     # Set up first layer of constants
     delta_c = delta_c_0(a) * func.D(a) / func.D(1)
     eta = delta_c_0(a) - delta_c
-    A = func.S(m) / (2 * func.S(beta * m) *(func.S(m) - func.S(beta * m)))
-    B = delta_c_0(a) / 2 / (func.S(m) - func.S(beta * m))
+    A = func.S(m, gamma) / (2 * func.S(beta * m, gamma) *(func.S(m, gamma) - func.S(beta * m, gamma)))
+    B = delta_c_0(a) / 2 / (func.S(m, gamma) - func.S(beta * m, gamma))
 
     # Set up second layer of constants
     Ap = A * pow(delta_c, 2)
@@ -119,7 +120,7 @@ def most_probable_rho_transformed(m:float, beta:float, a:float = 1):
     Functions related to the CDF.
 """
 
-def CDF(rho, m:float = pms.M_200, beta:float = 1.3, a:float = 1):
+def CDF(rho, m:float = pms.M_200, beta:float = 1.3, gamma:float = pms.default_gamma, a:float = 1):
     """
         Calculate the analytic CDF as a function of delta_l(rho).
     """
@@ -128,12 +129,12 @@ def CDF(rho, m:float = pms.M_200, beta:float = 1.3, a:float = 1):
     delta_tilde = func.rho_to_delta_tilde(rho)
     rho_m = pms.Omega_m * pms.rho_c 
 
-    N = (rho_m / m) * 1. / (2 * np.pi * np.sqrt(func.S(beta * m)) 
-        * pow(func.S(m) - func.S(beta * m), 3/2))
+    N = (rho_m / m) * 1. / (2 * np.pi * np.sqrt(func.S(beta * m, gamma)) 
+        * pow(func.S(m, gamma) - func.S(beta * m, gamma), 3/2))
 
-    A = func.S(m) / (2 * func.S(beta * m) *(func.S(m) - func.S(beta * m)))
-    B = delta_c_0(a) / (2 * (func.S(m) - func.S(beta * m)))
-    C = (delta_c_0(a) ** 2) / (2 * (func.S(m) - func.S(beta * m)))
+    A = func.S(m, gamma) / (2 * func.S(beta * m, gamma) *(func.S(m, gamma) - func.S(beta * m, gamma)))
+    B = delta_c_0(a) / (2 * (func.S(m, gamma) - func.S(beta * m, gamma)))
+    C = (delta_c_0(a) ** 2) / (2 * (func.S(m, gamma) - func.S(beta * m, gamma)))
 
     # Calculate the CDF in layers.
     cdf_temp = np.sqrt(np.pi / A) * (delta_c_0(a) - B / A) / 2. # 0.5 * np.sqrt(np.pi / A) * (delta_c_0(a) - B / (2 * A))
@@ -143,14 +144,14 @@ def CDF(rho, m:float = pms.M_200, beta:float = 1.3, a:float = 1):
 
     return cdf_temp
 
-def conditional_CDF(rho, m, beta, a:float = 1):
+def conditional_CDF(rho, m, beta, a:float = 1, gamma:float = pms.default_gamma,):
     """
         Calculate the normalised analytic CDF as a function of delta_l(rho).
     """
 
-    norm = (CDF(pms.rho_tilde_max, m, beta, a) 
-            - CDF(pms.rho_tilde_min, m, beta, a))
-    return CDF(rho, m, beta, a) / norm
+    norm = (CDF(pms.rho_tilde_max, m, beta, gamma, a) 
+            - CDF(pms.rho_tilde_min, m, beta, gamma, a))
+    return CDF(rho, m, beta, gamma, a) / norm
 
 def numeric_CDF(pdf, x_vals, x):
     """
@@ -181,7 +182,7 @@ def pdf_sample_expectation(pdf : NDArray, rho_vals : NDArray):
     return sample_mode, np.sqrt(sample_mode_variance)
 
 def analytic_median_and_IQR(sample_mode, sample_stdev, beta, mass, 
-                 a:float = 1) -> tuple[float, float, float]:
+                 a:float = 1, gamma:float = pms.default_gamma) -> tuple[float, float, float]:
     """
         Find the analytic IQR by calculating CDF^-1(0.25), CDF^-1(0.75) via 
         root finding, then transform this value into rho from delta_tilde.
@@ -200,9 +201,9 @@ def analytic_median_and_IQR(sample_mode, sample_stdev, beta, mass,
             print("Quantile specified cannot be computed.")
             exit()
 
-        cdf_diff = lambda x: abs(conditional_CDF(x, mass, beta, a) - zscore)
+        cdf_diff = lambda x: abs(conditional_CDF(x, mass, beta, gamma, a) - zscore)
         soln = minimize(cdf_diff, guess, 
-                        bounds=[(0, pms.rho_tilde_max)],
+                        bounds=[(1e-15, pms.rho_tilde_max)],
                         tol=pms.root_finder_precision)
         return soln.x[0]
 

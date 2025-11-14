@@ -88,7 +88,7 @@ def transfer_function_integrand(k):
     return temp
 
 
-def S(m, power_law_approx = pms.power_law_approx, gamma:float = pms.default_gamma):
+def S(m, gamma, power_law_approx = pms.power_law_approx):
     """
         Variance of the density field 
         calculated both in the power law approximation
