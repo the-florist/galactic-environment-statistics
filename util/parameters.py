@@ -26,7 +26,7 @@ root_finder_precision = 1e-5 # Precision used for root finding
 
 # Parameters for double-distribution.py
 # Both independent vars. are unitless
-plot_dimension = 2
+plot_dimension = 1
 enforce_positive_pdf = True
 transform_pdf = True
 normalise_pdf = True

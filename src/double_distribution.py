@@ -33,20 +33,18 @@ def run():
     # Create meshgrid with axes ordered as (beta, rho, mass)
     BTS, RHOS, MS = np.meshgrid(beta_vals, rho_vals, mass_vals, indexing='ij')
 
+    PDF = ddfunc.dn(RHOS, MS, BTS)
+    if pms.normalise_pdf:
+        PDF /= PDF.sum(axis=(1, 2), keepdims=True)
+        print(f"PDF norm precision: {abs(PDF[0].sum() - 1.):.15}")
+        print(f"PDF max value: ", PDF[0].max())
+
     print(f"Starting {pms.plot_dimension}D plot generation...")
 
     if pms.plot_dimension == 2:
         """
             Calculate the normalised joint PDF and plot it.
         """
-
-        PDF = ddfunc.dn(RHOS, MS, BTS)
-
-        # Normalise the joint PDF
-        if pms.normalise_pdf:
-            PDF /= PDF.sum(axis=(1, 2), keepdims=True)
-            print(f"PDF norm precision: {abs(PDF[0].sum() - 1.):.15}")
-            print(f"PDF max value: ", PDF[0].max())
 
         b = np.abs(beta_vals - pms.beta_heuristic).argmin()
 
@@ -202,52 +200,30 @@ def run():
             mass_slices = np.array([1]) * 1e14 #  5.0, 17
             gamma_slices = np.array([0.4]) # , 0.5, 0.6
 
-            modes = np.zeros((pms.num_beta, 2))
-            medians = np.zeros((pms.num_beta, 2))
-            IQRs = np.zeros((pms.num_beta, 4))
+            analytic_modes = ddfunc.most_probable_rho_transformed(mass_slices, 
+                                    BTS[:,0,:], gamma=gamma_slices)
 
-            # Set up the timer
-            start = time()
-            intv = 15
-            last = start
+            #     modes[bi, 1], numeric_stdev = ddfunc.pdf_sample_expectation(cond_PDF, rho_vals)
+            #     IQRs[bi, 0], IQRs[bi, 1], medians[bi, 0] = ddfunc.analytic_median_and_IQR(modes[bi, 1], numeric_stdev, b, m, gamma=gamma_slices[mi])
+            #     IQRs[bi, 2], IQRs[bi, 3], medians[bi, 1] = ddfunc.numeric_median_and_IQR(cond_PDF, rho_vals)
 
-            for mi, m in enumerate(mass_slices):
-                for bi, b in enumerate(beta_vals):
-                    now = time()
-                    if now - last > intv:
-                        frac = bi / (pms.num_beta)
-                        elapsed = now - start
-                        print(f"{elapsed:.2g} sec. passed, {frac * 100}% finished...")
-                        last = now
+            #     line, = plt.plot(beta_vals, modes[:, 0], label=rf"m={m:.2E}, $\gamma$={gamma_slices[mi]:.2E}")
+            #     mass_color = line.get_color()
+            #     plt.plot(beta_vals, modes[:, 1], label="__nolabel__", color=mass_color, linestyle="--")
 
-                    cond_PDF = []
-                    for r in rho_vals:
-                        cond_PDF.append(ddfunc.dn(r, m, b, transform_pdf=True, g=gamma_slices[mi]))
-                    norm = (sum(cond_PDF) - cond_PDF[0])
-                    cond_PDF /= norm
+            #     plt.plot(beta_vals, medians[:, 0], linestyle="-.", color=mass_color)
+            #     plt.plot(beta_vals, medians[:, 1], label="__nolabel__", color=mass_color, linestyle="dotted")
 
-                    modes[bi, 0] = ddfunc.most_probable_rho_transformed(m, b, gamma=gamma_slices[mi])
-                    modes[bi, 1], numeric_stdev = ddfunc.pdf_sample_expectation(cond_PDF, rho_vals)
-                    IQRs[bi, 0], IQRs[bi, 1], medians[bi, 0] = ddfunc.analytic_median_and_IQR(modes[bi, 1], numeric_stdev, b, m, gamma=gamma_slices[mi])
-                    IQRs[bi, 2], IQRs[bi, 3], medians[bi, 1] = ddfunc.numeric_median_and_IQR(cond_PDF, rho_vals)
+            #     # plt.fill_between(mass_vals, IQRs[:, 0], IQRs[:, 1], alpha=0.5, label="analytic IQR")
+            #     # plt.fill_between(mass_vals, IQRs[:, 2], IQRs[:, 3], alpha=0.5, label="numeric IQR")
 
-                line, = plt.plot(beta_vals, modes[:, 0], label=rf"m={m:.2E}, $\gamma$={gamma_slices[mi]:.2E}")
-                mass_color = line.get_color()
-                plt.plot(beta_vals, modes[:, 1], label="__nolabel__", color=mass_color, linestyle="--")
-
-                plt.plot(beta_vals, medians[:, 0], linestyle="-.", color=mass_color)
-                plt.plot(beta_vals, medians[:, 1], label="__nolabel__", color=mass_color, linestyle="dotted")
-
-                # plt.fill_between(mass_vals, IQRs[:, 0], IQRs[:, 1], alpha=0.5, label="analytic IQR")
-                # plt.fill_between(mass_vals, IQRs[:, 2], IQRs[:, 3], alpha=0.5, label="numeric IQR")
-
-            plt.xlabel(r"$\beta$")
-            plt.ylabel(r"$\hat{\rho}$")
-            plt.title(r"Most probale profile vs. $\beta$")
-            plt.grid(True)
-            plt.legend()
-            plt.savefig("plots/mpp-beta-scaling.pdf")
-            plt.close()
+            # plt.xlabel(r"$\beta$")
+            # plt.ylabel(r"$\hat{\rho}$")
+            # plt.title(r"Most probale profile vs. $\beta$")
+            # plt.grid(True)
+            # plt.legend()
+            # plt.savefig("plots/mpp-beta-scaling.pdf")
+            # plt.close()
 
 
         if pms.plot_rho_derivative:

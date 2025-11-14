@@ -81,17 +81,18 @@ def most_probable_rho(beta:float, gamma:float = pms.default_gamma, a:float = 1,
         # Return the universal profile, which does not depend on mass.
         return us_mode_rho
 
-def most_probable_rho_transformed(m:float, beta:float, gamma:float = pms.default_gamma, a:float = 1):
+def most_probable_rho_transformed(m : NDArray, beta : NDArray, gamma, sf:float = 1):
     """
         Calculate the most probable rho, correctly transforming delta_tilde -> rho.
         Involves solving the roots of a third-order polynomial.
     """
 
     # Set up first layer of constants
-    delta_c = delta_c_0(a) * func.D(a) / func.D(1)
-    eta = delta_c_0(a) - delta_c
-    A = func.S(m, gamma) / (2 * func.S(beta * m, gamma) *(func.S(m, gamma) - func.S(beta * m, gamma)))
-    B = delta_c_0(a) / 2 / (func.S(m, gamma) - func.S(beta * m, gamma))
+    delta_c = delta_c_0(sf) * func.D(sf) / func.D(1)
+    eta = delta_c_0(sf) - delta_c
+    A = func.S(m, gamma) / (2 * func.S(beta * m, gamma) *(func.S(m, gamma) 
+                                - func.S(beta * m, gamma)))
+    B = delta_c_0(sf) / 2 / (func.S(m, gamma) - func.S(beta * m, gamma))
 
     # Set up second layer of constants
     Ap = A * pow(delta_c, 2)
@@ -104,13 +105,21 @@ def most_probable_rho_transformed(m:float, beta:float, gamma:float = pms.default
     d = - eta * (1 + delta_c)
 
     # Solve the cubic
-    roots = poly.polyroots([d, c, b, a])
-    for i in range(len(roots)):
-        if roots[i] > 0:
-            return pow(roots[i], -delta_c)
-    else:
-        print("Error : most_probable_rho_transformed, Root not found.")
-        exit()
+    candidates = np.zeros((len(beta), len(m)))
+    for i in range(len(beta)):
+        for j in range(len(m)):
+            root = poly.polyroots([d, c[i, j], b[i, j], a[i, j]])
+            for r in root:
+                if r > 0:
+                    candidates[i, j] = pow(r, -delta_c)
+            # else:
+            #     print("Error : most_probable_rho_transformed, Root not found.")
+            #     print(i, j)
+            #     print(root > 0)
+            #     print(candidates[i, j])
+            #     exit()
+
+    return candidates
 
 """
     Functions related to the CDF.
