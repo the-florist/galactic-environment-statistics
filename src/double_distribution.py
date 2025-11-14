@@ -196,7 +196,7 @@ def run():
         else:
             print("Starting most probable profile vs. mass plot...")
 
-            for g in gamma_slices:
+            for gi, g in enumerate(gamma_slices):
                 cond_PDF = ddfunc.dn(RHOS, MS, BTS, gamma=g)
                 print("PDF shape: ", cond_PDF.shape)
                 if pms.normalise_pdf:
@@ -207,14 +207,15 @@ def run():
                                                                     rho_vals)
                 analytic_modes = ddfunc.most_probable_rho_transformed(MS[:,0,:], 
                                     BTS[:,0,:], gamma=g)
+                
+                line, = plt.plot(beta_vals, analytic_modes[:, gi], 
+                                label=rf"m={mass_vals[gi]:.2E}, $\gamma$={g:.2E}")
+                mass_color = line.get_color()
+                line, = plt.plot(beta_vals, numeric_modes[:, gi], 
+                                color=mass_color, linestyle="--")
 
-            #     modes[bi, 1], numeric_stdev = ddfunc.pdf_sample_expectation(cond_PDF, rho_vals)
             #     IQRs[bi, 0], IQRs[bi, 1], medians[bi, 0] = ddfunc.analytic_median_and_IQR(modes[bi, 1], numeric_stdev, b, m, gamma=gamma_slices[mi])
             #     IQRs[bi, 2], IQRs[bi, 3], medians[bi, 1] = ddfunc.numeric_median_and_IQR(cond_PDF, rho_vals)
-
-            #     line, = plt.plot(beta_vals, modes[:, 0], label=rf"m={m:.2E}, $\gamma$={gamma_slices[mi]:.2E}")
-            #     mass_color = line.get_color()
-            #     plt.plot(beta_vals, modes[:, 1], label="__nolabel__", color=mass_color, linestyle="--")
 
             #     plt.plot(beta_vals, medians[:, 0], linestyle="-.", color=mass_color)
             #     plt.plot(beta_vals, medians[:, 1], label="__nolabel__", color=mass_color, linestyle="dotted")
@@ -222,13 +223,13 @@ def run():
             #     # plt.fill_between(mass_vals, IQRs[:, 0], IQRs[:, 1], alpha=0.5, label="analytic IQR")
             #     # plt.fill_between(mass_vals, IQRs[:, 2], IQRs[:, 3], alpha=0.5, label="numeric IQR")
 
-            # plt.xlabel(r"$\beta$")
-            # plt.ylabel(r"$\hat{\rho}$")
-            # plt.title(r"Most probale profile vs. $\beta$")
-            # plt.grid(True)
-            # plt.legend()
-            # plt.savefig("plots/mpp-beta-scaling.pdf")
-            # plt.close()
+            plt.xlabel(r"$\beta$")
+            plt.ylabel(r"$\hat{\rho}$")
+            plt.title(r"Most probale profile vs. $\beta$")
+            plt.grid(True)
+            plt.legend()
+            plt.savefig("plots/mpp-beta-scaling.pdf")
+            plt.close()
 
 
         if pms.plot_rho_derivative:
