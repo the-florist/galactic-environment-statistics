@@ -34,7 +34,7 @@ normalise_pdf = True
 beta_heuristic = 2
 beta_min, beta_max, num_beta = 1.5, 5, 25
 rho_tilde_min, rho_tilde_max, num_rho = 0.001, 10, 100 # 60
-mass_min, mass_max, num_mass = 1e14, 1e15, 100
+mass_min, mass_max, num_mass = 1e14, 1e15, 50
 lqr, uqr = 0.16, 0.84
 
 slice_in_rho = False

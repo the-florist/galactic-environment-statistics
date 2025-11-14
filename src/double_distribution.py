@@ -41,19 +41,18 @@ def run():
         """
 
         PDF = ddfunc.dn(RHOS, MS, BTS)
-        print(PDF.shape)
 
         # Normalise the joint PDF
         if pms.normalise_pdf:
-            norm = np.sum(PDF[:])
-            PDF /= norm
-            print(f"PDF norm precision: {abs(np.sum(PDF[:]).max() - 1.):.15}")
+            PDF /= PDF.sum(axis=(1, 2), keepdims=True)
+            print(f"PDF norm precision: {abs(PDF[0].sum() - 1.):.15}")
+            print(f"PDF max value: ", PDF[0].max())
 
         b = np.abs(beta_vals - pms.beta_heuristic).argmin()
 
         # Marginals
-        marginal_dl = np.trapezoid(PDF[b], mass_vals, axis=1)
-        marginal_m = np.trapezoid(PDF[b], rho_vals, axis=0)
+        marginal_m = PDF[b].sum(axis=0)
+        marginal_rho = PDF[b].sum(axis=1)
 
         fig = plt.figure(figsize=(8, 8))
         gs = GridSpec(4, 4, hspace=0.05, wspace=0.05)
@@ -78,8 +77,7 @@ def run():
         y_off.set_clip_on(False)
 
         # Marginal for m
-        ax_marg_m.plot(rho_vals, marginal_dl, color='tab:blue')
-        # ax_marg_m.set_xscale('log')
+        ax_marg_m.plot(rho_vals, marginal_rho, color='tab:blue')
         ax_marg_m.set_ylabel(r'Marginal ($\bar{\rho}$)')
         ax_marg_m.tick_params(axis='y', labelbottom=False)
         ax_marg_m.grid(True, which='both', ls='--', alpha=0.3)
@@ -109,9 +107,14 @@ def run():
         """
 
         if pms.slice_in_rho:
-            slices = np.array([1e14, 1e15]) # np.array([mass_vals[i] for i in range(0, int(pms.num_mass), 
+            mass_slices = np.array([1e14, 1e15]) # np.array([mass_vals[i] for i in range(0, int(pms.num_mass), 
                  #                                   round(pms.num_mass/5))])
-            b = pms.beta_heuristic
+            b = np.abs(beta_vals - pms.beta_heuristic).argmin()
+
+            cond_PDF = ddfunc.dn(RHOS, mass_slices, b, transform_pdf=True)
+            print(cond_PDF.shape)
+            # if pms.normalise_pdf:
+            #     cond_PDF /= cond_PDF.sum(axis=1)
 
             # Generate slice of PDF at beta_slice
             for m in slices:
