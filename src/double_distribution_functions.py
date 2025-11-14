@@ -49,14 +49,10 @@ def dn(rho, m, beta, a:float = 1, transform_pdf:bool = pms.transform_pdf,
     if transform_pdf:
         dn *= pow(rho, (-1 - 1/delta_c))
 
-    # Enforce the PDF to be positive
     if pms.enforce_positive_pdf == True:
-        if dn < 0:
-            return 0
-        else:
-            return dn
-    else:
-        return dn
+        dn.clip(min=0, out=dn)
+
+    return dn
 
 def most_probable_rho(beta:float, gamma:float = pms.default_gamma, a:float = 1,
                         inc_mass_scaling:bool = False, m:float = pms.M_200):

@@ -40,36 +40,16 @@ def run():
             Calculate the normalised joint PDF and plot it.
         """
 
-        PDF = np.zeros((pms.num_beta_slices, pms.num_rho, pms.num_mass))
-
-        # Set up the timer
-        start = time()
-        intv = 15
-        last = start
-
-        for i in range(pms.num_beta):
-            for j in range(pms.num_rho):
-                for k in range(pms.num_mass):
-                    try:
-                        PDF[i, j, k] = ddfunc.dn(RHOS[i, j, k], MS[i, j, k], BTS[i, j, k])
-                    except Exception:
-                        PDF[i, j, k] = 0
-
-                now = time()
-                if now - last > intv:
-                    frac = ((j * pms.num_rho) + k + 1) / (pms.num_mass * pms.num_rho)
-                    elapsed = now - start
-                    print(f"{elapsed:.2g} sec. passed for beta = "+str(beta_vals[i])+f", {frac * 100}% finished...")
-                    last = now
+        PDF = ddfunc.dn(RHOS, MS, BTS)
+        print(PDF.shape)
 
         # Normalise the joint PDF
         if pms.normalise_pdf:
-            for i in range(pms.num_beta):
-                norm = np.sum(PDF[i])
-                PDF[i] /= norm
-                print(f"PDF norm precision: {abs(np.sum(PDF[i]) - 1.):.15}")
+            norm = np.sum(PDF[:])
+            PDF /= norm
+            print(f"PDF norm precision: {abs(np.sum(PDF[:]).max() - 1.):.15}")
 
-        b = pms.beta_heuristic
+        b = np.abs(beta_vals - pms.beta_heuristic).argmin()
 
         # Marginals
         marginal_dl = np.trapezoid(PDF[b], mass_vals, axis=1)
@@ -87,8 +67,6 @@ def run():
                                                           cmap='viridis')
         ax_joint.set_xlabel(r'$\rho/\rho_m$')
         ax_joint.set_ylabel(r'$m$')
-        # ax_joint.set_xscale('log')
-        # ax_joint.set_yscale('log')
 
         # Make mass-axis (y) scientific offset (e.g., 1e15) vertical on the left
         ax_joint.ticklabel_format(axis='y', style='sci', scilimits=(0, 0))
@@ -105,6 +83,7 @@ def run():
         ax_marg_m.set_ylabel(r'Marginal ($\bar{\rho}$)')
         ax_marg_m.tick_params(axis='y', labelbottom=False)
         ax_marg_m.grid(True, which='both', ls='--', alpha=0.3)
+        ax_marg_m.set_title(r'Joint PDF of $m$ and $\tilde{\rho}$ at $\beta = $' + str(b), pad=12)
 
         # Marginal for delta_l
         ax_marg_dl.plot(marginal_m, mass_vals, color='tab:orange')
@@ -118,7 +97,6 @@ def run():
         plt.setp(ax_marg_m.get_xticklabels(), visible=False)
         plt.setp(ax_marg_dl.get_yticklabels(), visible=False)
 
-        ax_joint.set_title(r'Joint PDF of $m$ and $\tilde{\rho}$ at $\beta = $'+str(b))
 
         func.make_directory("plots")
         plt.savefig("plots/joint-pdf.pdf")
