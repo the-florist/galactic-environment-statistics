@@ -6,11 +6,13 @@
     including the full probability density and its analytic statistic estimates.
 """
 import numpy as np
+from time import time
 from numpy.typing import NDArray
 import numpy.polynomial.polynomial as poly
-from scipy.optimize import minimize_scalar, minimize, root_scalar, fsolve
+from scipy.optimize import minimize
 from scipy.special import erf
 from multiprocessing import Pool
+from os import cpu_count
 
 import util.parameters as pms
 import util.functions as func
@@ -214,9 +216,13 @@ def a_median_and_IQR(sample_mode, sample_stdev, mass, beta,
             for j, m in enumerate(mass)
         ]
 
-        print("solving in parallel")
-        with Pool() as pool:
+        print(f"solving in parallel")
+        start = time()
+        with Pool(cpu_count()) as pool:
             results = pool.map(solve_combined, params)
+        diff = time() - start
+        print(f"Loop with {cpu_count()} threads took {diff} seconds.")
+        # exit()
 
         print("extracting solution")
         # Now reconstruct solutions array from flat list 'results'
@@ -229,7 +235,7 @@ def a_median_and_IQR(sample_mode, sample_stdev, mass, beta,
 
         return solutions
 
-    return find_median_and_IQR("m"), find_median_and_IQR("l"), find_median_and_IQR("h")
+    return find_median_and_IQR("m") #, find_median_and_IQR("l"), find_median_and_IQR("h")
 
 def n_median_and_IQR(pdf, x_range):
     """
@@ -253,4 +259,4 @@ def n_median_and_IQR(pdf, x_range):
                         stat[f, s] = x
         return stat
     
-    return find_stat(0.5), find_stat(pms.lqr), find_stat(pms.uqr)
+    return find_stat(0.5) #, find_stat(pms.lqr), find_stat(pms.uqr)

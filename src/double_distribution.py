@@ -23,7 +23,8 @@ if pms.plot_dimension != 1 and pms.plot_dimension != 2:
 
 beta_vals = np.linspace(pms.beta_min, pms.beta_max, pms.num_beta)
 rho_vals = np.linspace(pms.rho_tilde_min, pms.rho_tilde_max, pms.num_rho)
-mass_vals = np.linspace(pms.mass_min, pms.mass_max, pms.num_mass)
+mass_vals = np.array([1.3, 5, 17]) * 1e14
+#np.linspace(pms.mass_min, pms.mass_max, pms.num_mass)
 gamma_slices = np.linspace(pms.gamma_min, pms.gamma_max, pms.num_gamma)
 
 
@@ -211,9 +212,9 @@ def run():
                                     BTS[:,0,:], gamma=g)
 
                 # Calculate the other statistics
-                # a_medians, a_IQRl, a_IQRh = ddfunc.a_median_and_IQR(n_modes, 
-                #                             n_stdevs, mass_vals, beta_vals, gamma=g)
-                n_medians, n_IQRl, n_IQRh = ddfunc.n_median_and_IQR(cond_PDF, rho_vals)
+                a_medians = ddfunc.a_median_and_IQR(n_modes, 
+                                            n_stdevs, mass_vals, beta_vals, gamma=g)
+                n_medians = ddfunc.n_median_and_IQR(cond_PDF, rho_vals)
 
                 # print("mapping input") , a_IQRl, a_IQRh
                 # print(a_medians, a_IQRl, a_IQRh)
@@ -227,15 +228,15 @@ def run():
                                 color=mass_color, linestyle="--")
 
                 # Plot analytic and numeric median
-                # plt.plot(beta_vals, a_medians[:, gi], linestyle="-.", color=mass_color)
+                plt.plot(beta_vals, a_medians[:, gi], linestyle="-.", color=mass_color)
                 plt.plot(beta_vals, n_medians[:, gi], label="__nolabel__", 
                          color=mass_color, linestyle="dotted")
 
                 # Plot analytic and numeric IQR
-                # plt.fill_between(mass_vals, a_IQRl[:, gi], a_IQRh[:, gi], 
-                                #  alpha=0.5, label="analytic IQR")
-                plt.fill_between(beta_vals, n_IQRl[:, gi], n_IQRh[:, gi], 
-                                 alpha=0.5, label="numeric IQR")
+                # plt.fill_between(beta_vals, a_IQRl[:, gi], a_IQRh[:, gi], 
+                #                  alpha=0.5, label="analytic IQR")
+                # plt.fill_between(beta_vals, n_IQRl[:, gi], n_IQRh[:, gi], 
+                #                  alpha=0.5, label="numeric IQR")
 
             plt.xlabel(r"$\beta$")
             plt.ylabel(r"$\hat{\rho}$")
