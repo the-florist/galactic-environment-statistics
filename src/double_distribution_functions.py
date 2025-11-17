@@ -8,8 +8,9 @@
 import numpy as np
 from numpy.typing import NDArray
 import numpy.polynomial.polynomial as poly
-from scipy.optimize import minimize
+from scipy.optimize import minimize_scalar, minimize, root_scalar, fsolve
 from scipy.special import erf
+from multiprocessing import Pool
 
 import util.parameters as pms
 import util.functions as func
@@ -120,7 +121,7 @@ def most_probable_rho_transformed(m : NDArray, beta : NDArray, gamma, sf:float =
     Functions related to the CDF.
 """
 
-def CDF(rho, m:float = pms.M_200, beta:float = 1.3, gamma:float = pms.default_gamma, a:float = 1):
+def CDF(rho, m, beta, gamma:float = pms.default_gamma, a:float = 1):
     """
         Calculate the analytic CDF as a function of delta_l(rho).
     """
@@ -148,7 +149,6 @@ def conditional_CDF(rho, m, beta, a:float = 1, gamma:float = pms.default_gamma,)
     """
         Calculate the normalised analytic CDF as a function of delta_l(rho).
     """
-
     norm = (CDF(pms.rho_tilde_max, m, beta, gamma, a) 
             - CDF(pms.rho_tilde_min, m, beta, gamma, a))
     return CDF(rho, m, beta, gamma, a) / norm
@@ -182,8 +182,14 @@ def sample_stats(pdf : NDArray, rho_vals : NDArray):
 
     return sample_mode, np.sqrt(sample_mode_variance)
 
-def analytic_median_and_IQR(sample_mode, sample_stdev, beta, mass, 
-                 a:float = 1, gamma:float = pms.default_gamma) -> tuple[float, float, float]:
+def solve_combined(args):
+    b, m, g, z = args
+    cdf_diff = lambda x: abs(conditional_CDF(x, m, b, pms.default_gamma, 1) - z)
+    return minimize(cdf_diff, g, bounds=[(pms.rho_tilde_min, pms.rho_tilde_max)],
+                        tol=pms.root_finder_precision)
+
+def analytic_median_and_IQR(sample_mode, sample_stdev, mass, beta,
+                 gamma:float = pms.default_gamma, a:float = 1):
     """
         Find the analytic IQR by calculating CDF^-1(0.25), CDF^-1(0.75) via 
         root finding, then transform this value into rho from delta_tilde.
@@ -202,36 +208,49 @@ def analytic_median_and_IQR(sample_mode, sample_stdev, beta, mass,
             print("Quantile specified cannot be computed.")
             exit()
 
-        cdf_diff = lambda x: abs(conditional_CDF(x, mass, beta, gamma, a) - zscore)
-        soln = minimize(cdf_diff, guess, 
-                        bounds=[(1e-15, pms.rho_tilde_max)],
-                        tol=pms.root_finder_precision)
-        return soln.x[0]
+        params = [
+            (b, m, guess[i, j], zscore)
+            for i, b in enumerate(beta)
+            for j, m in enumerate(mass)
+        ]
 
-    return find_median_and_IQR("l"), find_median_and_IQR("h"), find_median_and_IQR("m")
+        print("solving in parallel")
+        with Pool() as pool:
+            results = pool.map(solve_combined, params)
+
+        print("extracting solution")
+        # Now reconstruct solutions array from flat list 'results'
+        solutions = np.zeros_like(guess)
+        for idx, res in enumerate(results):
+            i = idx // pms.num_mass
+            j = idx % pms.num_mass
+            # Minimize may return OptimizeResult, get best guess (min location)
+            solutions[i, j] = res.x if hasattr(res, 'x') else res
+
+        return solutions
+
+    return find_median_and_IQR("m"), find_median_and_IQR("l"), find_median_and_IQR("h")
 
 def numeric_median_and_IQR(pdf, x_range):
     """
         Calculate the IQR numerically, on a numeric PDF with axis.
     """
 
-    # Track the CDF, and iqrs found
-    sm = 0
-    iqrl, iqru, median = 0, 0, 0
-    cl, cu, cm = 0, 0, 0
+    def find_stat(zscore):
+        sm = 0
+        # Track the CDF, and iqrs found
+        stat = np.zeros([25, 3])
 
-    # Use the numerical CDF to find the iqrs
-    for idx, x in enumerate(x_range):
-        sm += pdf[idx]
-        if sm > pms.lqr and cl == 0:
-            iqrl = x
-            cl += 1
-        elif sm > 0.5 and cm == 0:
-            median = x
-            cm += 1
-        elif sm > pms.uqr and cu == 0:
-            iqru = x
-            cu += 1
-            break
+        # Use the numerical CDF to find the iqrs
+        for idx, x in enumerate(x_range):
+            sm += pdf[:,idx,:]
+            sm_l = np.argwhere(sm > zscore)
+            if sm_l.size != 0:
+                for i in range(len(sm_l)):
+                    f = sm_l[i, 0]
+                    s = sm_l[i, 1]
+                    if stat[f, s] == 0:
+                        stat[f, s] = x
+        return stat
     
-    return iqrl, iqru, median
+    return find_stat(0.5), find_stat(pms.lqr), find_stat(pms.uqr)

@@ -151,7 +151,7 @@ def delta_c_0(a_i : float) -> float:
     temp = D(1) * delta_c / D(a_i)
     return temp
 
-def rho_to_delta_tilde(rho:float, a:float = 1):
+def rho_to_delta_tilde(rho, a:float = 1):
     delta_c = delta_c_0(a) * D(a) / D(1)
     return delta_c * (1 - pow(rho, -1/delta_c))
 
