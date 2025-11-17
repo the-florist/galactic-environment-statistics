@@ -188,7 +188,7 @@ def solve_combined(args):
     return minimize(cdf_diff, g, bounds=[(pms.rho_tilde_min, pms.rho_tilde_max)],
                         tol=pms.root_finder_precision)
 
-def analytic_median_and_IQR(sample_mode, sample_stdev, mass, beta,
+def a_median_and_IQR(sample_mode, sample_stdev, mass, beta,
                  gamma:float = pms.default_gamma, a:float = 1):
     """
         Find the analytic IQR by calculating CDF^-1(0.25), CDF^-1(0.75) via 
@@ -231,7 +231,7 @@ def analytic_median_and_IQR(sample_mode, sample_stdev, mass, beta,
 
     return find_median_and_IQR("m"), find_median_and_IQR("l"), find_median_and_IQR("h")
 
-def numeric_median_and_IQR(pdf, x_range):
+def n_median_and_IQR(pdf, x_range):
     """
         Calculate the IQR numerically, on a numeric PDF with axis.
     """

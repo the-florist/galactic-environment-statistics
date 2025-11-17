@@ -198,38 +198,42 @@ def run():
             print("Starting most probable profile vs. mass plot...")
 
             for gi, g in enumerate(gamma_slices):
+                # Numerically construct the conditional PDF
                 cond_PDF = ddfunc.dn(RHOS, MS, BTS, gamma=g)
                 print("PDF shape: ", cond_PDF.shape)
                 if pms.normalise_pdf:
                     cond_PDF /= cond_PDF.sum(axis=1, keepdims=True)
                     print(f"PDF norm precision: ", abs(cond_PDF.sum(axis=1) - 1.).max())
 
+                # Calculate the mode
                 n_modes, n_stdevs = ddfunc.sample_stats(cond_PDF, rho_vals)
                 a_modes = ddfunc.most_probable_rho_transformed(MS[:,0,:], 
                                     BTS[:,0,:], gamma=g)
 
-                # a_medians, a_IQRl, a_IQRh = ddfunc.analytic_median_and_IQR(n_modes, n_stdevs, mass_vals, 
-                                                        # beta_vals, gamma=g)
-                n_medians, n_IQRl, n_IQRh = ddfunc.numeric_median_and_IQR(cond_PDF, rho_vals)
+                # Calculate the other statistics
+                # a_medians, a_IQRl, a_IQRh = ddfunc.a_median_and_IQR(n_modes, 
+                #                             n_stdevs, mass_vals, beta_vals, gamma=g)
+                n_medians, n_IQRl, n_IQRh = ddfunc.n_median_and_IQR(cond_PDF, rho_vals)
 
                 # print("mapping input") , a_IQRl, a_IQRh
                 # print(a_medians, a_IQRl, a_IQRh)
                 # exit()
                 
+                # Plot analytic and numeric mode
                 line, = plt.plot(beta_vals, a_modes[:, gi], 
                                 label=rf"m={mass_vals[gi]:.2E}, $\gamma$={g:.2E}")
                 mass_color = line.get_color()
                 line, = plt.plot(beta_vals, n_modes[:, gi], 
                                 color=mass_color, linestyle="--")
 
-            #     IQRs[bi, 0], IQRs[bi, 1], medians[bi, 0] = ddfunc.analytic_median_and_IQR(modes[bi, 1], numeric_stdev, b, m, gamma=gamma_slices[mi])
-            #     IQRs[bi, 2], IQRs[bi, 3], medians[bi, 1] = ddfunc.numeric_median_and_IQR(cond_PDF, rho_vals)
-
-            #     plt.plot(beta_vals, medians[:, 0], linestyle="-.", color=mass_color)
+                # Plot analytic and numeric median
+                # plt.plot(beta_vals, a_medians[:, gi], linestyle="-.", color=mass_color)
                 plt.plot(beta_vals, n_medians[:, gi], label="__nolabel__", 
                          color=mass_color, linestyle="dotted")
 
-            #     # plt.fill_between(mass_vals, IQRs[:, 0], IQRs[:, 1], alpha=0.5, label="analytic IQR")
+                # Plot analytic and numeric IQR
+                # plt.fill_between(mass_vals, a_IQRl[:, gi], a_IQRh[:, gi], 
+                                #  alpha=0.5, label="analytic IQR")
                 plt.fill_between(beta_vals, n_IQRl[:, gi], n_IQRh[:, gi], 
                                  alpha=0.5, label="numeric IQR")
 
