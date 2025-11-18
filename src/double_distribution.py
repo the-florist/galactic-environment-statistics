@@ -16,6 +16,7 @@ import matplotlib.ticker as mticker
 import util.parameters as pms
 import util.functions as func
 import src.double_distribution_functions as ddfunc
+from src.Newton_method import NewtonsMethod
 
 if pms.plot_dimension != 1 and pms.plot_dimension != 2:
     raise ValueError("double-distribution.py : plot_dimension impossible" 
@@ -23,9 +24,9 @@ if pms.plot_dimension != 1 and pms.plot_dimension != 2:
 
 beta_vals = np.linspace(pms.beta_min, pms.beta_max, pms.num_beta)
 rho_vals = np.linspace(pms.rho_tilde_min, pms.rho_tilde_max, pms.num_rho)
-mass_vals = np.array([1.3, 5, 17]) * 1e14
+mass_vals = np.array([1.3, 5, 17]) * 1e14 # 
 #np.linspace(pms.mass_min, pms.mass_max, pms.num_mass)
-gamma_slices = np.linspace(pms.gamma_min, pms.gamma_max, pms.num_gamma)
+gamma_slices = np.array([pms.gamma_min]) # np.linspace(pms.gamma_min, pms.gamma_max, pms.num_gamma)
 
 
 def run():
@@ -199,38 +200,45 @@ def run():
             print("Starting most probable profile vs. mass plot...")
 
             for gi, g in enumerate(gamma_slices):
+
                 # Numerically construct the conditional PDF
                 cond_PDF = ddfunc.dn(RHOS, MS, BTS, gamma=g)
                 print("PDF shape: ", cond_PDF.shape)
                 if pms.normalise_pdf:
                     cond_PDF /= cond_PDF.sum(axis=1, keepdims=True)
-                    print(f"PDF norm precision: ", abs(cond_PDF.sum(axis=1) - 1.).max())
+                    print(f"PDF norm precision: ", abs(cond_PDF.sum(axis=1) 
+                                                                - 1.).max())
 
                 # Calculate the mode
                 n_modes, n_stdevs = ddfunc.sample_stats(cond_PDF, rho_vals)
-                a_modes = ddfunc.most_probable_rho_transformed(MS[:,0,:], 
-                                    BTS[:,0,:], gamma=g)
 
-                # Calculate the other statistics
-                a_medians = ddfunc.a_median_and_IQR(n_modes, 
-                                            n_stdevs, mass_vals, beta_vals, gamma=g)
-                n_medians = ddfunc.n_median_and_IQR(cond_PDF, rho_vals)
+                nm = NewtonsMethod(MS[:,0,:], BTS[:,0,:], gamma_slices[0], 
+                                      n_modes)
+                nm.run()
 
-                # print("mapping input") , a_IQRl, a_IQRh
-                # print(a_medians, a_IQRl, a_IQRh)
-                # exit()
+                # a_modes = ddfunc.most_probable_rho_transformed(MS[:,0,:], 
+                #                     BTS[:,0,:], gamma=g)
+
+                # # Calculate the other statistics
+                # a_medians = ddfunc.a_median_and_IQR(n_modes, 
+                #                             n_stdevs, mass_vals, beta_vals, gamma=g)
+                # n_medians = ddfunc.n_median_and_IQR(cond_PDF, rho_vals)
+
+                # # print("mapping input") , a_IQRl, a_IQRh
+                # # print(a_medians, a_IQRl, a_IQRh)
+                # # exit()
                 
-                # Plot analytic and numeric mode
-                line, = plt.plot(beta_vals, a_modes[:, gi], 
-                                label=rf"m={mass_vals[gi]:.2E}, $\gamma$={g:.2E}")
-                mass_color = line.get_color()
-                line, = plt.plot(beta_vals, n_modes[:, gi], 
-                                color=mass_color, linestyle="--")
+                # # Plot analytic and numeric mode
+                # line, = plt.plot(beta_vals, a_modes[:, gi], 
+                #                 label=rf"m={mass_vals[gi]:.2E}, $\gamma$={g:.2E}")
+                # mass_color = line.get_color()
+                # line, = plt.plot(beta_vals, n_modes[:, gi], 
+                #                 color=mass_color, linestyle="--")
 
                 # Plot analytic and numeric median
-                plt.plot(beta_vals, a_medians[:, gi], linestyle="-.", color=mass_color)
-                plt.plot(beta_vals, n_medians[:, gi], label="__nolabel__", 
-                         color=mass_color, linestyle="dotted")
+                # plt.plot(beta_vals, a_medians[:, gi], linestyle="-.", color=mass_color)
+                # plt.plot(beta_vals, n_medians[:, gi], label="__nolabel__", 
+                #          color=mass_color, linestyle="dotted")
 
                 # Plot analytic and numeric IQR
                 # plt.fill_between(beta_vals, a_IQRl[:, gi], a_IQRh[:, gi], 
@@ -238,13 +246,13 @@ def run():
                 # plt.fill_between(beta_vals, n_IQRl[:, gi], n_IQRh[:, gi], 
                 #                  alpha=0.5, label="numeric IQR")
 
-            plt.xlabel(r"$\beta$")
-            plt.ylabel(r"$\hat{\rho}$")
-            plt.title(r"Most probale profile vs. $\beta$")
-            plt.grid(True)
-            plt.legend()
-            plt.savefig("plots/mpp-beta-scaling.pdf")
-            plt.close()
+            # plt.xlabel(r"$\beta$")
+            # plt.ylabel(r"$\hat{\rho}$")
+            # plt.title(r"Most probale profile vs. $\beta$")
+            # plt.grid(True)
+            # plt.legend()
+            # plt.savefig("plots/mpp-beta-scaling.pdf")
+            # plt.close()
 
 
         if pms.plot_rho_derivative:
