@@ -8,10 +8,8 @@
 """
 
 import numpy as np
-from time import time
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
-import matplotlib.ticker as mticker
 
 import util.parameters as pms
 import util.functions as func

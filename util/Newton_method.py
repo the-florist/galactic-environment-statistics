@@ -2,7 +2,6 @@
 
 """
 import numpy as np
-import matplotlib.pyplot as plt
 import util.parameters as pms
 import util.double_distribution_functions as ddfunc
 
@@ -10,10 +9,7 @@ class NewtonsMethod:
     # Rho domain parameters
     x_max = pms.rho_tilde_max
     x_min = pms.rho_tilde_min
-    step = (pms.rho_tilde_max - pms.rho_tilde_min) / pms.num_rho
-
-    # Quantile to approximate
-    zscore = 0.5
+    initial_step = (pms.rho_tilde_max - pms.rho_tilde_min) / pms.num_rho
 
     # Newton's method iteration parameters
     max_iterations = 100
@@ -66,7 +62,7 @@ class NewtonsMethod:
 
         # Set the first two steps according to the guess
         x0 = self.guess
-        x1 = x0 - self.step
+        x1 = x0 - self.initial_step
 
         print("Starting Newton's method loop...")
         while it < self.max_iterations:

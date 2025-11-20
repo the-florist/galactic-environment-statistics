@@ -6,13 +6,9 @@
     including the full probability density and its analytic statistic estimates.
 """
 import numpy as np
-from time import time
 from numpy.typing import NDArray
 import numpy.polynomial.polynomial as poly
-from scipy.optimize import minimize
 from scipy.special import erf
-from multiprocessing import Pool
-from os import cpu_count
 
 import util.parameters as pms
 import util.functions as func
@@ -184,6 +180,31 @@ def sample_stats(pdf : NDArray, rho_vals : NDArray):
 
     return sample_mode, np.sqrt(sample_mode_variance)
 
+def n_median_and_IQR(pdf, x_range):
+    """
+        Calculate the IQR numerically, on a numeric PDF with axis.
+    """
+
+    def find_stat(zscore):
+        sm = 0
+        # Track the CDF, and iqrs found
+        stat = np.zeros((pms.num_beta, pms.num_mass))
+
+        # Use the numerical CDF to find the iqrs
+        for idx, x in enumerate(x_range):
+            sm += pdf[:,idx,:]
+            sm_l = np.argwhere(sm > zscore)
+            if sm_l.size != 0:
+                for i in range(len(sm_l)):
+                    f = sm_l[i, 0]
+                    s = sm_l[i, 1]
+                    if stat[f, s] == 0:
+                        stat[f, s] = x
+        return stat
+    
+    return find_stat(0.5) #, find_stat(pms.lqr), find_stat(pms.uqr)
+
+"""
 def solve_combined(args):
     b, m, g, z = args
     cdf_diff = lambda x: abs(conditional_CDF(x, m, b, pms.default_gamma, 1) - z)
@@ -192,10 +213,6 @@ def solve_combined(args):
 
 def a_median_and_IQR(sample_mode, sample_stdev, mass, beta,
                  gamma:float = pms.default_gamma, a:float = 1):
-    """
-        Find the analytic IQR by calculating CDF^-1(0.25), CDF^-1(0.75) via 
-        root finding, then transform this value into rho from delta_tilde.
-    """
     def find_median_and_IQR(q):
         if q == "l": 
             zscore = pms.lqr
@@ -237,26 +254,4 @@ def a_median_and_IQR(sample_mode, sample_stdev, mass, beta,
 
     return find_median_and_IQR("m") #, find_median_and_IQR("l"), find_median_and_IQR("h")
 
-def n_median_and_IQR(pdf, x_range):
-    """
-        Calculate the IQR numerically, on a numeric PDF with axis.
-    """
-
-    def find_stat(zscore):
-        sm = 0
-        # Track the CDF, and iqrs found
-        stat = np.zeros((pms.num_beta, pms.num_mass))
-
-        # Use the numerical CDF to find the iqrs
-        for idx, x in enumerate(x_range):
-            sm += pdf[:,idx,:]
-            sm_l = np.argwhere(sm > zscore)
-            if sm_l.size != 0:
-                for i in range(len(sm_l)):
-                    f = sm_l[i, 0]
-                    s = sm_l[i, 1]
-                    if stat[f, s] == 0:
-                        stat[f, s] = x
-        return stat
-    
-    return find_stat(0.5) #, find_stat(pms.lqr), find_stat(pms.uqr)
+"""
