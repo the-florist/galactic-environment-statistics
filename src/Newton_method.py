@@ -7,45 +7,71 @@ import util.parameters as pms
 import src.double_distribution_functions as ddfunc
 
 class NewtonsMethod:
-    max_iterations = 10
-    step = (pms.rho_tilde_max - pms.rho_tilde_min) / pms.num_rho
-    tol = pms.root_finder_precision
-    zscore = 0.5
+    # Rho domain parameters
     x_max = pms.rho_tilde_max
     x_min = pms.rho_tilde_min
+    step = (pms.rho_tilde_max - pms.rho_tilde_min) / pms.num_rho
 
-    def __init__(self, masses, betas, gamma, guess):
-        mi = 3
-        bi = 3
+    # Quantile to approximate
+    zscore = 0.5
 
-        self.ms = masses[:bi,:mi]
-        self.bs = betas[:bi,:mi]
+    # Newton's method iteration parameters
+    max_iterations = 100
+    tol = pms.root_finder_precision
+
+    def __init__(self, masses, betas, gamma, guess, score):
+        """
+            Initialise mass, beta and initial guess arrays,
+            and gamma and zscore parameters.
+        """
+        # Iterate over a smaller param space, used for debugging
+        # mi = 3
+        # bi = 15
+
+        self.ms = masses
+        self.bs = betas
         self.gamma = gamma
-        self.guess = guess[:bi,:mi]
+        self.guess = guess
+        self.zscore = score
 
-        # print("Masses: ", self.ms)
-        # print("Betas: ", self.bs)
 
-    def target_fn(self, x):
-        return ddfunc.conditional_CDF(x, self.ms, self.bs, 
+    def target_fn(self, rho):
+        """
+            Calculate the difference between the CDF and the zscore 
+            at a value of rho.
+        """
+        return ddfunc.conditional_CDF(rho, self.ms, self.bs, 
                                          self.gamma, pms.a_f) - self.zscore
 
-    def deriv(self, x0, x1, step):
-        d = (self.target_fn(x1) - self.target_fn(x0)) / step
-        return d
+    def deriv(self, rho_0, rho_1, step):
+        """
+            Calculate the first derivative between two values of rho.
+        """
+        return (self.target_fn(rho_1) - self.target_fn(rho_0)) / step
 
     def run(self):
-        # Init the iterator, step and solution array
+        """
+            Perform the Newton's method iteration, storing converged values 
+            in the solutions array, and print the max error across the 
+            parameter space at the end.
+        """
+
+        # Init the iterator, mask and solution arrays
         it = 0
         solution = np.zeros_like(self.bs)
-        print("Solution shape: ", solution.shape)
         mask = np.full(self.bs.shape, False)
+        # print("Solution shape: ", solution.shape)
 
+        # Set the first two steps according to the guess
         x0 = self.guess
         x1 = x0 - self.step
+
+        print("Starting Newton's method loop...")
         while it < self.max_iterations:
             # Find the current step size
             dx = (x1 - x0)
+
+            # Confirm x1 != 0, before plugging into target fn
             if np.any(x1 == 0):
                 print(x1)
                 print("NewtonsMethod:run, invalid x1 encountered.")
@@ -59,19 +85,14 @@ class NewtonsMethod:
                       f"at step {it}.")
                 exit()
 
-            # Calculate and check the next step
+            # Calculate and the next step and apply floor/cieling
             temp = x1 - self.target_fn(x1) / d
             temp[temp > pms.rho_tilde_max] = pms.rho_tilde_max
             temp[temp < pms.rho_tilde_min] = pms.rho_tilde_min
-                                                      
-            if np.any(temp == 0):
-                print(temp)
-                print("NewtonsMethod:run, iterator temp has left bounds of domain.")
-                exit()
 
             # See if any of the parameter points have converged
+            # If they have, save in solutions array and update mask
             index_1 = np.argwhere(abs(temp - x1) < self.tol)
-
             if index_1.size != 0:
                 for i in index_1:
                     i1, i2 = i
@@ -81,28 +102,22 @@ class NewtonsMethod:
                     else:
                         continue
 
+            # Check end/break conditions, or iterate
             if np.all(mask == True):
                 print("Convergence complete.")
                 break
+            elif it == (self.max_iterations - 1):
+                print("NewtonsMethod:run, failed to converge after "+
+                      f"{self.max_iterations} steps.")
+                exit()
+            else:
+                it += 1
+                for i, m in np.ndenumerate(mask):
+                    x, y = i
+                    if m == False:
+                        x0[x, y] = x1[x, y]
+                        x1[x, y] = temp[x, y]
+                    else:
+                        continue
 
-            # (!!) Try this with a larger section of the param space
-            it += 1
-            for i, m in np.ndenumerate(mask):
-                x, y = i
-                if m == False:
-                    x0[x, y] = x1[x, y]
-                    x1[x, y] = temp[x, y]
-                else:
-                    continue
-            
-            # print(x1)
-            
-        # rho_vals = np.linspace(self.x_min, self.x_max, pms.num_rho)
-        # # ds = np.array([self.deriv(rho_vals[i], rho_vals[i+1], self.step) for i in range(len(rho_vals)-1)])
-        # func = np.array([self.target_fn(r) for r in rho_vals])
-        # plt.plot(rho_vals, func)
-        # # plt.plot(solution, self.target_fn(solution), '*', color='r')
-        # plt.savefig("func.pdf")
-        # plt.close()
-
-        print(solution)
+        print("Max error on root: ", self.target_fn(solution).max())
