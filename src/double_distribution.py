@@ -15,7 +15,7 @@ import matplotlib.ticker as mticker
 
 import util.parameters as pms
 import util.functions as func
-import src.double_distribution_functions as ddfunc
+import util.double_distribution_functions as ddfunc
 from util.Newton_method import NewtonsMethod
 
 if pms.plot_dimension != 1 and pms.plot_dimension != 2:

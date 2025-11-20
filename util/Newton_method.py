@@ -4,7 +4,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import util.parameters as pms
-import src.double_distribution_functions as ddfunc
+import util.double_distribution_functions as ddfunc
 
 class NewtonsMethod:
     # Rho domain parameters
