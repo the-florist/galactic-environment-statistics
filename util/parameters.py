@@ -39,7 +39,7 @@ gamma_min, gamma_max, num_gamma = 0.4, 0.6, 3
 lqr, uqr = 0.16, 0.84
 
 slice_in_rho = True
-plot_untransformed_PDF = False
+plot_untransformed_PDF = True
 plot_statistics = True
 plot_rho_derivative = False
 

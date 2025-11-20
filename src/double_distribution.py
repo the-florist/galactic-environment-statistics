@@ -112,18 +112,17 @@ def run():
                 
 
             for mi, m in enumerate(mass_vals):
-                line, = plt.plot(RHOS[b,:,mi], cond_PDF[b,:,mi], 
-                                 label=rf"$m = {MS[b,1,mi]}$")
-                mass_plot_color = line.get_color()
+                line, = plt.plot(rho_vals, cond_PDF[b,:,mi], 
+                                 label=rf"$m = {MS[b,1,mi]:.2e}$")
+                plot_color = line.get_color()
 
-            #     if pms.plot_untransformed_PDF:
-            #         cond_PDF_no_transform = []
-            #         for r in rho_vals:
-            #             cond_PDF_no_transform.append(ddfunc.dn(r, m, b, transform_pdf=False))
-            #         norm_no_transform = (sum(cond_PDF_no_transform) - cond_PDF_no_transform[0])
-            #         cond_PDF_no_transform /= norm_no_transform
-
-            #         plt.plot(rho_vals, cond_PDF_no_transform, color=mass_plot_color, linestyle="--", label=rf"__nolabel__")
+                if pms.plot_untransformed_PDF:
+                    cond_PDF_nt = ddfunc.dn(RHOS, MS, BTS, transform_pdf=False)
+                    if pms.normalise_pdf:
+                        cond_PDF_nt /= cond_PDF_nt.sum(axis=1, keepdims=True)
+                    
+                    plt.plot(rho_vals, cond_PDF_nt[b,:,mi], color=plot_color, 
+                             linestyle="--", label=rf"__nolabel__")
 
             #     if pms.plot_statistics:
             #         numeric_mode, numeric_stdev = ddfunc.pdf_sample_expectation(cond_PDF, rho_vals)
