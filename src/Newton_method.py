@@ -7,7 +7,7 @@ import util.parameters as pms
 import src.double_distribution_functions as ddfunc
 
 class NewtonsMethod:
-    max_iterations = 50
+    max_iterations = 10
     step = (pms.rho_tilde_max - pms.rho_tilde_min) / pms.num_rho
     tol = pms.root_finder_precision
     zscore = 0.5
@@ -15,13 +15,13 @@ class NewtonsMethod:
     x_min = pms.rho_tilde_min
 
     def __init__(self, masses, betas, gamma, guess):
-        beg = 0
-        end = 3
+        mi = 3
+        bi = 3
 
-        self.ms = masses[beg:end,beg:end]
-        self.bs = betas[beg:end,beg:end]
+        self.ms = masses[:bi,:mi]
+        self.bs = betas[:bi,:mi]
         self.gamma = gamma
-        self.guess = guess[beg:end,beg:end]
+        self.guess = guess[:bi,:mi]
 
         # print("Masses: ", self.ms)
         # print("Betas: ", self.bs)
@@ -30,10 +30,8 @@ class NewtonsMethod:
         return ddfunc.conditional_CDF(x, self.ms, self.bs, 
                                          self.gamma, pms.a_f) - self.zscore
 
-    def deriv(self, x0, x1, dx):
-        dx[dx == 0] = 1
-        d = (self.target_fn(x1) - self.target_fn(x0)) / dx
-        d[d == 0] = 1
+    def deriv(self, x0, x1, step):
+        d = (self.target_fn(x1) - self.target_fn(x0)) / step
         return d
 
     def run(self):
@@ -46,7 +44,7 @@ class NewtonsMethod:
         x0 = self.guess
         x1 = x0 - self.step
         while it < self.max_iterations:
-            # Find the current step
+            # Find the current step size
             dx = (x1 - x0)
             if np.any(x1 == 0):
                 print(x1)
@@ -63,6 +61,8 @@ class NewtonsMethod:
 
             # Calculate and check the next step
             temp = x1 - self.target_fn(x1) / d
+            temp[temp > pms.rho_tilde_max] = pms.rho_tilde_max
+            temp[temp < pms.rho_tilde_min] = pms.rho_tilde_min
                                                       
             if np.any(temp == 0):
                 print(temp)
@@ -80,21 +80,29 @@ class NewtonsMethod:
                         mask[i1, i2] = True
                     else:
                         continue
-            
+
             if np.all(mask == True):
                 print("Convergence complete.")
                 break
 
-            x0 = x1
-            x1 = temp.copy()
+            # (!!) Try this with a larger section of the param space
             it += 1
+            for i, m in np.ndenumerate(mask):
+                x, y = i
+                if m == False:
+                    x0[x, y] = x1[x, y]
+                    x1[x, y] = temp[x, y]
+                else:
+                    continue
+            
+            # print(x1)
             
         # rho_vals = np.linspace(self.x_min, self.x_max, pms.num_rho)
         # # ds = np.array([self.deriv(rho_vals[i], rho_vals[i+1], self.step) for i in range(len(rho_vals)-1)])
         # func = np.array([self.target_fn(r) for r in rho_vals])
         # plt.plot(rho_vals, func)
-        # plt.plot(solution, self.target_fn(solution), '*', color='r')
+        # # plt.plot(solution, self.target_fn(solution), '*', color='r')
         # plt.savefig("func.pdf")
         # plt.close()
 
-        print(self.target_fn(solution))
+        print(solution)
