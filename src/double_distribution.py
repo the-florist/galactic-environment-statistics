@@ -16,7 +16,7 @@ import matplotlib.ticker as mticker
 import util.parameters as pms
 import util.functions as func
 import src.double_distribution_functions as ddfunc
-from src.Newton_method import NewtonsMethod
+from util.Newton_method import NewtonsMethod
 
 if pms.plot_dimension != 1 and pms.plot_dimension != 2:
     raise ValueError("double-distribution.py : plot_dimension impossible" 
