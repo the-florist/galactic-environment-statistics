@@ -22,8 +22,7 @@ if pms.plot_dimension != 1 and pms.plot_dimension != 2:
 
 beta_vals = np.linspace(pms.beta_min, pms.beta_max, pms.num_beta)
 rho_vals = np.linspace(pms.rho_tilde_min, pms.rho_tilde_max, pms.num_rho)
-mass_vals = np.array([1.3, 5, 17]) * 1e14 # 
-#np.linspace(pms.mass_min, pms.mass_max, pms.num_mass)
+mass_vals = np.linspace(pms.mass_min, pms.mass_max, pms.num_mass) # np.array([1.3, 5, 17]) * 1e14 
 gamma_slices = np.array([pms.gamma_min]) # np.linspace(pms.gamma_min, pms.gamma_max, pms.num_gamma)
 
 
@@ -100,28 +99,22 @@ def run():
         """
 
         if pms.slice_in_rho:
-            return 0
-            # mass_slices = np.array([1e14, 1e15]) # np.array([mass_vals[i] for i in range(0, int(pms.num_mass), 
-            #      #                                   round(pms.num_mass/5))])
-            # b = np.abs(beta_vals - pms.beta_heuristic).argmin()
+            b = np.abs(beta_vals - pms.beta_heuristic).argmin()
 
-            # cond_PDF = ddfunc.dn(RHOS, mass_slices, b, transform_pdf=True)
-            # print(cond_PDF.shape)
-            # # if pms.normalise_pdf:
-            # #     cond_PDF /= cond_PDF.sum(axis=1)
+            cond_PDF = ddfunc.dn(RHOS, MS, BTS, transform_pdf=True)
+            print(cond_PDF.shape)
+            print(cond_PDF.sum(axis=1).shape)
+            if pms.normalise_pdf:
+                cond_PDF /= cond_PDF.sum(axis=1, keepdims=True)
+                if pms.verbose:
+                    print(f"PDF norm precision: ", abs(cond_PDF.sum(axis=1) 
+                                                                - 1.).max())
+                
 
-            # # Generate slice of PDF at beta_slice
-            # for m in slices:
-            #     cond_PDF = []
-            #     for r in rho_vals:
-            #         cond_PDF.append(ddfunc.dn(r, m, b, transform_pdf=True))
-            #     norm = (sum(cond_PDF) - cond_PDF[0])
-            #     cond_PDF /= norm
-            #     if pms.verbose:
-            #         print(f"PDF norm precision: {abs(np.sum(cond_PDF) - 1.):.15}")
-
-            #     line, = plt.plot(rho_vals, cond_PDF, label=rf"$m = {m:.2E}$")
-            #     mass_plot_color = line.get_color()
+            for mi, m in enumerate(mass_vals):
+                line, = plt.plot(RHOS[b,:,mi], cond_PDF[b,:,mi], 
+                                 label=rf"$m = {MS[b,1,mi]}$")
+                mass_plot_color = line.get_color()
 
             #     if pms.plot_untransformed_PDF:
             #         cond_PDF_no_transform = []
@@ -185,14 +178,14 @@ def run():
             #     if pms.verbose:
             #         print(f"Plot finished for mass = {m:.2E}")
             
-            # # Finish plot of PDF slices
-            # plt.xlabel(r"$\tilde{\rho}$")
-            # plt.ylabel(r"$P_n$")
-            # plt.title(r"PDF slices along mass")
-            # plt.grid(True)
-            # plt.legend()
-            # plt.savefig("plots/joint-pdf-slice.pdf")
-            # plt.close()
+            # Finish plot of PDF slices
+            plt.xlabel(r"$\tilde{\rho}$")
+            plt.ylabel(r"$P_n$")
+            plt.title(r"PDF slices along mass")
+            plt.grid(True)
+            plt.legend()
+            plt.savefig("plots/joint-pdf-slice.pdf")
+            plt.close()
 
         else:
             print("Starting most probable profile vs. mass plot...")
@@ -214,7 +207,7 @@ def run():
                                                     BTS[:,0,:], gamma=g)
 
                 # Calculate the other statistics
-                n_medians = ddfunc.n_median_and_IQR(cond_PDF, rho_vals)
+                n_medians, _, _ = ddfunc.n_median_and_IQR(cond_PDF, rho_vals)
 
                 # scores = [pms.lqr, 0.5, pms.uqr]
                 # a_stats = []

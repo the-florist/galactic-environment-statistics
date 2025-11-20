@@ -7,7 +7,7 @@
         Pavlidou & Fields, PRD 71 043510 (2005), page 7
 """
 
-verbose = False
+verbose = True
 
 # Scale factor range
 a_f = 1
@@ -34,11 +34,11 @@ normalise_pdf = True
 beta_heuristic = 2
 beta_min, beta_max, num_beta = 1.25, 2.25, 15
 rho_tilde_min, rho_tilde_max, num_rho = 0.001, 10, 100 # 60
-mass_min, mass_max, num_mass = 1e14, 1e15, 3
+mass_min, mass_max, num_mass = 1e14, 1e15, 2
 gamma_min, gamma_max, num_gamma = 0.4, 0.6, 3
 lqr, uqr = 0.16, 0.84
 
-slice_in_rho = False
+slice_in_rho = True
 plot_untransformed_PDF = False
 plot_statistics = True
 plot_rho_derivative = False
