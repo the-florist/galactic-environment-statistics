@@ -19,7 +19,8 @@ class NewtonsMethod:
     max_iterations = 100
     tol = pms.root_finder_precision
 
-    def __init__(self, masses, betas, gamma, guess, score):
+    def __init__(self, masses, betas, guess, gamma = pms.default_gamma, 
+                                             score = 0.5):
         """
             Initialise mass, beta and initial guess arrays,
             and gamma and zscore parameters.
@@ -33,7 +34,10 @@ class NewtonsMethod:
         self.gamma = gamma
         self.guess = guess
         self.zscore = score
+        self.solution = np.zeros_like(betas)
 
+    def return_solution(self):
+        return self.solution
 
     def target_fn(self, rho):
         """
@@ -56,11 +60,9 @@ class NewtonsMethod:
             parameter space at the end.
         """
 
-        # Init the iterator, mask and solution arrays
+        # Init the iterator and mask arrays
         it = 0
-        solution = np.zeros_like(self.bs)
         mask = np.full(self.bs.shape, False)
-        # print("Solution shape: ", solution.shape)
 
         # Set the first two steps according to the guess
         x0 = self.guess
@@ -97,7 +99,7 @@ class NewtonsMethod:
                 for i in index_1:
                     i1, i2 = i
                     if mask[i1, i2] == False:
-                        solution[i1, i2] = temp[i1, i2]
+                        self.solution[i1, i2] = temp[i1, i2]
                         mask[i1, i2] = True
                     else:
                         continue
@@ -120,4 +122,4 @@ class NewtonsMethod:
                     else:
                         continue
 
-        print("Max error on root: ", self.target_fn(solution).max())
+        print("Max error on root: ", self.target_fn(self.solution).max())

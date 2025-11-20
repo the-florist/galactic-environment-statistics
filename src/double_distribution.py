@@ -212,8 +212,8 @@ def run():
                 # Calculate the mode
                 n_modes, n_stdevs = ddfunc.sample_stats(cond_PDF, rho_vals)
 
-                nm = NewtonsMethod(MS[:,0,:], BTS[:,0,:], gamma_slices[0], 
-                                      n_modes)
+                nm = NewtonsMethod(MS[:,0,:], BTS[:,0,:], n_modes, 
+                                             gamma_slices[0], 0.5)
                 nm.run()
 
                 # a_modes = ddfunc.most_probable_rho_transformed(MS[:,0,:], 
