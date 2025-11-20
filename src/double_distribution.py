@@ -105,7 +105,8 @@ def run():
             print(cond_PDF.shape)
             print(cond_PDF.sum(axis=1).shape)
             if pms.normalise_pdf:
-                cond_PDF /= cond_PDF.sum(axis=1, keepdims=True)
+                norm = cond_PDF.sum(axis=1, keepdims=True)
+                cond_PDF /= norm
                 if pms.verbose:
                     print(f"PDF norm precision: ", abs(cond_PDF.sum(axis=1) 
                                                                 - 1.).max())
@@ -124,9 +125,19 @@ def run():
                     plt.plot(rho_vals, cond_PDF_nt[b,:,mi], color=plot_color, 
                              linestyle="--", label=rf"__nolabel__")
 
-            #     if pms.plot_statistics:
-            #         numeric_mode, numeric_stdev = ddfunc.pdf_sample_expectation(cond_PDF, rho_vals)
-            #         analytic_mode_transformed = ddfunc.most_probable_rho_transformed(m, b)
+                if pms.plot_statistics:
+                    print(norm[b,:,mi])
+                    n_mode, n_stdevs = ddfunc.sample_stats(cond_PDF[b,:,mi], 
+                                                                    rho_vals)
+                    n_mode_PDF = ddfunc.dn(n_mode, m, beta_vals[b], 
+                                                transform_pdf=True) / norm[b,:,mi]
+                    
+                    a_mode_transformed = ddfunc.most_probable_rho_transformed(m, 
+                                                beta_vals[b], pms.default_gamma)
+                    a_mode_PDF = ddfunc.dn(a_mode_transformed, m, beta_vals[b], 
+                                            transform_pdf=True) / norm[b,:,mi]
+                    print(a_mode_PDF)
+
             #         analytic_IQRl, analytic_IQRu, analytic_median = ddfunc.analytic_median_and_IQR(numeric_mode, numeric_stdev, b, m)
             #         numeric_IQRl, numeric_IQRu, numeric_median = ddfunc.numeric_median_and_IQR(cond_PDF, rho_vals)
 
@@ -140,12 +151,10 @@ def run():
             #             print("Median estimates: ", numeric_median, analytic_median)
             #             print("--------------------------------")
 
-            #         plt.plot(analytic_mode_transformed, 
-            #                 ddfunc.dn(analytic_mode_transformed, m, b, transform_pdf=True) / norm, 
-            #                 'o', color='red', label='__nolabel__')
-            #         plt.plot(numeric_mode, 
-            #                 ddfunc.dn(numeric_mode, m, b, transform_pdf=True) / norm,
-            #                 "*", color="blue", label='__nolabel__')
+                    plt.plot(a_mode_transformed, a_mode_PDF, 'o', color='red', 
+                             label='__nolabel__')
+                    plt.plot(n_mode, n_mode_PDF, "*", color="blue", 
+                             label='__nolabel__')
             #         plt.plot(analytic_median, 
             #                 ddfunc.dn(analytic_median, m, b, transform_pdf=True) / norm, 
             #                 'o', color='red', label='__nolabel__')

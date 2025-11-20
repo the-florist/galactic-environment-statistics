@@ -49,7 +49,7 @@ def dn(rho, m, beta, a:float = 1, transform_pdf:bool = pms.transform_pdf,
         dn *= pow(rho, (-1 - 1/delta_c))
 
     if pms.enforce_positive_pdf == True:
-        dn.clip(min=0, out=dn)
+        dn = np.maximum(dn, 0)
 
     return dn
 
@@ -104,14 +104,17 @@ def most_probable_rho_transformed(m : NDArray, beta : NDArray, gamma, sf:float =
     d = - eta * (1 + delta_c)
 
     # Solve the cubic
-    candidates = np.zeros_like(beta)
-
-    for i in range(len(beta)):
-        for j in range(len(beta[0])):
-            root = poly.polyroots([d, c[i, j], b[i, j], a[i, j]])
-            for r in root:
-                if r > 0:
-                    candidates[i, j] = pow(r, -delta_c)
+    try:
+        candidates = np.zeros_like(beta)
+        for i in range(len(beta)):
+            for j in range(len(beta[0])):
+                root = poly.polyroots([d, c[i, j], b[i, j], a[i, j]])
+                for r in root:
+                    if r > 0:
+                        candidates[i, j] = pow(r, -delta_c)
+    except:
+        root = poly.polyroots([d, c, b, a])
+        candidates = [pow(r, -delta_c) for r in root if r > 0]
 
     return candidates
 
@@ -170,13 +173,21 @@ def sample_stats(pdf : NDArray, rho_vals : NDArray):
         and the standard deviation of the mode, sliced at m.
     """
 
-    sample_mode = rho_vals[np.argmax(pdf, axis=1)]
-
-    # for r in rho_vals, multiply PDF here times squared diff off sample_mode here
-    sample_mode_variance = np.array([[(pdf[j,:,i] * pow(rho_vals - sample_mode[j, i], 2)).sum() 
-                                    for i in range(len(sample_mode[0]))] 
-                                    for j in range(len(sample_mode))])
-    sample_mode_variance /= (pms.num_rho - 1)
+    try:
+        sample_mode = rho_vals[np.argmax(pdf, axis=1)]
+        # for r in rho_vals, multiply PDF here times squared diff off sample_mode here
+        sample_mode_variance = np.array([[(pdf[j,:,i] * pow(rho_vals 
+                                            - sample_mode[j, i], 2)).sum() 
+                                            for i in range(len(sample_mode[0]))] 
+                                            for j in range(len(sample_mode))])
+        sample_mode_variance /= (pms.num_rho - 1)
+    
+    except:
+        sample_mode = rho_vals[np.argmax(pdf)]
+        sample_mode_variance = np.array([(pdf[i] * pow(rho_vals 
+                                            - sample_mode, 2)).sum() 
+                                            for i in range(len(pdf))])
+        sample_mode_variance /= (pms.num_rho - 1)
 
     return sample_mode, np.sqrt(sample_mode_variance)
 
