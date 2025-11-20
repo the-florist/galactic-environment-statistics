@@ -212,33 +212,30 @@ def run():
                 # Calculate the mode
                 n_modes, n_stdevs = ddfunc.sample_stats(cond_PDF, rho_vals)
 
-                nm = NewtonsMethod(MS[:,0,:], BTS[:,0,:], n_modes, 
-                                             gamma_slices[0], 0.5)
+                a_modes = ddfunc.most_probable_rho_transformed(MS[:,0,:], 
+                                                    BTS[:,0,:], gamma=g)
+
+                # Calculate the other statistics
+                n_medians = ddfunc.n_median_and_IQR(cond_PDF, rho_vals)
+
+                # scores = [pms.lqr, 0.5, pms.uqr]
+                # a_stats = []
+                # for s in scores:
+                nm = NewtonsMethod(MS[:,0,:], BTS[:,0,:], n_modes, g, 0.5)
                 nm.run()
-
-                # a_modes = ddfunc.most_probable_rho_transformed(MS[:,0,:], 
-                #                     BTS[:,0,:], gamma=g)
-
-                # # Calculate the other statistics
-                # a_medians = ddfunc.a_median_and_IQR(n_modes, 
-                #                             n_stdevs, mass_vals, beta_vals, gamma=g)
-                # n_medians = ddfunc.n_median_and_IQR(cond_PDF, rho_vals)
-
-                # # print("mapping input") , a_IQRl, a_IQRh
-                # # print(a_medians, a_IQRl, a_IQRh)
-                # # exit()
+                a_median = nm.return_solution()
                 
-                # # Plot analytic and numeric mode
-                # line, = plt.plot(beta_vals, a_modes[:, gi], 
-                #                 label=rf"m={mass_vals[gi]:.2E}, $\gamma$={g:.2E}")
-                # mass_color = line.get_color()
-                # line, = plt.plot(beta_vals, n_modes[:, gi], 
-                #                 color=mass_color, linestyle="--")
+                # Plot analytic and numeric mode
+                line, = plt.plot(beta_vals, a_modes[:, gi], 
+                                label=rf"m={mass_vals[gi]:.2E}, $\gamma$={g:.2E}")
+                mass_color = line.get_color()
+                line, = plt.plot(beta_vals, n_modes[:, gi], 
+                                color=mass_color, linestyle="--")
 
                 # Plot analytic and numeric median
-                # plt.plot(beta_vals, a_medians[:, gi], linestyle="-.", color=mass_color)
-                # plt.plot(beta_vals, n_medians[:, gi], label="__nolabel__", 
-                #          color=mass_color, linestyle="dotted")
+                plt.plot(beta_vals, a_median[:, gi], linestyle="-.", color=mass_color)
+                plt.plot(beta_vals, n_medians[:, gi], label="__nolabel__", 
+                         color=mass_color, linestyle="dotted")
 
                 # Plot analytic and numeric IQR
                 # plt.fill_between(beta_vals, a_IQRl[:, gi], a_IQRh[:, gi], 
@@ -246,13 +243,13 @@ def run():
                 # plt.fill_between(beta_vals, n_IQRl[:, gi], n_IQRh[:, gi], 
                 #                  alpha=0.5, label="numeric IQR")
 
-            # plt.xlabel(r"$\beta$")
-            # plt.ylabel(r"$\hat{\rho}$")
-            # plt.title(r"Most probale profile vs. $\beta$")
-            # plt.grid(True)
-            # plt.legend()
-            # plt.savefig("plots/mpp-beta-scaling.pdf")
-            # plt.close()
+            plt.xlabel(r"$\beta$")
+            plt.ylabel(r"$\hat{\rho}$")
+            plt.title(r"Most probale profile vs. $\beta$")
+            plt.grid(True)
+            plt.legend()
+            plt.savefig("plots/mpp-beta-scaling.pdf")
+            plt.close()
 
 
         if pms.plot_rho_derivative:

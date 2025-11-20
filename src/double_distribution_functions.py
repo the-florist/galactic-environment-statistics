@@ -245,7 +245,7 @@ def n_median_and_IQR(pdf, x_range):
     def find_stat(zscore):
         sm = 0
         # Track the CDF, and iqrs found
-        stat = np.zeros([25, 3])
+        stat = np.zeros((pms.num_beta, pms.num_mass))
 
         # Use the numerical CDF to find the iqrs
         for idx, x in enumerate(x_range):
