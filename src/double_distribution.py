@@ -62,16 +62,8 @@ def run():
             # Find the numerical modes, and variances rooted at those modes
             n_modes, n_stdevs, n_median, n_IQRl, n_IQRu = ddc.n_stats()
 
-            a_modes, a_stats = ddc.a_stats()
-
-            if pms.plot_untransformed_PDF:
-                # Evaluate the untransformed PDF on the grid
-                cond_PDF_nt, norm_nt = ddc.calc_PDF(False, pms.default_gamma)
-
-                # Find the analytic and numeric most probable mode, untransformed
-                a_mode_no_transform = ddfunc.most_probable_rho(MS[:,0,:], 
-                                             BTS[:,0,:], inc_mass_scaling=True)
-                n_mode_nt, _ = ddfunc.n_modes_variances(cond_PDF_nt, rho_vals)
+            a_modes, a_stats = ddc.a_stats(True)
+                
             
             for mi, m in enumerate(mass_vals):
                 # Uncomment this to bug check the median
@@ -125,6 +117,13 @@ def run():
                                      alpha=0.5, color=plot_color)
 
                 if pms.plot_untransformed_PDF:
+                    # Evaluate the untransformed PDF on the grid
+                    cond_PDF_nt, norm_nt = ddc.calc_PDF(False, pms.default_gamma)
+                    n_mode_nt, _, _, _, _ = ddc.n_stats()
+
+                    # Find the analytic and numeric most probable mode, untransformed
+                    a_mode_no_transform = ddc.a_stats(False)
+
                     # Plot the untransformed PDF
                     plt.plot(rho_vals, cond_PDF_nt[b,:,mi], color=plot_color, 
                             linestyle="--", label=rf"__nolabel__")
@@ -163,7 +162,7 @@ def run():
                 # Calculate the numerical statistics
                 n_modes, n_stdevs, n_medians, n_IQRl, n_IQRu = ddc.n_stats()
 
-                a_modes, a_stats = ddc.a_stats(g=g)
+                a_modes, a_stats = ddc.a_stats(True, g=g)
                 
                 # Plot analytic and numeric mode
                 line, = plt.plot(beta_vals, a_modes[:, gi], 

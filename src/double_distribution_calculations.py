@@ -91,19 +91,25 @@ class DoubleDistributionCalculations:
                 self.find_quantile(0.5), self.find_quantile(pms.lqr), 
                                          self.find_quantile(pms.uqr)]
 
-    def a_stats(self, g = pms.default_gamma):
-        a_mode = ddfunc.most_probable_rho_transformed(self.MS[:,0,:], 
-                                                    self.BTS[:,0,:], gamma=g)
-
-        temp = []
-        guesses = np.array([self.n_mode, self.n_mode - self.n_stdev, 
-                                         self.n_mode + self.n_stdev])
+    def a_stats(self, transfm, g = pms.default_gamma):
         
-        for i, s in np.ndenumerate(np.array([0.5, pms.lqr, pms.uqr])):
-            nm = NewtonsMethod(self.MS[:,0,:], self.BTS[:,0,:], guesses[i], g, s)
-            nm.run()
-            temp.append(nm.return_solution())
+        if transfm:
+            a_mode = ddfunc.most_probable_rho_transformed(self.MS[:,0,:], 
+                                                        self.BTS[:,0,:], gamma=g)
+            temp = []
+            guesses = np.array([self.n_mode, self.n_mode - self.n_stdev, 
+                                            self.n_mode + self.n_stdev])
+            
+            for i, s in np.ndenumerate(np.array([0.5, pms.lqr, pms.uqr])):
+                nm = NewtonsMethod(self.MS[:,0,:], self.BTS[:,0,:], guesses[i], g, s)
+                nm.run()
+                temp.append(nm.return_solution())
+            
+            a_quantiles = np.stack(temp, axis=0)
+            
+            return a_mode, a_quantiles
         
-        a_quantiles = np.stack(temp, axis=0)
-        
-        return a_mode, a_quantiles
+        else:
+            a_mode = ddfunc.most_probable_rho(self.MS[:,0,:], self.BTS[:,0,:], 
+                                             inc_mass_scaling=True)
+            return a_mode
