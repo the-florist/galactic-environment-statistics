@@ -65,7 +65,11 @@ def run():
 
             a_modes, a_stats = ddc.a_stats(True)
 
-            ddp.plot_rho_slices(ddc)
+            for mi, m in enumerate(ddc.mvs):
+                ddp.plot_rho_slice(mi)
+                if pms.plot_statistics:
+                    ddp.plot_a_stats(mi, True)
+            
             ddp.savefig("plots/joint-pdf-slice.pdf")
             
             # Finish plot of PDF slices

@@ -94,7 +94,7 @@ class DoubleDistributionCalculations:
     def a_stats(self, transfm, g = pms.default_gamma):
         
         if transfm:
-            a_mode = ddfunc.most_probable_rho_transformed(self.MS[:,0,:], 
+            self.a_mode = ddfunc.most_probable_rho_transformed(self.MS[:,0,:], 
                                                         self.BTS[:,0,:], gamma=g)
             temp = []
             guesses = np.array([self.n_mode, self.n_mode - self.n_stdev, 
@@ -105,21 +105,26 @@ class DoubleDistributionCalculations:
                 nm.run()
                 temp.append(nm.return_solution())
             
-            a_quantiles = np.stack(temp, axis=0)
+            self.a_quantiles = np.stack(temp, axis=0)
             
-            return a_mode, a_quantiles
+            return self.a_mode, self.a_quantiles
         
         else:
-            a_mode = ddfunc.most_probable_rho(self.MS[:,0,:], self.BTS[:,0,:], 
+            self.a_mode = ddfunc.most_probable_rho(self.MS[:,0,:], self.BTS[:,0,:], 
                                              inc_mass_scaling=True)
-            return a_mode
+            return self.a_mode
 
-    def print_stats_comparison(self):
-        n_cdf = ddfunc.conditional_CDF(n_median[b,mi], m, beta_vals[b])
-        a_cdf = ddfunc.conditional_CDF(a_stats[0][b,mi], m, beta_vals[b])
+    def print_stats_comparison(self, mi, bi):
+        n_median = self.find_quantile(0.5)[bi, mi]
+        a_median = self.a_quantiles[1, bi, mi]
+        nm = NewtonsMethod(self.mvs, self.bvs, 0)
+
+        n_cdf = ddfunc.conditional_CDF(n_median, self.mvs[mi], self.bvs[bi])
+        a_cdf = ddfunc.conditional_CDF(a_median, self.mvs[mi], self.bvs[bi])
         
-        print("Median estimates: ", n_median[b,mi], a_stats[0][b,mi])
+        print("Median estimates: ", n_median, a_median)
         print("Conditional CDF of each: ", n_cdf, a_cdf)
+        
         print("Target fn for each: ")
-        print(nm.target_fn(n_median[b,mi])[b,mi])
-        print(nm.target_fn(a_stats[0][b,mi])[b,mi])
+        print(nm.target_fn(n_median)[bi, mi])
+        print(nm.target_fn(a_median)[bi, mi])
