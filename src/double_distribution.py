@@ -64,7 +64,7 @@ def run():
                                         BTS[:,0,:], pms.default_gamma)
 
             # Find the numerical modes, and variances rooted at those modes
-            n_modes, n_stdevs = ddc.n_stats()
+            n_modes, n_stdevs, n_median, n_IQRl, n_IQRu = ddc.n_stats()
             
             # Find the median and IQRs analytically
             a_stats = []
@@ -74,9 +74,6 @@ def run():
                                 pms.default_gamma, s)
                 nm.run()
                 a_stats.append(nm.return_solution())
-            
-            # Find the numerical median and IQR
-            n_median, n_IQRl, n_IQRu = ddfunc.n_quantiles(cond_PDF, rho_vals)
 
             if pms.plot_untransformed_PDF:
                 # Evaluate the untransformed PDF on the grid
@@ -174,14 +171,11 @@ def run():
                 # Numerically construct the conditional PDF
                 cond_PDF, norm = ddc.calc_PDF(True, g=g)
                 
-                # Calculate the mode
-                n_modes, n_stdevs = ddc.n_stats()
+                # Calculate the numerical statistics
+                n_modes, n_stdevs, n_medians, n_IQRl, n_IQRu = ddc.n_stats()
 
                 a_modes = ddfunc.most_probable_rho_transformed(MS[:,0,:], 
                                                     BTS[:,0,:], gamma=g)
-
-                # Calculate the other statistics
-                n_medians, n_IQRl, n_IQRu = ddfunc.n_quantiles(cond_PDF, rho_vals)
 
                 a_stats = []
                 guesses = np.array([n_modes, n_modes - n_stdevs, n_modes + n_stdevs])

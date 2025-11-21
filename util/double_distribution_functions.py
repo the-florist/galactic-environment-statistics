@@ -207,7 +207,7 @@ def n_quantiles(pdf, x_range):
         Calculate the IQR numerically, on a numeric PDF with axis.
     """
 
-    def find_stat(zscore):
+    def find_quantile(zscore):
         sm = 0
         # Track the CDF, and iqrs found
         stat = np.zeros_like(pdf[:,0,:])
@@ -224,7 +224,7 @@ def n_quantiles(pdf, x_range):
                         stat[f, s] = x
         return stat
     
-    return find_stat(0.5), find_stat(pms.lqr), find_stat(pms.uqr)
+    return find_quantile(0.5), find_quantile(pms.lqr), find_quantile(pms.uqr)
 
 """
 def solve_combined(args):

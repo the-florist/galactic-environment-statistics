@@ -43,10 +43,26 @@ class DoubleDistributionCalculations:
             self.PDF /= self.norm
             if pms.verbose:
                 print(f"PDF norm - 1: {abs(self.PDF.sum(axis=axs) - 1.).max()}")
-                print(f"PDF max value: ", self.PDF.max(axis=axs))
         
         return self.PDF, self.norm
 
+    def find_quantile(self, zscore):
+        sm = 0
+        # Track the CDF, and iqrs found
+        stat = np.zeros_like(self.PDF[:,0,:])
+
+        # Use the numerical CDF to find the iqrs
+        for idx, x in enumerate(self.rvs):
+            sm += self.PDF[:,idx,:]
+            sm_l = np.argwhere(sm > zscore)
+            if sm_l.size != 0:
+                for i in range(len(sm_l)):
+                    f = sm_l[i, 0]
+                    s = sm_l[i, 1]
+                    if stat[f, s] == 0:
+                        stat[f, s] = x
+        return stat
+    
     def n_stats(self):
         """
             Calculate the mode of the double distribution 
@@ -55,21 +71,23 @@ class DoubleDistributionCalculations:
         """
 
         try:
-            sample_mode = self.rvs[np.argmax(self.PDF, axis=1)]
+            self.n_mode = self.rvs[np.argmax(self.PDF, axis=1)]
             # for this variance measure, multiply PDF with 
             # squared difference from the sample mode.
-            sample_mode_variance = np.array([[(self.PDF[j,:,i] * pow(self.rvs 
-                                                - sample_mode[j, i], 2)).sum() 
-                                                for i in range(len(sample_mode[0]))] 
-                                                for j in range(len(sample_mode))])
-            sample_mode_variance /= (pms.num_rho - 1)
+            self.n_mode_variance = np.array([[(self.PDF[j,:,i] * pow(self.rvs 
+                                                - self.n_mode[j, i], 2)).sum() 
+                                                for i in range(len(self.n_mode[0]))] 
+                                                for j in range(len(self.n_mode))])
+            self.n_mode_variance /= (pms.num_rho - 1)
         
         except:
-            sample_mode = self.rvs[np.argmax(self.PDF)]
-            sample_mode_variance = np.array([(self.PDF[i] * pow(self.rvs 
-                                                - sample_mode, 2)).sum() 
+            self.n_mode = self.rvs[np.argmax(self.PDF)]
+            self.n_mode_variance = np.array([(self.PDF[i] * pow(self.rvs 
+                                                - self.n_mode, 2)).sum() 
                                                 for i in range(len(self.PDF))])
-            sample_mode_variance /= (pms.num_rho - 1)
+            self.n_mode_variance /= (pms.num_rho - 1)
 
-        return sample_mode, np.sqrt(sample_mode_variance)
+        return [self.n_mode, np.sqrt(self.n_mode_variance), 
+                self.find_quantile(0.5), self.find_quantile(pms.lqr), 
+                                         self.find_quantile(pms.uqr)]
         
