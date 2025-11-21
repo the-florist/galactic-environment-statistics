@@ -22,8 +22,8 @@ if pms.plot_dimension != 1 and pms.plot_dimension != 2:
 
 beta_vals = np.linspace(pms.beta_min, pms.beta_max, pms.num_beta)
 rho_vals = np.linspace(pms.rho_tilde_min, pms.rho_tilde_max, pms.num_rho)
-mass_vals = np.array([1.3, 5, 17]) * 1e14 # np.linspace(pms.mass_min, pms.mass_max, pms.num_mass)
-gamma_slices = np.array([0.4, 0.5, 0.6]) # np.linspace(pms.gamma_min, pms.gamma_max, pms.num_gamma)
+mass_vals = np.array([pms.M_200]) # np.array([1.3, 5, 17]) * 1e14 # np.linspace(pms.mass_min, pms.mass_max, pms.num_mass)
+gamma_slices = np.array([0.4]) # np.array([0.4, 0.5, 0.6]) # np.linspace(pms.gamma_min, pms.gamma_max, pms.num_gamma)
 
 
 def run():
@@ -229,10 +229,10 @@ def run():
             for gi, g in enumerate(gamma_slices):
                 # Numerically construct the conditional PDF
                 cond_PDF = ddfunc.dn(RHOS, MS, BTS, gamma=g)
-                print("PDF shape: ", cond_PDF.shape)
                 if pms.normalise_pdf:
                     cond_PDF /= cond_PDF.sum(axis=1, keepdims=True)
-                    print(f"PDF norm precision: ", abs(cond_PDF.sum(axis=1) 
+                    if pms.verbose:
+                        print(f"PDF norm precision: ", abs(cond_PDF.sum(axis=1) 
                                                                 - 1.).max())
 
                 # Calculate the mode
@@ -240,18 +240,20 @@ def run():
 
                 a_modes = ddfunc.most_probable_rho_transformed(MS[:,0,:], 
                                                     BTS[:,0,:], gamma=g)
-                # print(a_modes)
-                # exit()
 
                 # Calculate the other statistics
-                n_medians, _, _ = ddfunc.n_quantiles(cond_PDF, rho_vals)
+                n_medians, n_IQRl, n_IQRu = ddfunc.n_quantiles(cond_PDF, rho_vals)
 
-                # scores = [pms.lqr, 0.5, pms.uqr]
-                # a_stats = []
-                # for s in scores:
-                nm = NewtonsMethod(MS[:,0,:], BTS[:,0,:], n_modes, g, 0.5)
-                nm.run()
-                a_median = nm.return_solution()
+                a_stats = []
+                guesses = np.array([n_modes, n_modes - n_stdevs, n_modes + n_stdevs])
+                for i, s in np.ndenumerate(np.array([0.5, pms.lqr, pms.uqr])):
+                    nm = NewtonsMethod(MS[:,0,:], BTS[:,0,:], guesses[i], g, s)
+                    nm.run()
+                    a_stats.append(nm.return_solution())
+
+                # nm = NewtonsMethod(MS[:,0,:], BTS[:,0,:], n_modes, g, 0.5)
+                # nm.run()
+                # a_median = nm.return_solution()
                 
                 # Plot analytic and numeric mode
                 line, = plt.plot(beta_vals, a_modes[:, gi], 
@@ -261,22 +263,22 @@ def run():
                                 color=mass_color, linestyle="--")
 
                 # Plot analytic and numeric median
-                plt.plot(beta_vals, a_median[:, gi], linestyle="-.", color=mass_color)
+                plt.plot(beta_vals, a_stats[0][:, gi], linestyle="-.", color=mass_color)
                 plt.plot(beta_vals, n_medians[:, gi], label="__nolabel__", 
                          color=mass_color, linestyle="dotted")
 
                 # Plot analytic and numeric IQR
-                # plt.fill_between(beta_vals, a_IQRl[:, gi], a_IQRh[:, gi], 
-                #                  alpha=0.5, label="analytic IQR")
-                # plt.fill_between(beta_vals, n_IQRl[:, gi], n_IQRh[:, gi], 
-                #                  alpha=0.5, label="numeric IQR")
+                plt.fill_between(beta_vals, a_stats[1][:, gi], a_stats[2][:, gi], 
+                                 alpha=0.5, label="analytic IQR")
+                plt.fill_between(beta_vals, n_IQRl[:, gi], n_IQRu[:, gi], 
+                                 alpha=0.3, label="numeric IQR")
 
             plt.xlabel(r"$\beta$")
             plt.ylabel(r"$\hat{\rho}$")
             plt.title(r"Most probale profile vs. $\beta$")
             plt.grid(True)
             plt.legend()
-            plt.savefig("plots/mpp-beta-scaling.pdf")
+            plt.savefig("plots/mpp-beta-scaling-with-iqrs.pdf")
             plt.close()
 
 

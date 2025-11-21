@@ -7,7 +7,7 @@
         Pavlidou & Fields, PRD 71 043510 (2005), page 7
 """
 
-verbose = True
+verbose = False
 
 # Scale factor range
 a_f = 1
@@ -76,4 +76,4 @@ else:
 h = 71 / 100                # unitless H0
 rho_c = 2.78e11 * (h ** 2)  # units of Solar Mass / Mpc^3
 n = 1                       # primordial spectral index
-M_200 = 6.3e14              # virial mass scale
+M_200 = 8e13 #6.3e14              # virial mass scale

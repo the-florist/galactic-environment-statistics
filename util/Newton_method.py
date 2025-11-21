@@ -64,7 +64,8 @@ class NewtonsMethod:
         x0 = self.guess
         x1 = x0 - self.initial_step
 
-        print("Starting Newton's method loop...")
+        if pms.verbose:
+            print("Starting Newton's method loop...")
         while it < self.max_iterations:
             # Find the current step size
             dx = (x1 - x0)
@@ -102,10 +103,11 @@ class NewtonsMethod:
 
             # Check end/break conditions, or iterate
             if np.all(mask == True):
-                print("Convergence complete.")
+                if pms.verbose:
+                    print("Convergence complete.")
                 break
             elif it == (self.max_iterations - 1):
-                print("NewtonsMethod:run, failed to converge after "+
+                print("Error! NewtonsMethod:run, failed to converge after "+
                       f"{self.max_iterations} steps.")
                 exit()
             else:
@@ -118,4 +120,5 @@ class NewtonsMethod:
                     else:
                         continue
 
-        print("Max error on root: ", self.target_fn(self.solution).max())
+        if pms.verbose:
+            print("Max error on root: ", self.target_fn(self.solution).max())
