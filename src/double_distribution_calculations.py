@@ -30,7 +30,7 @@ class DoubleDistributionCalculations:
     def calc_PDF(self, transfm, g = pms.default_gamma):
         if pms.verbose:
             print("Starting PDF calculation.")
-            
+
         self.PDF = ddfunc.dn(self.RHOS, self.MS, self.BTS, 
                              transform_pdf=transfm, gamma=g)
         if pms.normalise_pdf:
@@ -44,5 +44,32 @@ class DoubleDistributionCalculations:
             if pms.verbose:
                 print(f"PDF norm - 1: {abs(self.PDF.sum(axis=axs) - 1.).max()}")
                 print(f"PDF max value: ", self.PDF.max(axis=axs))
-        # return PDF, norm
-    
+        
+        return self.PDF, self.norm
+
+    def n_stats(self):
+        """
+            Calculate the mode of the double distribution 
+            (i.e. the most probable profile)
+            and the standard deviation of the mode, sliced at m.
+        """
+
+        try:
+            sample_mode = self.rvs[np.argmax(self.PDF, axis=1)]
+            # for this variance measure, multiply PDF with 
+            # squared difference from the sample mode.
+            sample_mode_variance = np.array([[(self.PDF[j,:,i] * pow(self.rvs 
+                                                - sample_mode[j, i], 2)).sum() 
+                                                for i in range(len(sample_mode[0]))] 
+                                                for j in range(len(sample_mode))])
+            sample_mode_variance /= (pms.num_rho - 1)
+        
+        except:
+            sample_mode = self.rvs[np.argmax(self.PDF)]
+            sample_mode_variance = np.array([(self.PDF[i] * pow(self.rvs 
+                                                - sample_mode, 2)).sum() 
+                                                for i in range(len(self.PDF))])
+            sample_mode_variance /= (pms.num_rho - 1)
+
+        return sample_mode, np.sqrt(sample_mode_variance)
+        

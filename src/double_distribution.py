@@ -64,7 +64,7 @@ def run():
                                         BTS[:,0,:], pms.default_gamma)
 
             # Find the numerical modes, and variances rooted at those modes
-            n_modes, n_stdevs = ddfunc.n_modes_variances(cond_PDF, rho_vals)
+            n_modes, n_stdevs = ddc.n_stats()
             
             # Find the median and IQRs analytically
             a_stats = []
@@ -175,7 +175,7 @@ def run():
                 cond_PDF, norm = ddc.calc_PDF(True, g=g)
                 
                 # Calculate the mode
-                n_modes, n_stdevs = ddfunc.n_modes_variances(cond_PDF, rho_vals)
+                n_modes, n_stdevs = ddc.n_stats()
 
                 a_modes = ddfunc.most_probable_rho_transformed(MS[:,0,:], 
                                                     BTS[:,0,:], gamma=g)
