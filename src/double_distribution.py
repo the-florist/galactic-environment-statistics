@@ -102,8 +102,6 @@ def run():
             b = np.abs(beta_vals - pms.beta_heuristic).argmin()
 
             cond_PDF = ddfunc.dn(RHOS, MS, BTS, transform_pdf=True)
-            print(cond_PDF.shape)
-            print(cond_PDF.sum(axis=1).shape)
             if pms.normalise_pdf:
                 norm = cond_PDF.sum(axis=1, keepdims=True)
                 cond_PDF /= norm
@@ -111,56 +109,77 @@ def run():
                     print(f"PDF norm precision: ", abs(cond_PDF.sum(axis=1) 
                                                                 - 1.).max())
                 
+            if pms.plot_untransformed_PDF:
+                    cond_PDF_nt = ddfunc.dn(RHOS, MS, BTS, transform_pdf=False)
+                    if pms.normalise_pdf:
+                        cond_PDF_nt /= cond_PDF_nt.sum(axis=1, keepdims=True)
 
+            n_modes, n_stdevs = ddfunc.sample_stats(cond_PDF, rho_vals)
+            print(n_modes[11,0], n_modes[11,1])
+            
+            # a_stats = []
+            # for s in np.array([pms.lqr, 0.5, pms.uqr]):
+            #     nm = NewtonsMethod(MS[:,0,:], BTS[:,0,:], n_modes, 
+            #                        pms.default_gamma, s)
+            #     nm.run()
+            #     a_stats.append(nm.return_solution())
+
+            nm = NewtonsMethod(MS[:,0,:], BTS[:,0,:], n_modes, pms.default_gamma, 0.5)
+            nm.run()
+            a_median = nm.return_solution()
+            
+            n_median = ddfunc.n_median_and_IQR(cond_PDF, rho_vals)
+            
             for mi, m in enumerate(mass_vals):
+                if pms.verbose:
+                    # print("Numeric IQR estimate: ", n_IQRl, n_IQRu)
+                    # print("Analytic IQR estimate: ",  a_stats[0], a_stats[2])
+                    n_cdf = ddfunc.conditional_CDF(n_median[b,mi], m, beta_vals[b])
+                    a_cdf = ddfunc.conditional_CDF(a_median[b,mi], m, beta_vals[b])
+                    print("Median estimates: ", n_median[b,mi], a_median[b,mi])
+                    print("Conditional CDF of each: ", n_cdf, a_cdf)
+                    print("Target fn for each: ")
+                    print(nm.target_fn(n_median[b,mi])[b,mi])
+                    print(nm.target_fn(a_median[b,mi])[b,mi])
+
+
                 line, = plt.plot(rho_vals, cond_PDF[b,:,mi], 
                                  label=rf"$m = {MS[b,1,mi]:.2e}$")
                 plot_color = line.get_color()
 
-                if pms.plot_untransformed_PDF:
-                    cond_PDF_nt = ddfunc.dn(RHOS, MS, BTS, transform_pdf=False)
-                    if pms.normalise_pdf:
-                        cond_PDF_nt /= cond_PDF_nt.sum(axis=1, keepdims=True)
-                    
-                    plt.plot(rho_vals, cond_PDF_nt[b,:,mi], color=plot_color, 
+                plt.plot(rho_vals, cond_PDF_nt[b,:,mi], color=plot_color, 
                              linestyle="--", label=rf"__nolabel__")
 
                 if pms.plot_statistics:
-                    print(norm[b,:,mi])
-                    n_mode, n_stdevs = ddfunc.sample_stats(cond_PDF[b,:,mi], 
-                                                                    rho_vals)
-                    n_mode_PDF = ddfunc.dn(n_mode, m, beta_vals[b], 
-                                                transform_pdf=True) / norm[b,:,mi]
-                    
                     a_mode_transformed = ddfunc.most_probable_rho_transformed(m, 
-                                                beta_vals[b], pms.default_gamma)
+                                                    beta_vals[b], pms.default_gamma)
                     a_mode_PDF = ddfunc.dn(a_mode_transformed, m, beta_vals[b], 
                                             transform_pdf=True) / norm[b,:,mi]
-                    print(a_mode_PDF)
-
-            #         analytic_IQRl, analytic_IQRu, analytic_median = ddfunc.analytic_median_and_IQR(numeric_mode, numeric_stdev, b, m)
-            #         numeric_IQRl, numeric_IQRu, numeric_median = ddfunc.numeric_median_and_IQR(cond_PDF, rho_vals)
-
-            #         if pms.verbose:
-            #             print("Numeric IQR estimate: ", 
-            #                 ddfunc.numeric_CDF(cond_PDF, rho_vals, numeric_IQRl), 
-            #                 ddfunc.numeric_CDF(cond_PDF, rho_vals, numeric_IQRu))
-            #             print("Analytic IQR estimate: ", 
-            #                 ddfunc.numeric_CDF(cond_PDF, rho_vals, analytic_IQRl), 
-            #                 ddfunc.numeric_CDF(cond_PDF, rho_vals, analytic_IQRu))
-            #             print("Median estimates: ", numeric_median, analytic_median)
-            #             print("--------------------------------")
-
                     plt.plot(a_mode_transformed, a_mode_PDF, 'o', color='red', 
-                             label='__nolabel__')
-                    plt.plot(n_mode, n_mode_PDF, "*", color="blue", 
-                             label='__nolabel__')
-            #         plt.plot(analytic_median, 
-            #                 ddfunc.dn(analytic_median, m, b, transform_pdf=True) / norm, 
-            #                 'o', color='red', label='__nolabel__')
-            #         plt.plot(numeric_median, 
-            #                 ddfunc.dn(numeric_median, m, b, transform_pdf=True) / norm,
-            #                 "*", color="blue", label='__nolabel__')
+                                label='__nolabel__')
+                    
+                    
+                    plt.plot(n_modes[b,mi], ddfunc.dn(n_modes[b,mi], m, beta_vals[b], 
+                                                transform_pdf=True) / norm[b,:,mi],
+                                                "*", color="blue", label='__nolabel__')
+
+                    plt.plot(a_median[b,mi], 
+                        ddfunc.dn(a_median[b,mi], m, beta_vals[b], 
+                                    transform_pdf=True) / norm[b,:,mi], 
+                        'o', color='red', label='__nolabel__')
+                    
+                    plt.plot(n_median[b,mi], 
+                            ddfunc.dn(n_median[b,mi], m, beta_vals[b], transform_pdf=True) / norm[b,:,mi],
+                            "*", color="blue", label='__nolabel__')
+
+                
+                    """
+                        ***********
+                    """
+
+
+                    
+
 
             #         a_mask = np.logical_and(rho_vals >= analytic_IQRl, rho_vals 
             #                                 <= analytic_IQRu).tolist()
@@ -213,6 +232,8 @@ def run():
 
                 a_modes = ddfunc.most_probable_rho_transformed(MS[:,0,:], 
                                                     BTS[:,0,:], gamma=g)
+                # print(a_modes)
+                # exit()
 
                 # Calculate the other statistics
                 n_medians, _, _ = ddfunc.n_median_and_IQR(cond_PDF, rho_vals)

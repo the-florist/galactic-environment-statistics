@@ -25,10 +25,10 @@ class NewtonsMethod:
         # mi = 3
         # bi = 15
 
-        self.ms = masses
-        self.bs = betas
+        self.ms = np.copy(masses)
+        self.bs = np.copy(betas)
         self.gamma = gamma
-        self.guess = guess
+        self.guess = np.copy(guess)
         self.zscore = score
         self.solution = np.zeros_like(betas)
 
@@ -40,8 +40,8 @@ class NewtonsMethod:
             Calculate the difference between the CDF and the zscore 
             at a value of rho.
         """
-        return ddfunc.conditional_CDF(rho, self.ms, self.bs, 
-                                         self.gamma, pms.a_f) - self.zscore
+        return (ddfunc.conditional_CDF(rho, self.ms, self.bs, 
+                                         self.gamma, pms.a_f) - self.zscore)
 
     def deriv(self, rho_0, rho_1, step):
         """

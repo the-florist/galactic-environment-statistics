@@ -80,7 +80,7 @@ def most_probable_rho(beta:float, gamma:float = pms.default_gamma, a:float = 1,
         # Return the universal profile, which does not depend on mass.
         return us_mode_rho
 
-def most_probable_rho_transformed(m : NDArray, beta : NDArray, gamma, sf:float = 1):
+def most_probable_rho_transformed(m, beta, gamma, sf:float = 1):
     """
         Calculate the most probable rho, correctly transforming delta_tilde -> rho.
         Involves solving the roots of a third-order polynomial.
@@ -112,11 +112,12 @@ def most_probable_rho_transformed(m : NDArray, beta : NDArray, gamma, sf:float =
                 for r in root:
                     if r > 0:
                         candidates[i, j] = pow(r, -delta_c)
+        return candidates
+    
     except:
         root = poly.polyroots([d, c, b, a])
-        candidates = [pow(r, -delta_c) for r in root if r > 0]
-
-    return candidates
+        candidate = [pow(r, -delta_c) for r in root if r > 0]
+        return candidate
 
 """
     Functions related to the CDF.
@@ -146,7 +147,7 @@ def CDF(rho, m, beta, gamma:float = pms.default_gamma, a:float = 1):
 
     return cdf_temp
 
-def conditional_CDF(rho, m, beta, a:float = 1, gamma:float = pms.default_gamma,):
+def conditional_CDF(rho, m, beta, gamma:float = pms.default_gamma, a:float = 1):
     """
         Calculate the normalised analytic CDF as a function of delta_l(rho).
     """
@@ -213,7 +214,7 @@ def n_median_and_IQR(pdf, x_range):
                         stat[f, s] = x
         return stat
     
-    return find_stat(0.5), find_stat(pms.lqr), find_stat(pms.uqr)
+    return find_stat(0.5) #, find_stat(pms.lqr), find_stat(pms.uqr)
 
 """
 def solve_combined(args):
