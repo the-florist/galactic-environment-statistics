@@ -16,6 +16,7 @@ import util.functions as func
 import util.double_distribution_functions as ddfunc
 from util.Newton_method import NewtonsMethod
 from src.double_distribution_calculations import DoubleDistributionCalculations
+from src.double_distribution_plotting import DoubleDistributionPlots
 
 if pms.plot_dimension != 1 and pms.plot_dimension != 2:
     raise ValueError("double-distribution.py : plot_dimension impossible" 
@@ -31,7 +32,8 @@ def run():
     # Create meshgrid with axes ordered as (beta, rho, mass)
     BTS, RHOS, MS = np.meshgrid(beta_vals, rho_vals, mass_vals, indexing='ij')
 
-    print(f"Starting {pms.plot_dimension}D plot generation...")
+    if pms.verbose:
+        print(f"Starting {pms.plot_dimension}D plot generation...")
 
     if pms.plot_dimension == 2:
         """
@@ -39,56 +41,9 @@ def run():
         """
 
         ddc = DoubleDistributionCalculations()
-        PDF, norm = ddc.calc_PDF(True, pms.default_gamma)
-
-        b = np.abs(beta_vals - pms.beta_heuristic).argmin()
-
-        # Marginals
-        marginal_m = PDF[b].sum(axis=0)
-        marginal_rho = PDF[b].sum(axis=1)
-
-        fig = plt.figure(figsize=(8, 8))
-        gs = GridSpec(4, 4, hspace=0.05, wspace=0.05)
-
-        ax_joint = fig.add_subplot(gs[1:,:3])
-        ax_marg_m = fig.add_subplot(gs[0,:3], sharex=ax_joint)
-        ax_marg_dl = fig.add_subplot(gs[1:,3], sharey=ax_joint)
-
-        # Joint pdf heatmap
-        c = ax_joint.pcolormesh(rho_vals, mass_vals / 1e14, PDF[b].T, shading='auto',
-                                                          cmap='viridis')
-        ax_joint.set_xlabel(r'$\rho/\rho_m$')
-        ax_joint.set_ylabel(r'$m\ [10^{14} M_{\odot}]$')
-
-        ax_joint.ticklabel_format(style='plain')
-
-        # Make mass-axis (y) scientific offset (e.g., 1e15) vertical on the left
-        y_off = ax_joint.yaxis.get_offset_text()
-        y_off.set_rotation(90)
-        y_off.set_verticalalignment('bottom')
-        y_off.set_horizontalalignment('right')
-        y_off.set_x(-0.1)
-        y_off.set_clip_on(False)
-
-        # Marginal for m
-        ax_marg_m.plot(rho_vals, marginal_rho, color='tab:blue')
-        ax_marg_m.set_ylabel(r'Marginal ($\bar{\rho}$)')
-        ax_marg_m.grid(True, which='both', ls='--', alpha=0.3)
-        ax_marg_m.set_title(r'Joint PDF of $m$ and $\tilde{\rho}$ at $\beta = $' + str(b), pad=12)
-
-        # Marginal for delta_l
-        ax_marg_dl.plot(marginal_m, mass_vals / 1e14, color='tab:orange')
-        ax_marg_dl.set_xlabel(r'Marginal ($m$)')
-        ax_marg_dl.grid(True, which='both', ls='--', alpha=0.3)
-
-        # Remove tick labels on shared axes
-        plt.setp(ax_marg_m.get_xticklabels(), visible=False)
-        plt.setp(ax_marg_dl.get_yticklabels(), visible=False)
-
-
-        func.make_directory("plots")
-        plt.savefig("plots/joint-pdf.pdf")
-        plt.close()
+        ddp = DoubleDistributionPlots()
+        ddc.calc_PDF(True, pms.default_gamma)
+        ddp.plot_heatmap(ddc, "plots/joint-pdf.pdf")
 
     elif pms.plot_dimension == 1:
         """
