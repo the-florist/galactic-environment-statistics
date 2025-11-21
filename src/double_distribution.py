@@ -59,21 +59,10 @@ def run():
             # Find the closest beta to our heuristic value
             b = np.abs(beta_vals - pms.beta_heuristic).argmin()
 
-            # Find the analytic most probable mode
-            a_mode_transformed = ddfunc.most_probable_rho_transformed(MS[:,0,:], 
-                                        BTS[:,0,:], pms.default_gamma)
-
             # Find the numerical modes, and variances rooted at those modes
             n_modes, n_stdevs, n_median, n_IQRl, n_IQRu = ddc.n_stats()
-            
-            # Find the median and IQRs analytically
-            a_stats = []
-            guesses = np.array([n_modes, n_modes - n_stdevs, n_modes + n_stdevs])
-            for i, s in np.ndenumerate(np.array([0.5, pms.lqr, pms.uqr])):
-                nm = NewtonsMethod(MS[:,0,:], BTS[:,0,:], guesses[i], 
-                                pms.default_gamma, s)
-                nm.run()
-                a_stats.append(nm.return_solution())
+
+            a_modes, a_stats = ddc.a_stats()
 
             if pms.plot_untransformed_PDF:
                 # Evaluate the untransformed PDF on the grid
@@ -102,8 +91,8 @@ def run():
 
                 if pms.plot_statistics:
                     # Plot analytic mode
-                    plt.plot(a_mode_transformed[b,mi], 
-                             ddfunc.dn(a_mode_transformed[b,mi], m, beta_vals[b], 
+                    plt.plot(a_modes[b,mi], 
+                             ddfunc.dn(a_modes[b,mi], m, beta_vals[b], 
                              transform_pdf=True) / norm[b,:,mi], 'o', color='red', 
                              label='__nolabel__')
 
@@ -113,8 +102,8 @@ def run():
                                                 "*", color="blue", label='__nolabel__')
 
                     # Plot analytic median
-                    plt.plot(a_stats[0][b,mi], 
-                        ddfunc.dn(a_stats[0][b,mi], m, beta_vals[b], 
+                    plt.plot(a_stats[0, b,mi], 
+                        ddfunc.dn(a_stats[0, b,mi], m, beta_vals[b], 
                                     transform_pdf=True) / norm[b,:,mi], 
                         'o', color='red', label='__nolabel__')
                     
@@ -124,8 +113,8 @@ def run():
                             "*", color="blue", label='__nolabel__')     
 
                     # Create logical masks where the PDF lies inside the IQRs
-                    a_mask = np.logical_and(rho_vals >= a_stats[1][b,mi], rho_vals 
-                                            <= a_stats[2][b,mi]).tolist()
+                    a_mask = np.logical_and(rho_vals >= a_stats[1, b,mi], rho_vals 
+                                            <= a_stats[2, b,mi]).tolist()
                     n_mask = np.logical_and(rho_vals >= n_IQRl[b,mi], rho_vals 
                                             <= n_IQRu[b,mi]).tolist()
 
@@ -174,19 +163,7 @@ def run():
                 # Calculate the numerical statistics
                 n_modes, n_stdevs, n_medians, n_IQRl, n_IQRu = ddc.n_stats()
 
-                a_modes = ddfunc.most_probable_rho_transformed(MS[:,0,:], 
-                                                    BTS[:,0,:], gamma=g)
-
-                a_stats = []
-                guesses = np.array([n_modes, n_modes - n_stdevs, n_modes + n_stdevs])
-                for i, s in np.ndenumerate(np.array([0.5, pms.lqr, pms.uqr])):
-                    nm = NewtonsMethod(MS[:,0,:], BTS[:,0,:], guesses[i], g, s)
-                    nm.run()
-                    a_stats.append(nm.return_solution())
-
-                # nm = NewtonsMethod(MS[:,0,:], BTS[:,0,:], n_modes, g, 0.5)
-                # nm.run()
-                # a_median = nm.return_solution()
+                a_modes, a_stats = ddc.a_stats(g=g)
                 
                 # Plot analytic and numeric mode
                 line, = plt.plot(beta_vals, a_modes[:, gi], 
@@ -196,12 +173,12 @@ def run():
                                 color=mass_color, linestyle="--")
 
                 # Plot analytic and numeric median
-                plt.plot(beta_vals, a_stats[0][:, gi], linestyle="-.", color=mass_color)
+                plt.plot(beta_vals, a_stats[0, :, gi], linestyle="-.", color=mass_color)
                 plt.plot(beta_vals, n_medians[:, gi], label="__nolabel__", 
                          color=mass_color, linestyle="dotted")
 
                 # Plot analytic and numeric IQR
-                plt.fill_between(beta_vals, a_stats[1][:, gi], a_stats[2][:, gi], 
+                plt.fill_between(beta_vals, a_stats[1, :, gi], a_stats[2, :, gi], 
                                  alpha=0.5, label="analytic IQR")
                 plt.fill_between(beta_vals, n_IQRl[:, gi], n_IQRu[:, gi], 
                                  alpha=0.3, label="numeric IQR")

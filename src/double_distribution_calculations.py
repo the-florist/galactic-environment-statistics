@@ -74,20 +74,36 @@ class DoubleDistributionCalculations:
             self.n_mode = self.rvs[np.argmax(self.PDF, axis=1)]
             # for this variance measure, multiply PDF with 
             # squared difference from the sample mode.
-            self.n_mode_variance = np.array([[(self.PDF[j,:,i] * pow(self.rvs 
+            self.n_stdev = np.array([[(self.PDF[j,:,i] * pow(self.rvs 
                                                 - self.n_mode[j, i], 2)).sum() 
                                                 for i in range(len(self.n_mode[0]))] 
                                                 for j in range(len(self.n_mode))])
-            self.n_mode_variance /= (pms.num_rho - 1)
+            self.n_stdev /= (pms.num_rho - 1)
         
         except:
             self.n_mode = self.rvs[np.argmax(self.PDF)]
-            self.n_mode_variance = np.array([(self.PDF[i] * pow(self.rvs 
+            self.n_stdev = np.array([(self.PDF[i] * pow(self.rvs 
                                                 - self.n_mode, 2)).sum() 
                                                 for i in range(len(self.PDF))])
-            self.n_mode_variance /= (pms.num_rho - 1)
+            self.n_stdev /= (pms.num_rho - 1)
 
-        return [self.n_mode, np.sqrt(self.n_mode_variance), 
+        return [self.n_mode, np.sqrt(self.n_stdev), 
                 self.find_quantile(0.5), self.find_quantile(pms.lqr), 
                                          self.find_quantile(pms.uqr)]
+
+    def a_stats(self, g = pms.default_gamma):
+        a_mode = ddfunc.most_probable_rho_transformed(self.MS[:,0,:], 
+                                                    self.BTS[:,0,:], gamma=g)
+
+        temp = []
+        guesses = np.array([self.n_mode, self.n_mode - self.n_stdev, 
+                                         self.n_mode + self.n_stdev])
         
+        for i, s in np.ndenumerate(np.array([0.5, pms.lqr, pms.uqr])):
+            nm = NewtonsMethod(self.MS[:,0,:], self.BTS[:,0,:], guesses[i], g, s)
+            nm.run()
+            temp.append(nm.return_solution())
+        
+        a_quantiles = np.stack(temp, axis=0)
+        
+        return a_mode, a_quantiles

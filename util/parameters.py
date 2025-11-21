@@ -38,7 +38,7 @@ mass_min, mass_max, num_mass = 1e14, 1e15, 2
 gamma_min, gamma_max, num_gamma = 0.4, 0.6, 3
 lqr, uqr = 0.16, 0.84
 
-slice_in_rho = False
+slice_in_rho = True
 plot_untransformed_PDF = True
 plot_statistics = True
 plot_rho_derivative = False
