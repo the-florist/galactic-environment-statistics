@@ -22,8 +22,8 @@ if pms.plot_dimension != 1 and pms.plot_dimension != 2:
 
 beta_vals = np.linspace(pms.beta_min, pms.beta_max, pms.num_beta)
 rho_vals = np.linspace(pms.rho_tilde_min, pms.rho_tilde_max, pms.num_rho)
-mass_vals = np.linspace(pms.mass_min, pms.mass_max, pms.num_mass) # np.array([1.3, 5, 17]) * 1e14 
-gamma_slices = np.array([pms.gamma_min]) # np.linspace(pms.gamma_min, pms.gamma_max, pms.num_gamma)
+mass_vals = np.array([1.3, 5, 17]) * 1e14 # np.linspace(pms.mass_min, pms.mass_max, pms.num_mass)
+gamma_slices = np.array([0.4, 0.5, 0.6]) # np.linspace(pms.gamma_min, pms.gamma_max, pms.num_gamma)
 
 
 def run():
@@ -227,7 +227,6 @@ def run():
             print("Starting most probable profile vs. mass plot...")
 
             for gi, g in enumerate(gamma_slices):
-
                 # Numerically construct the conditional PDF
                 cond_PDF = ddfunc.dn(RHOS, MS, BTS, gamma=g)
                 print("PDF shape: ", cond_PDF.shape)
