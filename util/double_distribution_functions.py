@@ -214,7 +214,7 @@ def n_median_and_IQR(pdf, x_range):
                         stat[f, s] = x
         return stat
     
-    return find_stat(0.5) #, find_stat(pms.lqr), find_stat(pms.uqr)
+    return find_stat(0.5), find_stat(pms.lqr), find_stat(pms.uqr)
 
 """
 def solve_combined(args):

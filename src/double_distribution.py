@@ -99,8 +99,10 @@ def run():
         """
 
         if pms.slice_in_rho:
+            # Find the closest beta to our heuristic value
             b = np.abs(beta_vals - pms.beta_heuristic).argmin()
 
+            # Evaluate the conditional PDF on the grid
             cond_PDF = ddfunc.dn(RHOS, MS, BTS, transform_pdf=True)
             if pms.normalise_pdf:
                 norm = cond_PDF.sum(axis=1, keepdims=True)
@@ -110,37 +112,39 @@ def run():
                                                                 - 1.).max())
                 
             if pms.plot_untransformed_PDF:
+                    # Evaluate the untransformed PDF on the grid
                     cond_PDF_nt = ddfunc.dn(RHOS, MS, BTS, transform_pdf=False)
                     if pms.normalise_pdf:
                         cond_PDF_nt /= cond_PDF_nt.sum(axis=1, keepdims=True)
 
+            # Find the numerical modes, and variances from those modes
             n_modes, n_stdevs = ddfunc.sample_stats(cond_PDF, rho_vals)
-            print(n_modes[11,0], n_modes[11,1])
             
-            # a_stats = []
-            # for s in np.array([pms.lqr, 0.5, pms.uqr]):
-            #     nm = NewtonsMethod(MS[:,0,:], BTS[:,0,:], n_modes, 
-            #                        pms.default_gamma, s)
-            #     nm.run()
-            #     a_stats.append(nm.return_solution())
+            # Find the median and IQRs analytically
+            a_stats = []
+            guesses = np.array([n_modes, n_modes - n_stdevs, n_modes + n_stdevs])
+            for i, s in np.ndenumerate(np.array([0.5, pms.lqr, pms.uqr])):
+                nm = NewtonsMethod(MS[:,0,:], BTS[:,0,:], guesses[i], 
+                                pms.default_gamma, s)
+                nm.run()
+                a_stats.append(nm.return_solution())
 
-            nm = NewtonsMethod(MS[:,0,:], BTS[:,0,:], n_modes, pms.default_gamma, 0.5)
-            nm.run()
-            a_median = nm.return_solution()
+            # nm = NewtonsMethod(MS[:,0,:], BTS[:,0,:], n_modes, pms.default_gamma, 0.5)
+            # nm.run()
+            # a_median = nm.return_solution()
             
-            n_median = ddfunc.n_median_and_IQR(cond_PDF, rho_vals)
+            # Find the numerical median and IQR
+            n_median, n_IQRl, n_IQRu = ddfunc.n_median_and_IQR(cond_PDF, rho_vals)
             
             for mi, m in enumerate(mass_vals):
                 if pms.verbose:
-                    # print("Numeric IQR estimate: ", n_IQRl, n_IQRu)
-                    # print("Analytic IQR estimate: ",  a_stats[0], a_stats[2])
                     n_cdf = ddfunc.conditional_CDF(n_median[b,mi], m, beta_vals[b])
-                    a_cdf = ddfunc.conditional_CDF(a_median[b,mi], m, beta_vals[b])
-                    print("Median estimates: ", n_median[b,mi], a_median[b,mi])
+                    a_cdf = ddfunc.conditional_CDF(a_stats[0][b,mi], m, beta_vals[b])
+                    print("Median estimates: ", n_median[b,mi], a_stats[0][b,mi])
                     print("Conditional CDF of each: ", n_cdf, a_cdf)
                     print("Target fn for each: ")
                     print(nm.target_fn(n_median[b,mi])[b,mi])
-                    print(nm.target_fn(a_median[b,mi])[b,mi])
+                    print(nm.target_fn(a_stats[0][b,mi])[b,mi])
 
 
                 line, = plt.plot(rho_vals, cond_PDF[b,:,mi], 
@@ -163,22 +167,14 @@ def run():
                                                 transform_pdf=True) / norm[b,:,mi],
                                                 "*", color="blue", label='__nolabel__')
 
-                    plt.plot(a_median[b,mi], 
-                        ddfunc.dn(a_median[b,mi], m, beta_vals[b], 
+                    plt.plot(a_stats[0][b,mi], 
+                        ddfunc.dn(a_stats[0][b,mi], m, beta_vals[b], 
                                     transform_pdf=True) / norm[b,:,mi], 
                         'o', color='red', label='__nolabel__')
                     
                     plt.plot(n_median[b,mi], 
                             ddfunc.dn(n_median[b,mi], m, beta_vals[b], transform_pdf=True) / norm[b,:,mi],
-                            "*", color="blue", label='__nolabel__')
-
-                
-                    """
-                        ***********
-                    """
-
-
-                    
+                            "*", color="blue", label='__nolabel__')     
 
 
             #         a_mask = np.logical_and(rho_vals >= analytic_IQRl, rho_vals 
