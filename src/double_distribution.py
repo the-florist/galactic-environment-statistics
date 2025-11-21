@@ -95,13 +95,14 @@ def run():
             Calculate the conditional PDF at slices of beta, and plot alongside the mode 
             and stdev of the mode.
         """
+        ddc = DoubleDistributionCalculations()
 
         if pms.slice_in_rho:
+            # Numerically construct the conditional PDF
+            cond_PDF, norm = ddc.calc_PDF(True, pms.default_gamma)
+
             # Find the closest beta to our heuristic value
             b = np.abs(beta_vals - pms.beta_heuristic).argmin()
-
-            ddc = DoubleDistributionCalculations()
-            cond_PDF, norm = ddc.calc_PDF(True, pms.default_gamma)
 
             # Find the analytic most probable mode
             a_mode_transformed = ddfunc.most_probable_rho_transformed(MS[:,0,:], 
@@ -214,16 +215,10 @@ def run():
 
         else:
             print("Starting most probable profile vs. mass plot...")
-
             for gi, g in enumerate(gamma_slices):
                 # Numerically construct the conditional PDF
-                cond_PDF = ddfunc.dn(RHOS, MS, BTS, gamma=g)
-                if pms.normalise_pdf:
-                    cond_PDF /= cond_PDF.sum(axis=1, keepdims=True)
-                    if pms.verbose:
-                        print(f"PDF norm precision: ", abs(cond_PDF.sum(axis=1) 
-                                                                - 1.).max())
-
+                cond_PDF, norm = ddc.calc_PDF(True, g=g)
+                
                 # Calculate the mode
                 n_modes, n_stdevs = ddfunc.n_modes_variances(cond_PDF, rho_vals)
 
