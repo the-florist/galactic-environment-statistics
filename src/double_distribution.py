@@ -15,6 +15,7 @@ import util.parameters as pms
 import util.functions as func
 import util.double_distribution_functions as ddfunc
 from util.Newton_method import NewtonsMethod
+from src.double_distribution_calculations import DoubleDistributionCalculations
 
 if pms.plot_dimension != 1 and pms.plot_dimension != 2:
     raise ValueError("double-distribution.py : plot_dimension impossible" 
@@ -22,7 +23,7 @@ if pms.plot_dimension != 1 and pms.plot_dimension != 2:
 
 beta_vals = np.linspace(pms.beta_min, pms.beta_max, pms.num_beta)
 rho_vals = np.linspace(pms.rho_tilde_min, pms.rho_tilde_max, pms.num_rho)
-mass_vals = np.array([pms.M_200]) # np.array([1.3, 5, 17]) * 1e14 # np.linspace(pms.mass_min, pms.mass_max, pms.num_mass)
+mass_vals = np.linspace(pms.mass_min, pms.mass_max, pms.num_mass) # np.array([1.3, 5, 17]) * 1e14  # np.array([pms.M_200])
 gamma_slices = np.array([0.4]) # np.array([0.4, 0.5, 0.6]) # np.linspace(pms.gamma_min, pms.gamma_max, pms.num_gamma)
 
 
@@ -37,11 +38,8 @@ def run():
             Calculate the normalised joint PDF and plot it.
         """
 
-        PDF = ddfunc.dn(RHOS, MS, BTS)
-        if pms.normalise_pdf:
-            PDF /= PDF.sum(axis=(1, 2), keepdims=True)
-            print(f"PDF norm precision: {abs(PDF[0].sum() - 1.):.15}")
-            print(f"PDF max value: ", PDF[0].max())
+        ddc = DoubleDistributionCalculations()
+        PDF, norm = ddc.calc_PDF(True, pms.default_gamma)
 
         b = np.abs(beta_vals - pms.beta_heuristic).argmin()
 
@@ -57,7 +55,7 @@ def run():
         ax_marg_dl = fig.add_subplot(gs[1:,3], sharey=ax_joint)
 
         # Joint pdf heatmap
-        c = ax_joint.pcolormesh(rho_vals, mass_vals / 1e14, PDF[b].T, shading='auto', 
+        c = ax_joint.pcolormesh(rho_vals, mass_vals / 1e14, PDF[b].T, shading='auto',
                                                           cmap='viridis')
         ax_joint.set_xlabel(r'$\rho/\rho_m$')
         ax_joint.set_ylabel(r'$m\ [10^{14} M_{\odot}]$')
@@ -102,14 +100,8 @@ def run():
             # Find the closest beta to our heuristic value
             b = np.abs(beta_vals - pms.beta_heuristic).argmin()
 
-            # Evaluate the conditional PDF on the grid
-            cond_PDF = ddfunc.dn(RHOS, MS, BTS, transform_pdf=True)
-            if pms.normalise_pdf:
-                norm = cond_PDF.sum(axis=1, keepdims=True)
-                cond_PDF /= norm
-                if pms.verbose:
-                    print(f"PDF norm precision: ", abs(cond_PDF.sum(axis=1) 
-                                                                - 1.).max())
+            ddc = DoubleDistributionCalculations()
+            cond_PDF, norm = ddc.calc_PDF(True, pms.default_gamma)
 
             # Find the analytic most probable mode
             a_mode_transformed = ddfunc.most_probable_rho_transformed(MS[:,0,:], 
@@ -132,10 +124,7 @@ def run():
 
             if pms.plot_untransformed_PDF:
                 # Evaluate the untransformed PDF on the grid
-                cond_PDF_nt = ddfunc.dn(RHOS, MS, BTS, transform_pdf=False)
-                if pms.normalise_pdf:
-                    norm_nt = cond_PDF_nt.sum(axis=1, keepdims=True)
-                    cond_PDF_nt /= norm_nt
+                cond_PDF_nt, norm_nt = ddc.calc_PDF(False, pms.default_gamma)
 
                 # Find the analytic and numeric most probable mode, untransformed
                 a_mode_no_transform = ddfunc.most_probable_rho(MS[:,0,:], 
