@@ -165,7 +165,7 @@ def conditional_CDF(rho, m, beta, gamma:float = pms.default_gamma, a:float = 1):
             - CDF(pms.rho_tilde_min, m, beta, gamma, a))
     return CDF(rho, m, beta, gamma, a) / norm
 
-def numeric_CDF(pdf, x_vals, x):
+def n_CDF(pdf, x_vals, x):
     """
         Find the numerical CDF given a numerical PDF and axis.
     """
@@ -174,10 +174,10 @@ def numeric_CDF(pdf, x_vals, x):
     return sum(pdf[:(i+1)])
 
 """
-    Functions related to the IQR.
+    Functions for calculating sample statistics from the distribution directly.
 """
 
-def sample_stats(pdf : NDArray, rho_vals : NDArray):
+def n_modes_variances(pdf : NDArray, rho_vals : NDArray):
     """
         Calculate the mode of the double distribution 
         (i.e. the most probable profile)
@@ -202,7 +202,7 @@ def sample_stats(pdf : NDArray, rho_vals : NDArray):
 
     return sample_mode, np.sqrt(sample_mode_variance)
 
-def n_median_and_IQR(pdf, x_range):
+def n_quantiles(pdf, x_range):
     """
         Calculate the IQR numerically, on a numeric PDF with axis.
     """

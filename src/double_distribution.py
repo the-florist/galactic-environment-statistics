@@ -116,7 +116,7 @@ def run():
                                         BTS[:,0,:], pms.default_gamma)
 
             # Find the numerical modes, and variances rooted at those modes
-            n_modes, n_stdevs = ddfunc.sample_stats(cond_PDF, rho_vals)
+            n_modes, n_stdevs = ddfunc.n_modes_variances(cond_PDF, rho_vals)
             
             # Find the median and IQRs analytically
             a_stats = []
@@ -128,7 +128,7 @@ def run():
                 a_stats.append(nm.return_solution())
             
             # Find the numerical median and IQR
-            n_median, n_IQRl, n_IQRu = ddfunc.n_median_and_IQR(cond_PDF, rho_vals)
+            n_median, n_IQRl, n_IQRu = ddfunc.n_quantiles(cond_PDF, rho_vals)
 
             if pms.plot_untransformed_PDF:
                 # Evaluate the untransformed PDF on the grid
@@ -140,7 +140,7 @@ def run():
                 # Find the analytic and numeric most probable mode, untransformed
                 a_mode_no_transform = ddfunc.most_probable_rho(MS[:,0,:], 
                                              BTS[:,0,:], inc_mass_scaling=True)
-                n_mode_nt, _ = ddfunc.sample_stats(cond_PDF_nt, rho_vals)
+                n_mode_nt, _ = ddfunc.n_modes_variances(cond_PDF_nt, rho_vals)
             
             for mi, m in enumerate(mass_vals):
                 # Uncomment this to bug check the median
@@ -236,7 +236,7 @@ def run():
                                                                 - 1.).max())
 
                 # Calculate the mode
-                n_modes, n_stdevs = ddfunc.sample_stats(cond_PDF, rho_vals)
+                n_modes, n_stdevs = ddfunc.n_modes_variances(cond_PDF, rho_vals)
 
                 a_modes = ddfunc.most_probable_rho_transformed(MS[:,0,:], 
                                                     BTS[:,0,:], gamma=g)
@@ -244,7 +244,7 @@ def run():
                 # exit()
 
                 # Calculate the other statistics
-                n_medians, _, _ = ddfunc.n_median_and_IQR(cond_PDF, rho_vals)
+                n_medians, _, _ = ddfunc.n_quantiles(cond_PDF, rho_vals)
 
                 # scores = [pms.lqr, 0.5, pms.uqr]
                 # a_stats = []
