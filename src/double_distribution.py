@@ -41,7 +41,7 @@ def run():
         """
 
         ddc = DoubleDistributionCalculations()
-        ddp = DoubleDistributionPlots()
+        ddp = DoubleDistributionPlots(ddc)
         ddc.calc_PDF(True, pms.default_gamma)
         ddp.plot_heatmap(ddc, "plots/joint-pdf.pdf")
 
@@ -51,6 +51,7 @@ def run():
             and stdev of the mode.
         """
         ddc = DoubleDistributionCalculations()
+        ddp = DoubleDistributionPlots(ddc)
 
         if pms.slice_in_rho:
             # Numerically construct the conditional PDF
@@ -63,95 +64,18 @@ def run():
             n_modes, n_stdevs, n_median, n_IQRl, n_IQRu = ddc.n_stats()
 
             a_modes, a_stats = ddc.a_stats(True)
-                
-            
-            for mi, m in enumerate(mass_vals):
-                # Uncomment this to bug check the median
-                # if pms.verbose:
-                #     n_cdf = ddfunc.conditional_CDF(n_median[b,mi], m, beta_vals[b])
-                #     a_cdf = ddfunc.conditional_CDF(a_stats[0][b,mi], m, beta_vals[b])
-                #     print("Median estimates: ", n_median[b,mi], a_stats[0][b,mi])
-                #     print("Conditional CDF of each: ", n_cdf, a_cdf)
-                #     print("Target fn for each: ")
-                #     print(nm.target_fn(n_median[b,mi])[b,mi])
-                #     print(nm.target_fn(a_stats[0][b,mi])[b,mi])
 
-                # Plot the PDF
-                line, = plt.plot(rho_vals, cond_PDF[b,:,mi], 
-                                 label=rf"$m = {MS[b,1,mi]:.2e}$")
-                plot_color = line.get_color()
-
-                if pms.plot_statistics:
-                    # Plot analytic mode
-                    plt.plot(a_modes[b,mi], 
-                             ddfunc.dn(a_modes[b,mi], m, beta_vals[b], 
-                             transform_pdf=True) / norm[b,:,mi], 'o', color='red', 
-                             label='__nolabel__')
-
-                    # Plot numeric mode
-                    plt.plot(n_modes[b,mi], ddfunc.dn(n_modes[b,mi], m, beta_vals[b], 
-                                                transform_pdf=True) / norm[b,:,mi],
-                                                "*", color="blue", label='__nolabel__')
-
-                    # Plot analytic median
-                    plt.plot(a_stats[0, b,mi], 
-                        ddfunc.dn(a_stats[0, b,mi], m, beta_vals[b], 
-                                    transform_pdf=True) / norm[b,:,mi], 
-                        'o', color='red', label='__nolabel__')
-                    
-                    # Plot numeric median
-                    plt.plot(n_median[b,mi], 
-                            ddfunc.dn(n_median[b,mi], m, beta_vals[b], transform_pdf=True) / norm[b,:,mi],
-                            "*", color="blue", label='__nolabel__')     
-
-                    # Create logical masks where the PDF lies inside the IQRs
-                    a_mask = np.logical_and(rho_vals >= a_stats[1, b,mi], rho_vals 
-                                            <= a_stats[2, b,mi]).tolist()
-                    n_mask = np.logical_and(rho_vals >= n_IQRl[b,mi], rho_vals 
-                                            <= n_IQRu[b,mi]).tolist()
-
-                    # Fill in the IQRs
-                    plt.fill_between(rho_vals, cond_PDF[b,:,mi], 0, where = a_mask, 
-                                     alpha=0.5, color=plot_color)
-                    plt.fill_between(rho_vals, cond_PDF[b,:,mi], 0, where = n_mask, 
-                                     alpha=0.5, color=plot_color)
-
-                if pms.plot_untransformed_PDF:
-                    # Evaluate the untransformed PDF on the grid
-                    cond_PDF_nt, norm_nt = ddc.calc_PDF(False, pms.default_gamma)
-                    n_mode_nt, _, _, _, _ = ddc.n_stats()
-
-                    # Find the analytic and numeric most probable mode, untransformed
-                    a_mode_no_transform = ddc.a_stats(False)
-
-                    # Plot the untransformed PDF
-                    plt.plot(rho_vals, cond_PDF_nt[b,:,mi], color=plot_color, 
-                            linestyle="--", label=rf"__nolabel__")
-
-                    if pms.plot_statistics:
-                        # Plot the analytic mode, untransformed
-                        plt.plot(a_mode_no_transform[b,mi], 
-                            ddfunc.dn(a_mode_no_transform[b,mi], m, beta_vals[b],
-                            transform_pdf=False) / norm_nt[b,:,mi], 
-                            'o', color='red', label='__nolabel__')
-
-                        # Plot the numeric untransformed mode
-                        plt.plot(n_mode_nt[b,mi], 
-                            ddfunc.dn(n_mode_nt[b,mi], m, beta_vals[b], 
-                            transform_pdf=False) / norm_nt[b,:,mi],
-                            "*", color="blue", label='__nolabel__')
-                
-                if pms.verbose:
-                    print(f"Plot finished for mass = {m:.2E}")
+            ddp.plot_rho_slices(ddc)
+            ddp.savefig("plots/joint-pdf-slice.pdf")
             
             # Finish plot of PDF slices
-            plt.xlabel(r"$\tilde{\rho}$")
-            plt.ylabel(r"$P_n$")
-            plt.title(r"PDF slices along mass")
-            plt.grid(True)
-            plt.legend()
-            plt.savefig("plots/joint-pdf-slice.pdf")
-            plt.close()
+            # plt.xlabel(r"$\tilde{\rho}$")
+            # plt.ylabel(r"$P_n$")
+            # plt.title(r"PDF slices along mass")
+            # plt.grid(True)
+            # plt.legend()
+            # plt.savefig("plots/joint-pdf-slice.pdf")
+            # plt.close()
 
         else:
             print("Starting most probable profile vs. mass plot...")

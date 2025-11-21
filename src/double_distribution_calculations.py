@@ -113,3 +113,13 @@ class DoubleDistributionCalculations:
             a_mode = ddfunc.most_probable_rho(self.MS[:,0,:], self.BTS[:,0,:], 
                                              inc_mass_scaling=True)
             return a_mode
+
+    def print_stats_comparison(self):
+        n_cdf = ddfunc.conditional_CDF(n_median[b,mi], m, beta_vals[b])
+        a_cdf = ddfunc.conditional_CDF(a_stats[0][b,mi], m, beta_vals[b])
+        
+        print("Median estimates: ", n_median[b,mi], a_stats[0][b,mi])
+        print("Conditional CDF of each: ", n_cdf, a_cdf)
+        print("Target fn for each: ")
+        print(nm.target_fn(n_median[b,mi])[b,mi])
+        print(nm.target_fn(a_stats[0][b,mi])[b,mi])
