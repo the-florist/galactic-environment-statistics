@@ -110,24 +110,22 @@ def run():
                 if pms.verbose:
                     print(f"PDF norm precision: ", abs(cond_PDF.sum(axis=1) 
                                                                 - 1.).max())
-                
-            if pms.plot_untransformed_PDF:
-                    # Evaluate the untransformed PDF on the grid
-                    cond_PDF_nt = ddfunc.dn(RHOS, MS, BTS, transform_pdf=False)
-                    if pms.normalise_pdf:
-                        cond_PDF_nt /= cond_PDF_nt.sum(axis=1, keepdims=True)
+
+            a_mode_transformed = ddfunc.most_probable_rho_transformed(MS[:,0,:], BTS[:,0,:], pms.default_gamma)
+            # print(a_mode_transformed.shape)
+            # exit()
 
             # Find the numerical modes, and variances from those modes
             n_modes, n_stdevs = ddfunc.sample_stats(cond_PDF, rho_vals)
             
             # Find the median and IQRs analytically
-            a_stats = []
-            guesses = np.array([n_modes, n_modes - n_stdevs, n_modes + n_stdevs])
-            for i, s in np.ndenumerate(np.array([0.5, pms.lqr, pms.uqr])):
-                nm = NewtonsMethod(MS[:,0,:], BTS[:,0,:], guesses[i], 
-                                pms.default_gamma, s)
-                nm.run()
-                a_stats.append(nm.return_solution())
+            # a_stats = []
+            # guesses = np.array([n_modes, n_modes - n_stdevs, n_modes + n_stdevs])
+            # for i, s in np.ndenumerate(np.array([0.5, pms.lqr, pms.uqr])):
+            #     nm = NewtonsMethod(MS[:,0,:], BTS[:,0,:], guesses[i], 
+            #                     pms.default_gamma, s)
+            #     nm.run()
+            #     a_stats.append(nm.return_solution())
 
             # nm = NewtonsMethod(MS[:,0,:], BTS[:,0,:], n_modes, pms.default_gamma, 0.5)
             # nm.run()
@@ -135,34 +133,40 @@ def run():
             
             # Find the numerical median and IQR
             n_median, n_IQRl, n_IQRu = ddfunc.n_median_and_IQR(cond_PDF, rho_vals)
+
+            if pms.plot_untransformed_PDF:
+                # Evaluate the untransformed PDF on the grid
+                cond_PDF_nt = ddfunc.dn(RHOS, MS, BTS, transform_pdf=False)
+                if pms.normalise_pdf:
+                    norm_nt = cond_PDF_nt.sum(axis=1, keepdims=True)
+                    cond_PDF_nt /= norm_nt
+
+                a_mode_no_transform = ddfunc.most_probable_rho(MS[:,0,:], BTS[:,0,:], inc_mass_scaling=True)
+                n_mode_nt, _ = ddfunc.sample_stats(cond_PDF_nt, rho_vals)
+                print(a_mode_no_transform[11,0], n_mode_nt[11,0])
+                exit()
             
             for mi, m in enumerate(mass_vals):
-                if pms.verbose:
-                    n_cdf = ddfunc.conditional_CDF(n_median[b,mi], m, beta_vals[b])
-                    a_cdf = ddfunc.conditional_CDF(a_stats[0][b,mi], m, beta_vals[b])
-                    print("Median estimates: ", n_median[b,mi], a_stats[0][b,mi])
-                    print("Conditional CDF of each: ", n_cdf, a_cdf)
-                    print("Target fn for each: ")
-                    print(nm.target_fn(n_median[b,mi])[b,mi])
-                    print(nm.target_fn(a_stats[0][b,mi])[b,mi])
+                # if pms.verbose:
+                #     n_cdf = ddfunc.conditional_CDF(n_median[b,mi], m, beta_vals[b])
+                #     a_cdf = ddfunc.conditional_CDF(a_stats[0][b,mi], m, beta_vals[b])
+                #     print("Median estimates: ", n_median[b,mi], a_stats[0][b,mi])
+                #     print("Conditional CDF of each: ", n_cdf, a_cdf)
+                #     print("Target fn for each: ")
+                #     print(nm.target_fn(n_median[b,mi])[b,mi])
+                #     print(nm.target_fn(a_stats[0][b,mi])[b,mi])
 
 
                 line, = plt.plot(rho_vals, cond_PDF[b,:,mi], 
                                  label=rf"$m = {MS[b,1,mi]:.2e}$")
                 plot_color = line.get_color()
 
-                plt.plot(rho_vals, cond_PDF_nt[b,:,mi], color=plot_color, 
-                             linestyle="--", label=rf"__nolabel__")
-
                 if pms.plot_statistics:
-                    a_mode_transformed = ddfunc.most_probable_rho_transformed(m, 
-                                                    beta_vals[b], pms.default_gamma)
-                    a_mode_PDF = ddfunc.dn(a_mode_transformed, m, beta_vals[b], 
-                                            transform_pdf=True) / norm[b,:,mi]
-                    plt.plot(a_mode_transformed, a_mode_PDF, 'o', color='red', 
-                                label='__nolabel__')
-                    
-                    
+                    plt.plot(a_mode_transformed[b,mi], 
+                             ddfunc.dn(a_mode_transformed[b,mi], m, beta_vals[b], 
+                             transform_pdf=True) / norm[b,:,mi], 'o', color='red', 
+                             label='__nolabel__')
+
                     plt.plot(n_modes[b,mi], ddfunc.dn(n_modes[b,mi], m, beta_vals[b], 
                                                 transform_pdf=True) / norm[b,:,mi],
                                                 "*", color="blue", label='__nolabel__')
@@ -177,29 +181,30 @@ def run():
                             "*", color="blue", label='__nolabel__')     
 
 
-            #         a_mask = np.logical_and(rho_vals >= analytic_IQRl, rho_vals 
-            #                                 <= analytic_IQRu).tolist()
-            #         n_mask = np.logical_and(rho_vals >= numeric_IQRl, rho_vals 
-            #                                 <= numeric_IQRu).tolist()
+                    a_mask = np.logical_and(rho_vals >= a_stats[1][b,mi], rho_vals 
+                                            <= a_stats[2][b,mi]).tolist()
+                    n_mask = np.logical_and(rho_vals >= n_IQRl[b,mi], rho_vals 
+                                            <= n_IQRu[b,mi]).tolist()
 
-            #         plt.fill_between(rho_vals, cond_PDF, 0, where = a_mask, 
-            #                          alpha=0.5, color=mass_plot_color)
-            #         plt.fill_between(rho_vals, cond_PDF, 0, where = n_mask, 
-            #                          alpha=0.5, color=mass_plot_color)
+                    plt.fill_between(rho_vals, cond_PDF[b,:,mi], 0, where = a_mask, 
+                                     alpha=0.5, color=plot_color)
+                    plt.fill_between(rho_vals, cond_PDF[b,:,mi], 0, where = n_mask, 
+                                     alpha=0.5, color=plot_color)
 
-            #         if pms.plot_untransformed_PDF:
-            #             analytic_mode_no_transform = ddfunc.most_probable_rho(b, inc_mass_scaling=True, m=m)
-            #             numeric_mode_no_transform, _ = ddfunc.pdf_sample_expectation(cond_PDF_no_transform, rho_vals)
-
-            #             plt.plot(analytic_mode_no_transform, 
-            #                 ddfunc.dn(analytic_mode_no_transform, m, b, transform_pdf=False) / norm_no_transform, 
-            #                 'o', color='red', label='__nolabel__')
-            #             plt.plot(numeric_mode_no_transform, 
-            #                 ddfunc.dn(numeric_mode_no_transform, m, b, transform_pdf=False) / norm_no_transform,
-            #                 "*", color="blue", label='__nolabel__')
+                    if pms.plot_untransformed_PDF:
+                        plt.plot(rho_vals, cond_PDF_nt[b,:,mi], color=plot_color, 
+                             linestyle="--", label=rf"__nolabel__")
+                        plt.plot(a_mode_no_transform[b,mi], 
+                            ddfunc.dn(a_mode_no_transform[b,mi], m, beta_vals[b],
+                            transform_pdf=False) / norm_nt[b,:,mi], 
+                            'o', color='red', label='__nolabel__')
+                        plt.plot(n_mode_nt[b,mi], 
+                            ddfunc.dn(n_mode_nt[b,mi], m, b, 
+                            transform_pdf=False) / norm_nt[b,:,mi],
+                            "*", color="blue", label='__nolabel__')
                 
-            #     if pms.verbose:
-            #         print(f"Plot finished for mass = {m:.2E}")
+                if pms.verbose:
+                    print(f"Plot finished for mass = {m:.2E}")
             
             # Finish plot of PDF slices
             plt.xlabel(r"$\tilde{\rho}$")

@@ -12,7 +12,7 @@ from scipy.special import erf
 
 import util.parameters as pms
 import util.functions as func
-from util.functions import delta_c_0
+from util.functions import delta_c_0, delta_tilde_to_rho
 
 """
     Functions related to the double distribution (PDF).
@@ -53,8 +53,8 @@ def dn(rho, m, beta, a:float = 1, transform_pdf:bool = pms.transform_pdf,
 
     return dn
 
-def most_probable_rho(beta:float, gamma:float = pms.default_gamma, a:float = 1,
-                        inc_mass_scaling:bool = False, m:float = pms.M_200):
+def most_probable_rho(m, beta, gamma:float = pms.default_gamma, a:float = 1,
+                        inc_mass_scaling:bool = False):
     """
         Find the most probable rho under the most restrictive assumptions,
         either with or without mass dependence.
@@ -72,9 +72,19 @@ def most_probable_rho(beta:float, gamma:float = pms.default_gamma, a:float = 1,
         B = - delta_c_0(a) * (2 / (func.S(m, gamma) - func.S(beta * m, gamma)) + 1 / func.S(beta * m, gamma))
         C = pow(delta_c_0(a), 2) / (func.S(m, gamma) - func.S(beta * m, gamma)) - 1
 
-        candidates = poly.polyroots([C, B, A])
-        root = candidates[np.argmin(abs(candidates - us_mode_delta))]
-        return func.delta_tilde_to_rho(root)
+        try:
+            roots = np.zeros_like(beta)
+            for i in range(len(beta)):
+                for j in range(len(beta[0])):
+                    candidates = poly.polyroots([C[i, j], B[i, j], A[i, j]])
+                    root = candidates[np.argmin(abs(candidates - us_mode_delta[i, j]))]
+                    roots[i, j] = delta_tilde_to_rho(root)
+            return roots
+        
+        except:
+            candidates = poly.polyroots([C, B, A])
+            root = candidates[np.argmin(abs(candidates - us_mode_delta))]
+            return func.delta_tilde_to_rho(root)
 
     else:
         # Return the universal profile, which does not depend on mass.
