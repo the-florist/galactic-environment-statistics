@@ -44,7 +44,7 @@ class DoubleDistributionCalculations:
             if pms.verbose:
                 print(f"PDF norm - 1: {abs(self.PDF.sum(axis=axs) - 1.).max()}")
         
-        return self.PDF, self.norm
+        # return self.PDF, self.norm
 
     def find_quantile(self, zscore):
         sm = 0
@@ -91,7 +91,7 @@ class DoubleDistributionCalculations:
                                                      self.find_quantile(pms.uqr)]
         self.n_quantiles = np.stack(temp, axis=0)
 
-        return self.n_mode, np.sqrt(self.n_stdev), self.n_quantiles
+        # return self.n_mode, np.sqrt(self.n_stdev), self.n_quantiles
 
     def a_stats(self, transfm, g = pms.default_gamma):
         
@@ -109,12 +109,12 @@ class DoubleDistributionCalculations:
             
             self.a_quantiles = np.stack(temp, axis=0)
             
-            return self.a_mode, self.a_quantiles
+            # return self.a_mode, self.a_quantiles
         
         else:
             self.a_mode = ddfunc.most_probable_rho(self.MS[:,0,:], self.BTS[:,0,:], 
-                                             inc_mass_scaling=True)
-            return self.a_mode
+                                                   inc_mass_scaling=True)
+            # return self.a_mode
 
     def print_stats_comparison(self, mi, bi):
         n_median = self.find_quantile(0.5)[bi, mi]

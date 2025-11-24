@@ -54,21 +54,33 @@ def run():
         ddp = DoubleDistributionPlots(ddc)
 
         if pms.slice_in_rho:
-            # Numerically construct the conditional PDF
-            cond_PDF, norm = ddc.calc_PDF(True, pms.default_gamma)
-
             # Find the closest beta to our heuristic value
             b = np.abs(beta_vals - pms.beta_heuristic).argmin()
+            transform_pdf = True
+
+            # Numerically construct the conditional PDF
+            ddc.calc_PDF(transform_pdf, pms.default_gamma)
 
             # Find the numerical modes, and variances rooted at those modes
-            n_modes, n_stdevs, n_quants = ddc.n_stats()
+            ddc.n_stats()
+            ddc.a_stats(transform_pdf)
 
-            a_modes, a_stats = ddc.a_stats(True)
-
-            for mi, m in enumerate(ddc.mvs):
-                ddp.plot_rho_slice(mi)
+            for mi in range(len(ddc.mvs)):
+                ddp.plot_rho_slice(mi, transform_pdf)
                 if pms.plot_statistics:
-                    ddp.plot_a_stats(mi, True)
+                    ddp.plot_a_stats(mi, transform_pdf)
+
+            if pms.plot_untransformed_PDF:
+                transform_pdf = False
+                ddc.calc_PDF(transform_pdf, pms.default_gamma)
+                ddc.n_stats()
+                ddc.a_stats(transform_pdf)
+
+                for mi in range(len(ddc.mvs)):
+                    ddp.plot_rho_slice(mi, transform_pdf)
+                    if pms.plot_statistics:
+                        ddp.plot_a_stats(mi, transform_pdf)
+
             
             ddp.savefig("plots/joint-pdf-slice.pdf")
             

@@ -32,10 +32,16 @@ class DoubleDistributionPlots:
         self.fig.savefig(fname)
         plt.close(self.fig)
 
-    def plot_rho_slice(self, mi):
+    def plot_rho_slice(self, mi, transf):
+        if transf:
             line, = self.ax.plot(self.ddc.rvs, self.ddc.PDF[self.b,:,mi], 
-                                    label=rf"$m = {self.ddc.MS[self.b,1,mi]:.2e}$")
+                                label=rf"$m = {self.ddc.MS[self.b,1,mi]:.2e}$")
             self.plot_colors.append(line.get_color())
+        
+        else:
+            self.ax.plot(self.ddc.rvs, self.ddc.PDF[self.b,:,mi], 
+                                linestyle='dashed', color=self.plot_colors[mi])       
+             
 
     def plot_point(self, rho, mi, transf, shape, color):
         plt.plot(rho, ddfunc.dn(rho, self.ddc.mvs[mi], self.ddc.bvs[self.b], 
@@ -53,39 +59,12 @@ class DoubleDistributionPlots:
         self.plot_point(self.ddc.a_mode[self.b, mi], mi, transf, 'o', 'red')
         self.plot_point(self.ddc.n_mode[self.b, mi], mi, transf, '*', 'blue')
 
-        self.plot_point(self.ddc.n_quantiles[0, self.b, mi], mi, transf, 'o', 'red')
-        self.plot_point(self.ddc.a_quantiles[0, self.b, mi], mi, transf, '*', 'blue') 
+        if transf:
+            self.plot_point(self.ddc.n_quantiles[0, self.b, mi], mi, transf, 'o', 'red')
+            self.plot_point(self.ddc.a_quantiles[0, self.b, mi], mi, transf, '*', 'blue') 
 
-        self.plot_quantile_mask(self.ddc.n_quantiles, self.b, mi)
-        self.plot_quantile_mask(self.ddc.a_quantiles, self.b, mi)
-
-            # if pms.plot_untransformed_PDF:
-            #         # Evaluate the untransformed PDF on the grid
-            #         cond_PDF_nt, norm_nt = self.ddc.calc_PDF(False, pms.default_gamma)
-            #         n_mode_nt, = self.ddc.n_stats()
-
-            #         # Find the analytic and numeric most probable mode, untransformed
-            #         a_mode_no_transform = self.ddc.a_stats(False)
-
-            #         # Plot the untransformed PDF
-            #         plt.plot(rho_vals, cond_PDF_nt[self.b,:,mi], color=plot_color, 
-            #                 linestyle="--", label=rf"__nolabel__")
-
-            #         if pms.plot_statistics:
-            #             # Plot the analytic mode, untransformed
-            #             plt.plot(a_mode_no_transform[self.b,mi], 
-            #                 ddfunc.dn(a_mode_no_transform[self.b,mi], m, beta_vals[self.b],
-            #                 transform_pdf=False) / norm_nt[self.b,:,mi], 
-            #                 'o', color='red', label='__nolabel__')
-
-            #             # Plot the numeric untransformed mode
-            #             plt.plot(n_mode_nt[self.b,mi], 
-            #                 ddfunc.dn(n_mode_nt[self.b,mi], m, beta_vals[self.b], 
-            #                 transform_pdf=False) / norm_nt[self.b,:,mi],
-            #                 "*", color="blue", label='__nolabel__')
-                
-            #     if pms.verbose:
-            #         print(f"Plot finished for mass = {m:.2E}")
+            self.plot_quantile_mask(self.ddc.n_quantiles, self.b, mi)
+            self.plot_quantile_mask(self.ddc.a_quantiles, self.b, mi)
 
     def plot_heatmap(self, fname):
         if pms.verbose:
