@@ -61,7 +61,7 @@ def run():
             b = np.abs(beta_vals - pms.beta_heuristic).argmin()
 
             # Find the numerical modes, and variances rooted at those modes
-            n_modes, n_stdevs, n_median, n_IQRl, n_IQRu = ddc.n_stats()
+            n_modes, n_stdevs, n_quants = ddc.n_stats()
 
             a_modes, a_stats = ddc.a_stats(True)
 
@@ -88,7 +88,7 @@ def run():
                 cond_PDF, norm = ddc.calc_PDF(True, g=g)
                 
                 # Calculate the numerical statistics
-                n_modes, n_stdevs, n_medians, n_IQRl, n_IQRu = ddc.n_stats()
+                n_modes, n_stdevs, n_quants = ddc.n_stats()
 
                 a_modes, a_stats = ddc.a_stats(True, g=g)
                 
@@ -101,13 +101,13 @@ def run():
 
                 # Plot analytic and numeric median
                 plt.plot(beta_vals, a_stats[0, :, gi], linestyle="-.", color=mass_color)
-                plt.plot(beta_vals, n_medians[:, gi], label="__nolabel__", 
+                plt.plot(beta_vals, n_quants[0, :, gi], label="__nolabel__", 
                          color=mass_color, linestyle="dotted")
 
                 # Plot analytic and numeric IQR
                 plt.fill_between(beta_vals, a_stats[1, :, gi], a_stats[2, :, gi], 
                                  alpha=0.5, label="analytic IQR")
-                plt.fill_between(beta_vals, n_IQRl[:, gi], n_IQRu[:, gi], 
+                plt.fill_between(beta_vals, n_quants[1, :, gi], n_quants[2, :, gi], 
                                  alpha=0.3, label="numeric IQR")
 
             plt.xlabel(r"$\beta$")

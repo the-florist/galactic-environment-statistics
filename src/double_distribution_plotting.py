@@ -42,41 +42,22 @@ class DoubleDistributionPlots:
                 transform_pdf=transf) / self.ddc.norm[self.b,:,mi], 
                 shape, color=color)
 
+    def plot_quantile_mask(self, quant, bi, mi):
+        mask = np.logical_and(self.ddc.rvs >= quant[1, bi, mi], 
+                              self.ddc.rvs <= quant[2, bi, mi]).tolist()
+
+        plt.fill_between(self.ddc.rvs, self.ddc.PDF[bi,:,mi], 0, where = mask, 
+                                        alpha=0.5, color=self.plot_colors[mi])
+
     def plot_a_stats(self, mi, transf):
         self.plot_point(self.ddc.a_mode[self.b, mi], mi, transf, 'o', 'red')
-                
-                # plt.plot(a_modes[self.b,mi], 
-                #          ddfunc.dn(a_modes[self.b,mi], m, beta_vals[self.b], 
-                #          transform_pdf=True) / norm[self.b,:,mi], 'o', color='red', 
-                #          label='__nolabel__')
+        self.plot_point(self.ddc.n_mode[self.b, mi], mi, transf, '*', 'blue')
 
-            #     # Plot numeric mode
-            #     plt.plot(n_modes[self.b,mi], ddfunc.dn(n_modes[self.b,mi], m, beta_vals[self.b], 
-            #                                 transform_pdf=True) / norm[self.b,:,mi],
-            #                                 "*", color="blue", label='__nolabel__')
+        self.plot_point(self.ddc.n_quantiles[0, self.b, mi], mi, transf, 'o', 'red')
+        self.plot_point(self.ddc.a_quantiles[0, self.b, mi], mi, transf, '*', 'blue') 
 
-            #     # Plot analytic median
-            #     plt.plot(a_stats[0, b,mi], 
-            #         ddfunc.dn(a_stats[0, b,mi], m, beta_vals[self.b], 
-            #                     transform_pdf=True) / norm[self.b,:,mi], 
-            #         'o', color='red', label='__nolabel__')
-                
-            #     # Plot numeric median
-            #     plt.plot(n_median[self.b,mi], 
-            #             ddfunc.dn(n_median[self.b,mi], m, beta_vals[self.b], transform_pdf=True) / norm[self.b,:,mi],
-            #             "*", color="blue", label='__nolabel__')     
-
-            #     # Create logical masks where the PDF lies inside the IQRs
-            #     a_mask = np.logical_and(rho_vals >= a_stats[1, b,mi], rho_vals 
-            #                             <= a_stats[2, b,mi]).tolist()
-            #     n_mask = np.logical_and(rho_vals >= n_IQRl[self.b,mi], rho_vals 
-            #                             <= n_IQRu[self.b,mi]).tolist()
-
-            #     # Fill in the IQRs
-            #     plt.fill_between(rho_vals, cond_PDF[self.b,:,mi], 0, where = a_mask, 
-            #                      alpha=0.5, color=plot_color)
-            #     plt.fill_between(rho_vals, cond_PDF[self.b,:,mi], 0, where = n_mask, 
-            #                      alpha=0.5, color=plot_color)
+        self.plot_quantile_mask(self.ddc.n_quantiles, self.b, mi)
+        self.plot_quantile_mask(self.ddc.a_quantiles, self.b, mi)
 
             # if pms.plot_untransformed_PDF:
             #         # Evaluate the untransformed PDF on the grid

@@ -87,9 +87,11 @@ class DoubleDistributionCalculations:
                                                 for i in range(len(self.PDF))])
             self.n_stdev /= (pms.num_rho - 1)
 
-        return [self.n_mode, np.sqrt(self.n_stdev), 
-                self.find_quantile(0.5), self.find_quantile(pms.lqr), 
-                                         self.find_quantile(pms.uqr)]
+        temp = [self.find_quantile(0.5), self.find_quantile(pms.lqr), 
+                                                     self.find_quantile(pms.uqr)]
+        self.n_quantiles = np.stack(temp, axis=0)
+
+        return self.n_mode, np.sqrt(self.n_stdev), self.n_quantiles
 
     def a_stats(self, transfm, g = pms.default_gamma):
         
