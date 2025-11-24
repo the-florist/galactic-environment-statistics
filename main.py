@@ -12,18 +12,23 @@ if __name__ == '__main__':
             print("Visualising growth factor.")
             import src.growth_factor as grw
             grw.run()
+
         case "2":
             print("Visualising density profile.")
             import src.density_profile as dpr 
             dpr.run()
+
         case "3":
             print("Visualising double distribution.")
-            import src.double_distribution as dd 
+            from src.double_distribution import DoubleDistribution
+            dd = DoubleDistribution()
             dd.run()
+
         case "4":
             print("Plotting mode difference over a range of masses.")
             import util.multi_mass_plots as mmp 
             mmp.run()
+            
         case _:
             print(f"Mode {mode} not supported.")
             exit()

@@ -7,91 +7,114 @@
             as derived in Pavlidou and Fields 2005.
 """
 
+from llvmlite.ir import Value
 import util.parameters as pms
 from src.double_distribution_calculations import DoubleDistributionCalculations
 from src.double_distribution_plotting import DoubleDistributionPlots
 
-if pms.plot_dimension != 1 and pms.plot_dimension != 2:
-    raise ValueError("double-distribution.py : plot_dimension impossible" 
-                     "or is not implemented.")
+class DoubleDistribution():
+    def __init__(self):
+        self.plot_dim = pms.plot_dimension
+        self.slice_in_rho = pms.slice_in_rho
+        self.slice_in_beta = pms.slice_in_beta
+        self.rho_deriv = pms.plot_rho_derivative
 
-def run():
+        self.ddc = DoubleDistributionCalculations()
+        self.ddp = DoubleDistributionPlots(self.ddc)
 
-    if pms.verbose:
-        print(f"Starting {pms.plot_dimension}D plot generation...")
-
-    if pms.plot_dimension == 2:
+    def joint_PDF(self):
         """
             Calculate and plot the normalised joint PDF.
         """
+        self.ddc.calc_PDF(True, pms.default_gamma)
+        self.ddp.plot_heatmap("plots/joint-pdf.pdf")
 
-        ddc = DoubleDistributionCalculations()
-        ddp = DoubleDistributionPlots(ddc)
-        ddc.calc_PDF(True, pms.default_gamma)
-        ddp.plot_heatmap("plots/joint-pdf.pdf")
-
-    elif pms.plot_dimension == 1:
+    def pdf_slice_in_rho(self):
         """
             Calculate the conditional PDF at slices of rho or beta, and 
             plot alongside the mode, median and quantiles.
         """
-        ddc = DoubleDistributionCalculations()
-        ddp = DoubleDistributionPlots(ddc)
+        
+        # Find the closest beta to our heuristic value
+        transform_pdf = True
 
-        if pms.slice_in_rho:
-            # Find the closest beta to our heuristic value
-            transform_pdf = True
+        # Construct the conditional PDF and its statistics
+        self.ddc.calc_PDF(transform_pdf, pms.default_gamma)
+        self.ddc.n_stats()
+        self.ddc.a_stats(transform_pdf)
 
-            # Construct the conditional PDF and its statistics
-            ddc.calc_PDF(transform_pdf, pms.default_gamma)
-            ddc.n_stats()
-            ddc.a_stats(transform_pdf)
+        # Plot the full PDF
+        for mi in range(len(self.ddc.mvs)):
+            self.ddp.plot_rho_slice(mi, transform_pdf)
+            if pms.plot_statistics:
+                self.ddp.plot_a_stats(mi, transform_pdf)
 
-            # Plot the full PDF
-            for mi in range(len(ddc.mvs)):
-                ddp.plot_rho_slice(mi, transform_pdf)
+        # Construct and plot the untransformed PDF and its statistics
+        if pms.plot_untransformed_PDF:
+            transform_pdf = False
+            self.ddc.calc_PDF(transform_pdf, pms.default_gamma)
+            self.ddc.n_stats()
+            self.ddc.a_stats(transform_pdf)
+
+            for mi in range(len(self.ddc.mvs)):
+                self.ddp.plot_rho_slice(mi, transform_pdf)
                 if pms.plot_statistics:
-                    ddp.plot_a_stats(mi, transform_pdf)
+                    self.ddp.plot_a_stats(mi, transform_pdf)
 
-            # Construct and plot the untransformed PDF and its statistics
-            if pms.plot_untransformed_PDF:
-                transform_pdf = False
-                ddc.calc_PDF(transform_pdf, pms.default_gamma)
-                ddc.n_stats()
-                ddc.a_stats(transform_pdf)
+        # Finish plot of PDF slices
+        self.ddp.format_plot(r"PDF slices along mass", r"$\tilde{\rho}$", r"$P_n$")
+        self.ddp.save_plot("plots/joint-pdf-slice.pdf")
 
-                for mi in range(len(ddc.mvs)):
-                    ddp.plot_rho_slice(mi, transform_pdf)
-                    if pms.plot_statistics:
-                        ddp.plot_a_stats(mi, transform_pdf)
+    def pdf_slice_in_beta(self):
+        """
+            Plot the conditional PDF with respect to beta, for a range of 
+            mass/gamma values (replicates Fig. 3 of 
+            Korkidis and Pavlidou 2024).
+        """
 
-            # Finish plot of PDF slices
-            ddp.format_plot(r"PDF slices along mass", r"$\tilde{\rho}$", r"$P_n$")
-            ddp.save_plot("plots/joint-pdf-slice.pdf")
+        for gi, g in enumerate(self.ddc.gamma_slices):
+            # Numerically construct the conditional PDF
+            transform_pdf = True
+            self.ddc.calc_PDF(transform_pdf, g=g)
+            
+            # Calculate the numerical statistics
+            self.ddc.n_stats()
+            self.ddc.a_stats(transform_pdf, g=g)
+
+            # Plot the stats as a function of beta
+            self.ddp.plot_beta_slices(gi)
+
+        # Format and save the plot
+        self.ddp.format_plot(r"Most probale profile vs. $\beta$", 
+                        r"$\beta$", r"$\hat{\rho}$")
+        self.ddp.save_plot("plots/mpp-scaling.pdf")
+
+    def run(self):
+        """
+            Perform the requested calculation/plotting routine based on the 
+            parameters laid out in parameters.py.
+        """
+
+        if pms.verbose:
+            print(f"Starting {pms.plot_dimension}D plot generation...")
+
+        if self.plot_dim == 2:
+            self.joint_PDF()
+
+        elif self.plot_dim == 1 and self.slice_in_rho:
+            self.pdf_slice_in_rho()
+
+        elif self.plot_dim == 1 and self.slice_in_beta:
+            self.pdf_slice_in_beta()
+
+        elif self.rho_deriv:
+            self.ddp.plot_rho_derivative()
 
         else:
-            print("Starting most probable profile vs. mass plot...")
-            for gi, g in enumerate(ddc.gamma_slices):
-                # Numerically construct the conditional PDF
-                transform_pdf = True
-                ddc.calc_PDF(transform_pdf, g=g)
-                
-                # Calculate the numerical statistics
-                ddc.n_stats()
-                ddc.a_stats(transform_pdf, g=g)
-
-                # Plot the stats as a function of beta
-                ddp.plot_beta_slices(gi)
-
-            # Format and save the plot
-            ddp.format_plot(r"Most probale profile vs. $\beta$", 
-                            r"$\beta$", r"$\hat{\rho}$")
-            ddp.save_plot("plots/mpp-scaling.pdf")
+            print(pms.plot_dimension, pms.slice_in_rho, 
+                  pms.slice_in_beta, pms.plot_rho_derivative)
+            raise ValueError("DoubleDistribution:run : plot configuration is "
+                             "incorrect or not implemented.")
 
 
-        if pms.plot_rho_derivative:
-            ddc = DoubleDistributionCalculations()
-            ddp = DoubleDistributionPlots(ddc)
-            ddp.plot_rho_derivative()
-
-        
+            
