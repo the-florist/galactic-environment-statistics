@@ -123,18 +123,30 @@ class DoubleDistributionPlots:
     """
 
     def plot_mode_error(self):
-        transf_args = dict(label=rf"$beta = {self.ddc.bvs[self.b]:.2e}$")
-        color = self.plot_slice(self.ddc.mvs, self.ddc.us_transf_diff[self.b], 
-                                transf_args)
-        
-        num_args = dict(color = color, linestyle='--', linewidth=1, 
-                        label='_nolegend_')
-        self.plot_slice(self.ddc.mvs, self.ddc.us_num_diff[self.b], 
-                        num_args)
+        if len(self.ddc.bvs) < 5:
+            for bi, b in enumerate(self.ddc.bvs):
+                transf_args = dict(label=rf"$beta = {b:.2e}$")
+                color = self.plot_slice(self.ddc.mvs, 
+                                        self.ddc.us_transf_diff[bi], 
+                                        transf_args)
+                
+                num_args = dict(color = color, linestyle='--', linewidth=1, 
+                                label='_nolegend_')
+                self.plot_slice(self.ddc.mvs, self.ddc.us_num_diff[bi], 
+                                num_args)
+        else:
+            transf_args = dict(label=rf"$beta = {self.ddc.bvs[self.b]:.2e}$")
+            color = self.plot_slice(self.ddc.mvs, self.ddc.us_transf_diff[self.b], 
+                                    transf_args)
+            
+            num_args = dict(color = color, linestyle='--', linewidth=1, 
+                            label='_nolegend_')
+            self.plot_slice(self.ddc.mvs, self.ddc.us_num_diff[self.b], 
+                            num_args)
 
         self.format_plot("Abs diff between cubic and universal-scaling modes",
-                         r"$m$",
-                         r"($\hat{\rho}_{us} - \hat{\rho}_{full})/\hat{\rho}_{us}$")
+                        r"$m$",
+                        r"($\hat{\rho}_{us} - \hat{\rho}_{full})/\hat{\rho}_{us}$")
         self.save_plot("plots/mode-diffs.pdf")
 
     def plot_rho_derivative(self):
