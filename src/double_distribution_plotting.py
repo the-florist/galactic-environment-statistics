@@ -62,6 +62,14 @@ class DoubleDistributionPlots:
 
         n_median_args = dict(color=mass_color, linestyle="dotted")
         self.plot_stat_slice(self.ddc.bvs, self.ddc.n_quantiles[0], gi, n_median_args)
+
+        if len(self.ddc.gamma_slices) == 1:
+            plt.fill_between(self.ddc.bvs, self.ddc.a_quantiles[1, :, gi], 
+                             self.ddc.a_quantiles[2, :, gi], alpha=0.5,
+                             label="analytic IQR")
+            plt.fill_between(self.ddc.bvs, self.ddc.n_quantiles[1, :, gi], 
+                             self.ddc.n_quantiles[2, :, gi], alpha=0.5,
+                             label="numeric IQR")
     
     
     def plot_pdf_slice(self, x, mi, args):
@@ -86,12 +94,10 @@ class DoubleDistributionPlots:
                 transform_pdf=transf) / self.ddc.norm[self.b,:,mi], 
                 shape, color=color)
 
-    def plot_quantile_mask(self, quant, bi, mi):
-        mask = np.logical_and(self.ddc.rvs >= quant[1, bi, mi], 
-                              self.ddc.rvs <= quant[2, bi, mi]).tolist()
-
-        plt.fill_between(self.ddc.rvs, self.ddc.PDF[bi,:,mi], 0, where = mask, 
-                                        alpha=0.5, color=self.plot_colors[mi])
+    def plot_quantile_mask(self, x, y, quant, bi, mi):
+        mask = np.logical_and(self.ddc.rvs >= quant[1], 
+                              self.ddc.rvs <= quant[2]).tolist()
+        plt.fill_between(x, y, 0, where = mask, alpha=0.5, color=self.plot_colors[mi])
 
     def plot_a_stats(self, mi, transf):
         self.plot_point(self.ddc.a_mode[self.b, mi], mi, transf, 'o', 'red')
@@ -101,8 +107,13 @@ class DoubleDistributionPlots:
             self.plot_point(self.ddc.n_quantiles[0, self.b, mi], mi, transf, 'o', 'red')
             self.plot_point(self.ddc.a_quantiles[0, self.b, mi], mi, transf, '*', 'blue') 
 
-            self.plot_quantile_mask(self.ddc.n_quantiles, self.b, mi)
-            self.plot_quantile_mask(self.ddc.a_quantiles, self.b, mi)
+            self.plot_quantile_mask(self.ddc.rvs, self.ddc.PDF[self.b,:,mi], 
+                                    self.ddc.n_quantiles[:, self.b, mi], 
+                                    self.b, mi)
+            
+            self.plot_quantile_mask(self.ddc.rvs, self.ddc.PDF[self.b,:,mi], 
+                                    self.ddc.a_quantiles[:, self.b, mi], 
+                                    self.b, mi)
 
     
     

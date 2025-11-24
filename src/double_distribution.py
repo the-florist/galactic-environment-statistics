@@ -25,7 +25,7 @@ if pms.plot_dimension != 1 and pms.plot_dimension != 2:
 beta_vals = np.linspace(pms.beta_min, pms.beta_max, pms.num_beta)
 rho_vals = np.linspace(pms.rho_tilde_min, pms.rho_tilde_max, pms.num_rho)
 mass_vals = np.linspace(pms.mass_min, pms.mass_max, pms.num_mass) # np.array([1.3, 5, 17]) * 1e14  # np.array([pms.M_200])
-gamma_slices = np.array([0.4, 0.5, 0.6]) # np.array([0.4, 0.5, 0.6]) # np.linspace(pms.gamma_min, pms.gamma_max, pms.num_gamma)
+gamma_slices = np.linspace(pms.gamma_min, pms.gamma_max, pms.num_gamma)
 
 
 def run():
@@ -96,26 +96,8 @@ def run():
                 ddc.n_stats()
                 ddc.a_stats(transform_pdf, g=g)
 
+                # Plot the stats as a function of beta
                 ddp.plot_beta_slices(gi)
-
-                
-            #     # Plot analytic and numeric mode
-            #     line, = plt.plot(beta_vals, a_modes[:, gi], 
-            #                     label=rf"m={mass_vals[gi]:.2E}, $\gamma$={g:.2E}")
-            #     mass_color = line.get_color()
-            #     line, = plt.plot(beta_vals, n_modes[:, gi], 
-            #                     color=mass_color, linestyle="--")
-
-            #     # Plot analytic and numeric median
-            #     plt.plot(beta_vals, a_stats[0, :, gi], linestyle="-.", color=mass_color)
-            #     plt.plot(beta_vals, n_quants[0, :, gi], label="__nolabel__", 
-            #              color=mass_color, linestyle="dotted")
-
-            #     # Plot analytic and numeric IQR
-            #     plt.fill_between(beta_vals, a_stats[1, :, gi], a_stats[2, :, gi], 
-            #                      alpha=0.5, label="analytic IQR")
-            #     plt.fill_between(beta_vals, n_quants[1, :, gi], n_quants[2, :, gi], 
-            #                      alpha=0.3, label="numeric IQR")
 
             ddp.format_plot(r"Most probale profile vs. $\beta$", r"$\beta$", r"$\hat{\rho}$")
             ddp.save_plot("plots/mpp-scaling.pdf")
