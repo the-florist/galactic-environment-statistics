@@ -57,7 +57,7 @@ def run():
                 print("------")
 
         # Plot difference between analytic and numeric modes.
-        line, = plt.plot(mass_vals, mode_diffs1[bi], label=rf"$beta = {b:.2e}$")
+        line, = plt.plot(mass_vals, mode_diffs1[bi])
         plt.plot(mass_vals, mode_diffs2[bi], color=line.get_color(), 
                 linestyle='--', linewidth=1, label='_nolegend_')
 

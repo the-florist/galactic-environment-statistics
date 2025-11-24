@@ -42,29 +42,29 @@ class DoubleDistributionPlots:
         self.fig.savefig(fname)
         plt.close(self.fig)
 
+    def plot_slice(self, x, y, args):
+        line, = self.ax.plot(x, y, **args)
+        return line.get_color()  
+    
     """
         Plotting routines for beta slicing the PDF.
     """
-    
-    def plot_stat_slice(self, x, stat, gi, args):
-        line, = self.ax.plot(x, stat[:,gi], **args)
-        return line.get_color()
     
     def plot_beta_slices(self, gi):
         print(f"Plotting at {self.ddc.gamma_slices[gi]}...")
         
         a_mode_args = dict(label=(rf"m={self.ddc.mvs[gi]:.2E}, "+
                 rf"$\gamma$={self.ddc.gamma_slices[gi]:.2E}"))
-        mass_color = self.plot_stat_slice(self.ddc.bvs, self.ddc.a_mode, gi, a_mode_args)
+        mass_color = self.plot_slice(self.ddc.bvs, self.ddc.a_mode[:,gi], a_mode_args)
         
-        n_mode_args = dict(color=mass_color, linestyle="--")
-        self.plot_stat_slice(self.ddc.bvs, self.ddc.n_mode, gi, n_mode_args)
+        n_mode_args = dict(color=mass_color, linestyle="--", label='_nolegend_')
+        self.plot_slice(self.ddc.bvs, self.ddc.n_mode[:,gi], n_mode_args)
 
-        a_median_args = dict(color=mass_color, linestyle="-.")
-        self.plot_stat_slice(self.ddc.bvs, self.ddc.a_quantiles[0], gi, a_median_args)
+        a_median_args = dict(color=mass_color, linestyle="-.", label='_nolegend_')
+        self.plot_slice(self.ddc.bvs, self.ddc.a_quantiles[0,:,gi], a_median_args)
 
-        n_median_args = dict(color=mass_color, linestyle="dotted")
-        self.plot_stat_slice(self.ddc.bvs, self.ddc.n_quantiles[0], gi, n_median_args)
+        n_median_args = dict(color=mass_color, linestyle="dotted", label='_nolegend_')
+        self.plot_slice(self.ddc.bvs, self.ddc.n_quantiles[0,:,gi], n_median_args)
 
         if len(self.ddc.gamma_slices) == 1:
             plt.fill_between(self.ddc.bvs, self.ddc.a_quantiles[1, :, gi], 
@@ -76,19 +76,17 @@ class DoubleDistributionPlots:
     
     """
         Plotting routines for rho slicing the PDF.
-    """
-    
-    def plot_pdf_slice(self, x, mi, args):
-        line, = self.ax.plot(x, self.ddc.PDF[self.b,:,mi], **args)
-        return line.get_color()    
+    """  
              
     def plot_rho_slice(self, mi, transf):
         if transf:
             plot_args = dict(label=rf"$m = {self.ddc.MS[self.b,1,mi]:.2e}$")
         else:
-            plot_args = dict(linestyle='dashed', color=self.plot_colors[mi])
+            plot_args = dict(linestyle='dashed', color=self.plot_colors[mi], 
+                             label='_nolegend_')
             
-        color = self.plot_pdf_slice(self.ddc.rvs, mi, plot_args)
+        color = self.plot_slice(self.ddc.rvs, self.ddc.PDF[self.b,:,mi],
+                                    plot_args)
         
         if transf:
             self.plot_colors.append(color)
@@ -123,6 +121,21 @@ class DoubleDistributionPlots:
     """
         Misc. plotting routines, such as the heatmap and rho derivative plots.
     """
+
+    def plot_mode_error(self):
+        transf_args = dict(label=rf"$beta = {self.ddc.bvs[self.b]:.2e}$")
+        color = self.plot_slice(self.ddc.mvs, self.ddc.us_transf_diff[self.b], 
+                                transf_args)
+        
+        num_args = dict(color = color, linestyle='--', linewidth=1, 
+                        label='_nolegend_')
+        self.plot_slice(self.ddc.mvs, self.ddc.us_num_diff[self.b], 
+                        num_args)
+
+        self.format_plot("Abs diff between cubic and universal-scaling modes",
+                         r"$m$",
+                         r"($\hat{\rho}_{us} - \hat{\rho}_{full})/\hat{\rho}_{us}$")
+        self.save_plot("plots/mode-diffs.pdf")
 
     def plot_rho_derivative(self):
         # Plot rho_derivative using rho_vals

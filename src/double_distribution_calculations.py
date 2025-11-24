@@ -24,6 +24,7 @@ class DoubleDistributionCalculations:
         self.BTS, self.RHOS, self.MS = np.meshgrid(self.bvs, self.rvs, 
                                                    self.mvs, indexing='ij')
 
+    
     def calc_PDF(self, transfm, g = pms.default_gamma):
         if pms.verbose:
             print("Starting PDF calculation.")
@@ -41,7 +42,6 @@ class DoubleDistributionCalculations:
             if pms.verbose:
                 print(f"PDF norm - 1: {abs(self.PDF.sum(axis=axs) - 1.).max()}")
         
-        # return self.PDF, self.norm
 
     def find_quantile(self, zscore):
         sm = 0
@@ -59,6 +59,7 @@ class DoubleDistributionCalculations:
                     if stat[f, s] == 0:
                         stat[f, s] = x
         return stat
+    
     
     def n_stats(self):
         """
@@ -88,8 +89,8 @@ class DoubleDistributionCalculations:
                                                      self.find_quantile(pms.uqr)]
         self.n_quantiles = np.stack(temp, axis=0)
 
-        # return self.n_mode, np.sqrt(self.n_stdev), self.n_quantiles
-
+    
+    
     def a_stats(self, transfm, g = pms.default_gamma):
         
         if transfm:
@@ -105,14 +106,12 @@ class DoubleDistributionCalculations:
                 temp.append(nm.return_solution())
             
             self.a_quantiles = np.stack(temp, axis=0)
-            
-            # return self.a_mode, self.a_quantiles
         
         else:
             self.a_mode = ddfunc.most_probable_rho(self.MS[:,0,:], self.BTS[:,0,:], 
                                                    inc_mass_scaling=True)
-            # return self.a_mode
 
+    
     def print_stats_comparison(self, mi, bi):
         n_median = self.find_quantile(0.5)[bi, mi]
         a_median = self.a_quantiles[1, bi, mi]
@@ -132,3 +131,18 @@ class DoubleDistributionCalculations:
     def rho_derivative(self, rho):
             delta_c = ddfunc.delta_c_0(1) * func.D(1) / func.D(1)
             return pow(rho, (-1 - 1/delta_c))
+
+    
+    def calc_mode_error(self):
+        transf_mode = ddfunc.most_probable_rho_transformed(self.MS[:,0,:], 
+                                        self.BTS[:,0,:], pms.default_gamma)
+
+        us_mode = ddfunc.most_probable_rho(self.MS[:,0,:], self.BTS[:,0,:], 
+                                                   inc_mass_scaling=True)
+
+        num_mode = self.rvs[np.argmax(self.PDF, axis=1)]
+        
+        self.us_transf_diff = (us_mode - transf_mode) / us_mode
+        self.us_num_diff = (us_mode - num_mode) / us_mode
+
+        # return us_transf_diff, us_num_diff

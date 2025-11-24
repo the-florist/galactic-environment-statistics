@@ -18,6 +18,7 @@ class DoubleDistribution():
         self.slice_in_rho = pms.slice_in_rho
         self.slice_in_beta = pms.slice_in_beta
         self.rho_deriv = pms.plot_rho_derivative
+        self.plot_mode_error = pms.mode_error
 
         self.ddc = DoubleDistributionCalculations()
         self.ddp = DoubleDistributionPlots(self.ddc)
@@ -89,6 +90,16 @@ class DoubleDistribution():
                         r"$\beta$", r"$\hat{\rho}$")
         self.ddp.save_plot("plots/mpp-scaling.pdf")
 
+    def mode_error(self):
+        # Find the closest beta to our heuristic value
+        transform_pdf = True
+
+        # Construct the conditional PDF and its statistics
+        self.ddc.calc_PDF(transform_pdf, pms.default_gamma)
+        self.ddc.calc_mode_error()
+        self.ddp.plot_mode_error()
+
+
     def run(self):
         """
             Perform the requested calculation/plotting routine based on the 
@@ -106,6 +117,9 @@ class DoubleDistribution():
 
         elif self.plot_dim == 1 and self.slice_in_beta:
             self.pdf_slice_in_beta()
+
+        elif self.plot_dim == 1 and self.plot_mode_error:
+            self.mode_error()
 
         elif self.rho_deriv:
             self.ddp.plot_rho_derivative()
