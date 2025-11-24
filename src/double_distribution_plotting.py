@@ -28,10 +28,27 @@ class DoubleDistributionPlots:
         self.b = np.abs(self.ddc.bvs - pms.beta_heuristic).argmin()
         
     
-    def savefig(self, fname):
+    def format_plot(self, title, x_label, y_label):
+        plt.xlabel(x_label)
+        plt.ylabel(y_label)
+        plt.title(title)
+        plt.grid(True)
+        plt.legend()
+    
+    def save_plot(self, fname):
         self.fig.savefig(fname)
         plt.close(self.fig)
 
+    def plot_beta_slice(self, gi):
+        print(f"Plotting at {self.ddc.gamma_slices[gi]}...")
+        m_label = (rf"m={self.ddc.mvs[gi]:.2E}, "+
+                   rf"$\gamma$={self.ddc.gamma_slices[gi]:.2E}")
+        
+        line, = self.ax.plot(self.ddc.bvs, self.ddc.a_mode[:,gi], 
+                                label=m_label)
+        
+        self.plot_colors.append(line.get_color())
+    
     def plot_rho_slice(self, mi, transf):
         if transf:
             line, = self.ax.plot(self.ddc.rvs, self.ddc.PDF[self.b,:,mi], 

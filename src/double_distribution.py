@@ -25,7 +25,7 @@ if pms.plot_dimension != 1 and pms.plot_dimension != 2:
 beta_vals = np.linspace(pms.beta_min, pms.beta_max, pms.num_beta)
 rho_vals = np.linspace(pms.rho_tilde_min, pms.rho_tilde_max, pms.num_rho)
 mass_vals = np.linspace(pms.mass_min, pms.mass_max, pms.num_mass) # np.array([1.3, 5, 17]) * 1e14  # np.array([pms.M_200])
-gamma_slices = np.array([0.4]) # np.array([0.4, 0.5, 0.6]) # np.linspace(pms.gamma_min, pms.gamma_max, pms.num_gamma)
+gamma_slices = np.array([0.4, 0.5, 0.6]) # np.array([0.4, 0.5, 0.6]) # np.linspace(pms.gamma_min, pms.gamma_max, pms.num_gamma)
 
 
 def run():
@@ -43,7 +43,7 @@ def run():
         ddc = DoubleDistributionCalculations()
         ddp = DoubleDistributionPlots(ddc)
         ddc.calc_PDF(True, pms.default_gamma)
-        ddp.plot_heatmap(ddc, "plots/joint-pdf.pdf")
+        ddp.plot_heatmap("plots/joint-pdf.pdf")
 
     elif pms.plot_dimension == 1:
         """
@@ -58,18 +58,18 @@ def run():
             b = np.abs(beta_vals - pms.beta_heuristic).argmin()
             transform_pdf = True
 
-            # Numerically construct the conditional PDF
+            # Construct the conditional PDF and its statistics
             ddc.calc_PDF(transform_pdf, pms.default_gamma)
-
-            # Find the numerical modes, and variances rooted at those modes
             ddc.n_stats()
             ddc.a_stats(transform_pdf)
 
+            # Plot the full PDF
             for mi in range(len(ddc.mvs)):
                 ddp.plot_rho_slice(mi, transform_pdf)
                 if pms.plot_statistics:
                     ddp.plot_a_stats(mi, transform_pdf)
 
+            # Construct and plot the untransformed PDF and its statistics
             if pms.plot_untransformed_PDF:
                 transform_pdf = False
                 ddc.calc_PDF(transform_pdf, pms.default_gamma)
@@ -81,54 +81,44 @@ def run():
                     if pms.plot_statistics:
                         ddp.plot_a_stats(mi, transform_pdf)
 
-            
-            ddp.savefig("plots/joint-pdf-slice.pdf")
-            
             # Finish plot of PDF slices
-            # plt.xlabel(r"$\tilde{\rho}$")
-            # plt.ylabel(r"$P_n$")
-            # plt.title(r"PDF slices along mass")
-            # plt.grid(True)
-            # plt.legend()
-            # plt.savefig("plots/joint-pdf-slice.pdf")
-            # plt.close()
+            ddp.format_plot(r"PDF slices along mass", r"$\tilde{\rho}$", r"$P_n$")
+            ddp.save_plot("plots/joint-pdf-slice.pdf")
 
         else:
             print("Starting most probable profile vs. mass plot...")
             for gi, g in enumerate(gamma_slices):
                 # Numerically construct the conditional PDF
-                cond_PDF, norm = ddc.calc_PDF(True, g=g)
+                transform_pdf = True
+                ddc.calc_PDF(transform_pdf, g=g)
                 
                 # Calculate the numerical statistics
-                n_modes, n_stdevs, n_quants = ddc.n_stats()
+                ddc.n_stats()
+                ddc.a_stats(transform_pdf, g=g)
 
-                a_modes, a_stats = ddc.a_stats(True, g=g)
+                ddp.plot_beta_slice(gi)
+
                 
-                # Plot analytic and numeric mode
-                line, = plt.plot(beta_vals, a_modes[:, gi], 
-                                label=rf"m={mass_vals[gi]:.2E}, $\gamma$={g:.2E}")
-                mass_color = line.get_color()
-                line, = plt.plot(beta_vals, n_modes[:, gi], 
-                                color=mass_color, linestyle="--")
+            #     # Plot analytic and numeric mode
+            #     line, = plt.plot(beta_vals, a_modes[:, gi], 
+            #                     label=rf"m={mass_vals[gi]:.2E}, $\gamma$={g:.2E}")
+            #     mass_color = line.get_color()
+            #     line, = plt.plot(beta_vals, n_modes[:, gi], 
+            #                     color=mass_color, linestyle="--")
 
-                # Plot analytic and numeric median
-                plt.plot(beta_vals, a_stats[0, :, gi], linestyle="-.", color=mass_color)
-                plt.plot(beta_vals, n_quants[0, :, gi], label="__nolabel__", 
-                         color=mass_color, linestyle="dotted")
+            #     # Plot analytic and numeric median
+            #     plt.plot(beta_vals, a_stats[0, :, gi], linestyle="-.", color=mass_color)
+            #     plt.plot(beta_vals, n_quants[0, :, gi], label="__nolabel__", 
+            #              color=mass_color, linestyle="dotted")
 
-                # Plot analytic and numeric IQR
-                plt.fill_between(beta_vals, a_stats[1, :, gi], a_stats[2, :, gi], 
-                                 alpha=0.5, label="analytic IQR")
-                plt.fill_between(beta_vals, n_quants[1, :, gi], n_quants[2, :, gi], 
-                                 alpha=0.3, label="numeric IQR")
+            #     # Plot analytic and numeric IQR
+            #     plt.fill_between(beta_vals, a_stats[1, :, gi], a_stats[2, :, gi], 
+            #                      alpha=0.5, label="analytic IQR")
+            #     plt.fill_between(beta_vals, n_quants[1, :, gi], n_quants[2, :, gi], 
+            #                      alpha=0.3, label="numeric IQR")
 
-            plt.xlabel(r"$\beta$")
-            plt.ylabel(r"$\hat{\rho}$")
-            plt.title(r"Most probale profile vs. $\beta$")
-            plt.grid(True)
-            plt.legend()
-            plt.savefig("plots/mpp-beta-scaling-with-iqrs.pdf")
-            plt.close()
+            ddp.format_plot(r"Most probale profile vs. $\beta$", r"$\beta$", r"$\hat{\rho}$")
+            ddp.save_plot("plots/mpp-scaling.pdf")
 
 
         if pms.plot_rho_derivative:

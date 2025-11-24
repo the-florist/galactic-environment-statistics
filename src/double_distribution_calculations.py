@@ -22,7 +22,7 @@ class DoubleDistributionCalculations:
         self.bvs = np.linspace(pms.beta_min, pms.beta_max, pms.num_beta)
         self.rvs = np.linspace(pms.rho_tilde_min, pms.rho_tilde_max, pms.num_rho)
         self.mvs = np.linspace(pms.mass_min, pms.mass_max, pms.num_mass) # np.array([pms.M_200]) # np.array([1.3, 5, 17]) * 1e14 # np.linspace(pms.mass_min, pms.mass_max, pms.num_mass)
-        self.gamma_slices = np.array([0.4]) # np.array([0.4, 0.5, 0.6]) # np.linspace(pms.gamma_min, pms.gamma_max, pms.num_gamma)
+        self.gamma_slices = np.array([0.4, 0.5, 0.6]) # np.linspace(pms.gamma_min, pms.gamma_max, pms.num_gamma)
 
         self.BTS, self.RHOS, self.MS = np.meshgrid(self.bvs, self.rvs, 
                                                    self.mvs, indexing='ij')
