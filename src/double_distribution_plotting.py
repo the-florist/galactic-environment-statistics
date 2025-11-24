@@ -16,7 +16,6 @@ from src.double_distribution_calculations import DoubleDistributionCalculations 
 import util.parameters as pms
 import util.functions as func
 import util.double_distribution_functions as ddfunc
-from util.Newton_method import NewtonsMethod
 
 class DoubleDistributionPlots:
     m_norm = 1e14

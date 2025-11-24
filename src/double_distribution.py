@@ -7,14 +7,7 @@
             as derived in Pavlidou and Fields 2005.
 """
 
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.gridspec import GridSpec
-
 import util.parameters as pms
-import util.functions as func
-import util.double_distribution_functions as ddfunc
-from util.Newton_method import NewtonsMethod
 from src.double_distribution_calculations import DoubleDistributionCalculations
 from src.double_distribution_plotting import DoubleDistributionPlots
 
@@ -22,15 +15,7 @@ if pms.plot_dimension != 1 and pms.plot_dimension != 2:
     raise ValueError("double-distribution.py : plot_dimension impossible" 
                      "or is not implemented.")
 
-beta_vals = np.linspace(pms.beta_min, pms.beta_max, pms.num_beta)
-rho_vals = np.linspace(pms.rho_tilde_min, pms.rho_tilde_max, pms.num_rho)
-mass_vals = np.linspace(pms.mass_min, pms.mass_max, pms.num_mass) # np.array([1.3, 5, 17]) * 1e14  # np.array([pms.M_200])
-gamma_slices = np.linspace(pms.gamma_min, pms.gamma_max, pms.num_gamma)
-
-
 def run():
-    # Create meshgrid with axes ordered as (beta, rho, mass)
-    BTS, RHOS, MS = np.meshgrid(beta_vals, rho_vals, mass_vals, indexing='ij')
 
     if pms.verbose:
         print(f"Starting {pms.plot_dimension}D plot generation...")
@@ -86,7 +71,7 @@ def run():
 
         else:
             print("Starting most probable profile vs. mass plot...")
-            for gi, g in enumerate(gamma_slices):
+            for gi, g in enumerate(ddc.gamma_slices):
                 # Numerically construct the conditional PDF
                 transform_pdf = True
                 ddc.calc_PDF(transform_pdf, g=g)
