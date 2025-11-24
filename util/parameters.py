@@ -41,7 +41,7 @@ lqr, uqr = 0.16, 0.84
 slice_in_rho = False
 plot_untransformed_PDF = True
 plot_statistics = True
-plot_rho_derivative = False
+plot_rho_derivative = True
 
 # Concordance cosmology
 concordance_model = True

@@ -130,3 +130,8 @@ class DoubleDistributionCalculations:
         print("Target fn for each: ")
         print(nm.target_fn(n_median)[bi, mi])
         print(nm.target_fn(a_median)[bi, mi])
+
+
+    def rho_derivative(self, rho):
+            delta_c = ddfunc.delta_c_0(1) * func.D(1) / func.D(1)
+            return pow(rho, (-1 - 1/delta_c))

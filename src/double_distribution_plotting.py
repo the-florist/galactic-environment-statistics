@@ -27,8 +27,9 @@ class DoubleDistributionPlots:
         self.fig, self.ax = plt.subplots()
         self.b = np.abs(self.ddc.bvs - pms.beta_heuristic).argmin()
         
-    
-    
+    """
+        Helper functions, for saving and formatting plots.
+    """
     
     def format_plot(self, title, x_label, y_label):
         plt.xlabel(x_label)
@@ -38,10 +39,13 @@ class DoubleDistributionPlots:
         plt.legend()
     
     def save_plot(self, fname):
+        func.make_directory("plots")
         self.fig.savefig(fname)
         plt.close(self.fig)
 
-    
+    """
+        Plotting routines for beta slicing the PDF.
+    """
     
     def plot_stat_slice(self, x, stat, gi, args):
         line, = self.ax.plot(x, stat[:,gi], **args)
@@ -71,6 +75,9 @@ class DoubleDistributionPlots:
                              self.ddc.n_quantiles[2, :, gi], alpha=0.5,
                              label="numeric IQR")
     
+    """
+        Plotting routines for rho slicing the PDF.
+    """
     
     def plot_pdf_slice(self, x, mi, args):
         line, = self.ax.plot(x, self.ddc.PDF[self.b,:,mi], **args)
@@ -86,8 +93,6 @@ class DoubleDistributionPlots:
         
         if transf:
             self.plot_colors.append(color)
-
-    
     
     def plot_point(self, rho, mi, transf, shape, color):
         plt.plot(rho, ddfunc.dn(rho, self.ddc.mvs[mi], self.ddc.bvs[self.b], 
@@ -116,6 +121,18 @@ class DoubleDistributionPlots:
                                     self.b, mi)
 
     
+    """
+        Misc. plotting routines, such as the heatmap and rho derivative plots.
+    """
+
+    def plot_rho_derivative(self):
+        # Plot rho_derivative using rho_vals
+        y_vals = [self.ddc.rho_derivative(r) for r in self.ddc.rvs]
+        plt.plot(self.ddc.rvs, y_vals)
+        plt.yscale('log')
+        self.format_plot(r"rho derivative: $\bar{\rho}^{-1/\tilde{\delta}_{c}-1}$",
+                        r"$\bar{\rho}$", r"$d \tilde{\delta}_l / d \bar{\rho}$")
+        self.save_plot("plots/rho-derivative.pdf")
     
     def plot_heatmap(self, fname):
         if pms.verbose:

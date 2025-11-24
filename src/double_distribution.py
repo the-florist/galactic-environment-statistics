@@ -37,7 +37,7 @@ def run():
 
     if pms.plot_dimension == 2:
         """
-            Calculate the normalised joint PDF and plot it.
+            Calculate and plot the normalised joint PDF.
         """
 
         ddc = DoubleDistributionCalculations()
@@ -47,15 +47,14 @@ def run():
 
     elif pms.plot_dimension == 1:
         """
-            Calculate the conditional PDF at slices of beta, and plot alongside the mode 
-            and stdev of the mode.
+            Calculate the conditional PDF at slices of rho or beta, and 
+            plot alongside the mode, median and quantiles.
         """
         ddc = DoubleDistributionCalculations()
         ddp = DoubleDistributionPlots(ddc)
 
         if pms.slice_in_rho:
             # Find the closest beta to our heuristic value
-            b = np.abs(beta_vals - pms.beta_heuristic).argmin()
             transform_pdf = True
 
             # Construct the conditional PDF and its statistics
@@ -99,25 +98,15 @@ def run():
                 # Plot the stats as a function of beta
                 ddp.plot_beta_slices(gi)
 
-            ddp.format_plot(r"Most probale profile vs. $\beta$", r"$\beta$", r"$\hat{\rho}$")
+            # Format and save the plot
+            ddp.format_plot(r"Most probale profile vs. $\beta$", 
+                            r"$\beta$", r"$\hat{\rho}$")
             ddp.save_plot("plots/mpp-scaling.pdf")
 
 
         if pms.plot_rho_derivative:
-            def rho_derivative(rho):
-                delta_c = ddfunc.delta_c_0(1) * func.D(1) / func.D(1)
-                return pow(rho, (-1 - 1/delta_c))
-
-            # Plot rho_derivative using rho_vals
-            y_vals = [rho_derivative(r) for r in rho_vals]
-            plt.figure()
-            plt.plot(rho_vals, y_vals)
-            plt.xlabel(r"$\bar{\rho}$")
-            plt.ylabel(r"$d \tilde{\delta}_l / d \bar{\rho}$")
-            plt.grid(True, which='both', ls='--', alpha=0.3)
-            plt.title(r"rho derivative: $\bar{\rho}^{-1/\tilde{\delta}_{c}-1}$")
-            func.make_directory("plots")
-            plt.savefig("plots/rho-derivative.pdf")
-            plt.close()
+            ddc = DoubleDistributionCalculations()
+            ddp = DoubleDistributionPlots(ddc)
+            ddp.plot_rho_derivative()
 
         
