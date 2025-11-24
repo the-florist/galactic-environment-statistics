@@ -28,6 +28,8 @@ class DoubleDistributionPlots:
         self.b = np.abs(self.ddc.bvs - pms.beta_heuristic).argmin()
         
     
+    
+    
     def format_plot(self, title, x_label, y_label):
         plt.xlabel(x_label)
         plt.ylabel(y_label)
@@ -39,27 +41,46 @@ class DoubleDistributionPlots:
         self.fig.savefig(fname)
         plt.close(self.fig)
 
-    def plot_beta_slice(self, gi):
-        print(f"Plotting at {self.ddc.gamma_slices[gi]}...")
-        m_label = (rf"m={self.ddc.mvs[gi]:.2E}, "+
-                   rf"$\gamma$={self.ddc.gamma_slices[gi]:.2E}")
-        
-        line, = self.ax.plot(self.ddc.bvs, self.ddc.a_mode[:,gi], 
-                                label=m_label)
-        
-        self.plot_colors.append(line.get_color())
     
+    
+    def plot_stat_slice(self, x, stat, gi, args):
+        line, = self.ax.plot(x, stat[:,gi], **args)
+        return line.get_color()
+    
+    def plot_beta_slices(self, gi):
+        print(f"Plotting at {self.ddc.gamma_slices[gi]}...")
+        
+        a_mode_args = dict(label=(rf"m={self.ddc.mvs[gi]:.2E}, "+
+                rf"$\gamma$={self.ddc.gamma_slices[gi]:.2E}"))
+        mass_color = self.plot_stat_slice(self.ddc.bvs, self.ddc.a_mode, gi, a_mode_args)
+        
+        n_mode_args = dict(color=mass_color, linestyle="--")
+        self.plot_stat_slice(self.ddc.bvs, self.ddc.n_mode, gi, n_mode_args)
+
+        a_median_args = dict(color=mass_color, linestyle="-.")
+        self.plot_stat_slice(self.ddc.bvs, self.ddc.a_quantiles[0], gi, a_median_args)
+
+        n_median_args = dict(color=mass_color, linestyle="dotted")
+        self.plot_stat_slice(self.ddc.bvs, self.ddc.n_quantiles[0], gi, n_median_args)
+    
+    
+    def plot_pdf_slice(self, x, mi, args):
+        line, = self.ax.plot(x, self.ddc.PDF[self.b,:,mi], **args)
+        return line.get_color()    
+             
     def plot_rho_slice(self, mi, transf):
         if transf:
-            line, = self.ax.plot(self.ddc.rvs, self.ddc.PDF[self.b,:,mi], 
-                                label=rf"$m = {self.ddc.MS[self.b,1,mi]:.2e}$")
-            self.plot_colors.append(line.get_color())
-        
+            plot_args = dict(label=rf"$m = {self.ddc.MS[self.b,1,mi]:.2e}$")
         else:
-            self.ax.plot(self.ddc.rvs, self.ddc.PDF[self.b,:,mi], 
-                                linestyle='dashed', color=self.plot_colors[mi])       
-             
+            plot_args = dict(linestyle='dashed', color=self.plot_colors[mi])
+            
+        color = self.plot_pdf_slice(self.ddc.rvs, mi, plot_args)
+        
+        if transf:
+            self.plot_colors.append(color)
 
+    
+    
     def plot_point(self, rho, mi, transf, shape, color):
         plt.plot(rho, ddfunc.dn(rho, self.ddc.mvs[mi], self.ddc.bvs[self.b], 
                 transform_pdf=transf) / self.ddc.norm[self.b,:,mi], 
@@ -83,6 +104,8 @@ class DoubleDistributionPlots:
             self.plot_quantile_mask(self.ddc.n_quantiles, self.b, mi)
             self.plot_quantile_mask(self.ddc.a_quantiles, self.b, mi)
 
+    
+    
     def plot_heatmap(self, fname):
         if pms.verbose:
             print("Starting heatmap plot.")

@@ -96,7 +96,7 @@ def run():
                 ddc.n_stats()
                 ddc.a_stats(transform_pdf, g=g)
 
-                ddp.plot_beta_slice(gi)
+                ddp.plot_beta_slices(gi)
 
                 
             #     # Plot analytic and numeric mode
