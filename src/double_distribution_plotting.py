@@ -78,17 +78,20 @@ class DoubleDistributionPlots:
         Plotting routines for rho slicing the PDF.
     """  
              
-    def plot_rho_slice(self, mi, transf):
-        if transf:
-            plot_args = dict(label=rf"$m = {self.ddc.MS[self.b,1,mi]:.2e}$")
-        else:
+    def plot_rho_slice(self, mi, transf, sis:bool=False):
+        if not transf:
             plot_args = dict(linestyle='dashed', color=self.plot_colors[mi], 
                              label='_nolegend_')
+        elif sis:
+            plot_args = dict(linestyle='dotted', color='black', 
+                             label='_nolegend_')
+        else:
+            plot_args = dict(label=rf"$m = {self.ddc.MS[self.b,1,mi]:.2e}$")
             
         color = self.plot_slice(self.ddc.rvs, self.ddc.PDF[self.b,:,mi],
                                     plot_args)
         
-        if transf:
+        if transf and not sis:
             self.plot_colors.append(color)
     
     def plot_point(self, rho, mi, transf, shape, color):

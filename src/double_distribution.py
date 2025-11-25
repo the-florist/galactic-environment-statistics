@@ -63,6 +63,18 @@ class DoubleDistribution():
                 if pms.plot_statistics:
                     self.ddp.plot_a_stats(mi, transform_pdf)
 
+        elif pms.plot_sis:
+            transform_pdf = True
+            struct_in_struct = True
+            self.ddc.calc_PDF(transform_pdf, g=pms.default_gamma, sis=struct_in_struct)
+            self.ddc.n_stats()
+            self.ddc.a_stats(transform_pdf)
+
+            for mi in range(len(self.ddc.mvs)):
+                self.ddp.plot_rho_slice(mi, transform_pdf, sis=struct_in_struct)
+                if pms.plot_statistics:
+                    self.ddp.plot_a_stats(mi, transform_pdf)
+
         # Finish plot of PDF slices
         self.ddp.format_plot(r"PDF slices along mass", r"$\tilde{\rho}$", r"$P_n$")
         self.ddp.save_plot("plots/joint-pdf-slice.pdf")

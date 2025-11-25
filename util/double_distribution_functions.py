@@ -19,7 +19,7 @@ from util.functions import delta_c_0, delta_tilde_to_rho
 """
 
 def dn(rho, m, beta, a:float = 1, transform_pdf:bool = pms.transform_pdf, 
-                                  gamma:float = pms.default_gamma):
+                       gamma:float = pms.default_gamma, sis:bool = False):
     """
         Calculate the double distribution of number density w/r/t mass and 
         local overdensity
@@ -38,8 +38,14 @@ def dn(rho, m, beta, a:float = 1, transform_pdf:bool = pms.transform_pdf,
                             / (2 *(func.S(m, gamma) - func.S(beta * m, gamma)))) 
     mass_removal /= pow(func.S(m, gamma) - func.S(beta*m, gamma), 3/2)
 
-    random_walk = (rho_m / m) * (np.exp(-(delta_tilde ** 2) / (2 * func.S(beta * m, gamma))) 
-                    / (2 * np.pi * np.sqrt(func.S(beta * m, gamma))))
+    random_walk = np.exp(-(delta_tilde ** 2) / (2 * func.S(beta * m, gamma)))
+    if sis:
+        random_walk -= np.exp(-pow(delta_tilde - 2 * delta_c_0(a), 2) / 
+                        (2 * func.S(beta * m, gamma)))
+    random_walk *= (rho_m / m) / (2 * np.pi * np.sqrt(func.S(beta*m, gamma)))
+
+    # random_walk = (rho_m / m) * (np.exp(-(delta_tilde ** 2) / (2 * func.S(beta * m, gamma))) 
+    #                 / (2 * np.pi * np.sqrt(func.S(beta * m, gamma))))
 
     # Construct the raw PDF
     dn = random_walk * mass_removal # * func.dS(m)
