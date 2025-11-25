@@ -1,13 +1,14 @@
 """
-    Filename: double-distribution.py
+    Filename: double_distribution.py
     Author: Ericka Florio
     Created: 11 Sept 2025
-    Description: Plots the joint double distribution for the number density of objects 
-            of mass m with local overdensity delta_l, 
-            as derived in Pavlidou and Fields 2005.
+    Description: Main class which controls the calculation of 
+                 the double distribution and the plotting of this 
+                 distribution, as described in 
+                 double_distribution_calculations.py and 
+                 double_distribution_plotting.py.
 """
 
-from llvmlite.ir import Value
 import util.parameters as pms
 from src.double_distribution_calculations import DoubleDistributionCalculations
 from src.double_distribution_plotting import DoubleDistributionPlots
