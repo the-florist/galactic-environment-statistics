@@ -88,17 +88,21 @@ def transfer_function_integrand(k):
     return temp
 
 
-def S(m, gamma, power_law_approx = pms.power_law_approx):
+def S(m, gamma, pla = pms.power_law_approx):
     """
         Variance of the density field 
         calculated both in the power law approximation
         and by the transfer function from Bardeen 1986.
     """
-    if power_law_approx == True:
+    if pla == True:
         return pms.s_8 * (m/pms.m_8) ** (-gamma)
 
     else:
-        S_temp = integrate.quad(lambda k: transfer_function_integrand(k), 0, k_of_m(m))[0]
+        ms = np.unique(m)
+        integral = {mv: integrate.quad(lambda k: transfer_function_integrand(k), 
+                    0, k_of_m(mv))[0] for mv in ms}
+        S_temp = np.vectorize(lambda mv: integral[mv])(m)
+
         S_temp *= pms.s_8
         S_temp /= (integrate.quad(lambda k: transfer_function_integrand(k), 0, k_of_m(pms.m_8))[0])
         return S_temp 
@@ -108,7 +112,7 @@ def dS(m, power_law_approx = pms.power_law_approx, gamma:float = pms.default_gam
         dS = - pms.s_8 * gamma * pow(m / pms.m_8, - gamma - 1) / pms.m_8
         return dS
     else:
-        print("Numerical derivative not yet implemented.")
+        print("Numerical derivative of S(m) not yet implemented.")
         exit()
 
 """

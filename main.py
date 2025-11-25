@@ -23,11 +23,6 @@ if __name__ == '__main__':
             from src.double_distribution import DoubleDistribution
             dd = DoubleDistribution()
             dd.run()
-
-        case "4":
-            print("Plotting mode difference over a range of masses.")
-            import util.multi_mass_plots as mmp 
-            mmp.run()
             
         case _:
             print(f"Mode {mode} not supported.")

@@ -47,7 +47,7 @@ class DoubleDistribution():
 
         # Plot the full PDF
         for mi in range(len(self.ddc.mvs)):
-            self.ddp.plot_rho_slice(mi, transform_pdf)
+            self.ddp.plot_rho_slice(mi, primary=True)
             if pms.plot_statistics:
                 self.ddp.plot_a_stats(mi, transform_pdf)
 
@@ -59,7 +59,7 @@ class DoubleDistribution():
             self.ddc.a_stats(transform_pdf)
 
             for mi in range(len(self.ddc.mvs)):
-                self.ddp.plot_rho_slice(mi, transform_pdf)
+                self.ddp.plot_rho_slice(mi)
                 if pms.plot_statistics:
                     self.ddp.plot_a_stats(mi, transform_pdf)
 
@@ -71,10 +71,22 @@ class DoubleDistribution():
             self.ddc.a_stats(transform_pdf)
 
             for mi in range(len(self.ddc.mvs)):
-                self.ddp.plot_rho_slice(mi, transform_pdf, sis=struct_in_struct)
+                self.ddp.plot_rho_slice(mi)
                 if pms.plot_statistics:
                     self.ddp.plot_a_stats(mi, transform_pdf)
 
+        elif pms.compare_pla:
+            transform_pdf = True
+            m_pla = False
+            self.ddc.calc_PDF(transform_pdf, g=pms.default_gamma, pla=m_pla)
+            self.ddc.n_stats()
+            self.ddc.a_stats(transform_pdf)
+            
+            for mi in range(len(self.ddc.mvs)):
+                self.ddp.plot_rho_slice(mi)
+                if pms.plot_statistics:
+                    self.ddp.plot_a_stats(mi, transform_pdf)
+        
         # Finish plot of PDF slices
         self.ddp.format_plot(r"PDF slices along mass", r"$\tilde{\rho}$", r"$P_n$")
         self.ddp.save_plot("plots/joint-pdf-slice.pdf")

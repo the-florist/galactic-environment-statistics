@@ -43,7 +43,8 @@ slice_in_beta = False
 plot_statistics = False
 
 plot_untransformed_PDF = False
-plot_sis = True
+plot_sis = False
+compare_pla = True
 
 mode_error = False
 plot_rho_derivative = False

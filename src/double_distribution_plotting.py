@@ -78,28 +78,25 @@ class DoubleDistributionPlots:
         Plotting routines for rho slicing the PDF.
     """  
              
-    def plot_rho_slice(self, mi, transf, sis:bool=False):
-        if not transf:
+    def plot_rho_slice(self, mi, primary:bool=False):
+        if primary:
+            plot_args = dict(label=rf"$m = {self.ddc.MS[self.b,1,mi]:.2e}$")
+        else:
             plot_args = dict(linestyle='dashed', color=self.plot_colors[mi], 
                              label='_nolegend_')
-        elif sis:
-            plot_args = dict(linestyle='dotted', color='black', 
-                             label='_nolegend_')
-        else:
-            plot_args = dict(label=rf"$m = {self.ddc.MS[self.b,1,mi]:.2e}$")
             
         color = self.plot_slice(self.ddc.rvs, self.ddc.PDF[self.b,:,mi],
                                     plot_args)
         
-        if transf and not sis:
+        if primary:
             self.plot_colors.append(color)
     
     def plot_point(self, rho, mi, transf, shape, color):
         plt.plot(rho, ddfunc.dn(rho, self.ddc.mvs[mi], self.ddc.bvs[self.b], 
-                transform_pdf=transf) / self.ddc.norm[self.b,:,mi], 
+                transform=transf) / self.ddc.norm[self.b,:,mi], 
                 shape, color=color)
 
-    def plot_quantile_mask(self, x, y, quant, bi, mi):
+    def plot_quantile_mask(self, x, y, quant, mi):
         mask = np.logical_and(self.ddc.rvs >= quant[1], 
                               self.ddc.rvs <= quant[2]).tolist()
         plt.fill_between(x, y, 0, where = mask, alpha=0.5, color=self.plot_colors[mi])
@@ -113,12 +110,10 @@ class DoubleDistributionPlots:
             self.plot_point(self.ddc.a_quantiles[0, self.b, mi], mi, transf, '*', 'blue') 
 
             self.plot_quantile_mask(self.ddc.rvs, self.ddc.PDF[self.b,:,mi], 
-                                    self.ddc.n_quantiles[:, self.b, mi], 
-                                    self.b, mi)
+                                    self.ddc.n_quantiles[:, self.b, mi], mi)
             
             self.plot_quantile_mask(self.ddc.rvs, self.ddc.PDF[self.b,:,mi], 
-                                    self.ddc.a_quantiles[:, self.b, mi], 
-                                    self.b, mi)
+                                    self.ddc.a_quantiles[:, self.b, mi], mi)
 
     
     """

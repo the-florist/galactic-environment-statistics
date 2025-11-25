@@ -18,8 +18,11 @@ from util.functions import delta_c_0, delta_tilde_to_rho
     Functions related to the double distribution (PDF).
 """
 
-def dn(rho, m, beta, a:float = 1, transform_pdf:bool = pms.transform_pdf, 
-                       gamma:float = pms.default_gamma, sis:bool = False):
+def dn(rho, m, beta, 
+       a:float = 1, g:float = pms.default_gamma,
+       transform:bool = pms.transform_pdf, sis:bool = pms.plot_sis, 
+       pla:bool = pms.power_law_approx):
+    
     """
         Calculate the double distribution of number density w/r/t mass and 
         local overdensity
@@ -35,23 +38,22 @@ def dn(rho, m, beta, a:float = 1, transform_pdf:bool = pms.transform_pdf,
     # Calculate the component distributions
     mass_removal = (delta_c_0(a) - delta_tilde) 
     mass_removal *= np.exp(-(delta_c_0(a) - delta_tilde)**2 
-                            / (2 *(func.S(m, gamma) - func.S(beta * m, gamma)))) 
-    mass_removal /= pow(func.S(m, gamma) - func.S(beta*m, gamma), 3/2)
+                          / (2 *(func.S(m, g, pla=pla) 
+                               - func.S(beta * m, g, pla=pla)))) 
 
-    random_walk = np.exp(-(delta_tilde ** 2) / (2 * func.S(beta * m, gamma)))
+    mass_removal /= pow(func.S(m, g, pla=pla) - func.S(beta*m, g, pla=pla), 3/2)
+
+    random_walk = np.exp(-(delta_tilde ** 2) / (2 * func.S(beta * m, g, pla=pla)))
     if sis:
         random_walk -= np.exp(-pow(delta_tilde - 2 * delta_c_0(a), 2) / 
-                        (2 * func.S(beta * m, gamma)))
-    random_walk *= (rho_m / m) / (2 * np.pi * np.sqrt(func.S(beta*m, gamma)))
-
-    # random_walk = (rho_m / m) * (np.exp(-(delta_tilde ** 2) / (2 * func.S(beta * m, gamma))) 
-    #                 / (2 * np.pi * np.sqrt(func.S(beta * m, gamma))))
+                        (2 * func.S(beta * m, g, pla=pla)))
+    random_walk *= (rho_m / m) / (2 * np.pi * np.sqrt(func.S(beta*m, g, pla=pla)))
 
     # Construct the raw PDF
     dn = random_walk * mass_removal # * func.dS(m)
 
     # Apply inverse derivative to get the transformed PDF of rho
-    if transform_pdf:
+    if transform:
         dn *= pow(rho, (-1 - 1/delta_c))
 
     if pms.enforce_positive_pdf == True:

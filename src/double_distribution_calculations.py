@@ -25,13 +25,15 @@ class DoubleDistributionCalculations:
                                                    self.mvs, indexing='ij')
 
     
-    def calc_PDF(self, transfm, g = pms.default_gamma, sis = False):
+    def calc_PDF(self, transfm, g = pms.default_gamma, sis = False, 
+                 pla:bool=pms.power_law_approx):
+        
         if pms.verbose:
             print("Starting PDF calculation.")
 
         self.PDF = ddfunc.dn(self.RHOS, self.MS, self.BTS, 
-                             transform_pdf=transfm, gamma=g, 
-                             sis=sis)
+                             transform=transfm, sis=sis, 
+                             pla=pla, g=g)
         
         if pms.normalise_pdf:
             if pms.plot_dimension == 2:
