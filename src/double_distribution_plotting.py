@@ -19,12 +19,12 @@ import util.double_distribution_functions as ddfunc
 
 class DoubleDistributionPlots:
     m_norm = 1e14
-    plot_colors = []
 
     def __init__(self, ddc_in:DDC):
         self.ddc = ddc_in
         self.fig, self.ax = plt.subplots()
         self.b = np.abs(self.ddc.bvs - pms.beta_heuristic).argmin()
+        self.plot_colors = []
         
     """
         Helper functions, for saving and formatting plots.
