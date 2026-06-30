@@ -1,9 +1,21 @@
+# Python cache
 __pycache__/
+
+# virtual environment (do not commit)
+.gal-env-stats/
+
+# Generated output and scratch directories
 forth-programs/
-docs/
 misc/
 output/
 plots/
-*.pdf
+
+# Extra documents
+docs/robust-outer-density-profile.pdf
+
+# Generated data dumps
 *.txt
-.*
+
+# OS and local tools
+.DS_Store
+.claude/settings.local.json
