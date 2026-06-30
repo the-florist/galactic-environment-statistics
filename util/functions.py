@@ -112,8 +112,8 @@ def dS(m, power_law_approx = pms.power_law_approx, gamma:float = pms.default_gam
         dS = - pms.s_8 * gamma * pow(m / pms.m_8, - gamma - 1) / pms.m_8
         return dS
     else:
-        print("Numerical derivative of S(m) not yet implemented.")
-        exit()
+        raise NotImplementedError(
+            "Numerical derivative of S(m) is not yet implemented.")
 
 """
     Functions used to convert delta tilde and rho into each other.

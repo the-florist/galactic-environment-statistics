@@ -72,17 +72,15 @@ class NewtonsMethod:
 
             # Confirm x1 != 0, before plugging into target fn
             if np.any(x1 == 0):
-                print(x1)
-                print("NewtonsMethod:run, invalid x1 encountered.")
-                exit()
+                raise ValueError(
+                    f"NewtonsMethod.run: invalid x1 (zero) encountered: {x1}")
 
             # Calculate and check the derivative
             d = self.deriv(x0, x1, dx)
             if np.any(d == 0) or np.isnan(d).any():
-                print(d)
-                print("NewtonsMethod:run, derivative has returned 0 or nan "+ 
-                      f"at step {it}.")
-                exit()
+                raise RuntimeError(
+                    f"NewtonsMethod.run: derivative returned 0 or nan at "
+                    f"step {it}: {d}")
 
             # Calculate and the next step and apply floor/cieling
             temp = x1 - self.target_fn(x1) / d
@@ -107,9 +105,9 @@ class NewtonsMethod:
                     print("Convergence complete.")
                 break
             elif it == (self.max_iterations - 1):
-                print("Error! NewtonsMethod:run, failed to converge after "+
-                      f"{self.max_iterations} steps.")
-                exit()
+                raise RuntimeError(
+                    "NewtonsMethod.run: failed to converge after "
+                    f"{self.max_iterations} steps.")
             else:
                 it += 1
                 for i, m in np.ndenumerate(mask):
