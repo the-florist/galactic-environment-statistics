@@ -9,6 +9,7 @@
 import os
 import numpy as np
 import scipy.integrate as integrate
+from functools import lru_cache
 from typing import overload, Literal, Tuple, Union
 from scipy.optimize import minimize
 
@@ -122,9 +123,10 @@ def dS(m, power_law_approx = pms.power_law_approx, gamma:float = pms.default_gam
 def a_coll_integrand(x, c1, c2) -> float:
     return np.sqrt(x / (c1 * x**3 - c2 * x + 1))
 
+@lru_cache(maxsize=None)
 def a_coll() -> float:
     """
-        Calculate a_coll by minimizing the integral to a_coll and the integral 
+        Calculate a_coll by minimizing the integral to a_coll and the integral
         to a_pta
     """
     a_init = 1
@@ -145,9 +147,10 @@ def a_coll() -> float:
 
     return solution.x[0]
 
+@lru_cache(maxsize=None)
 def delta_c_0(a_i : float) -> float:
     """
-        Calculate the critical overdensity today using a_coll and the growth 
+        Calculate the critical overdensity today using a_coll and the growth
         factor.
     """
     a_c = a_coll()

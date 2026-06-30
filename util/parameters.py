@@ -40,11 +40,11 @@ lqr, uqr = 0.16, 0.84
 plot_dimension = 1
 slice_in_rho = True
 slice_in_beta = False
-plot_statistics = False
+plot_statistics = True
 
-plot_untransformed_PDF = False
+plot_untransformed_PDF = True
 plot_sis = False
-compare_pla = True
+compare_pla = False
 
 mode_error = False
 plot_rho_derivative = False
