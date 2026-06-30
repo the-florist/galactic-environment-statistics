@@ -79,7 +79,7 @@ def most_probable_rho(m, beta, gamma:float = pms.default_gamma, a:float = 1,
         B = - delta_c_0(a) * (2 / (func.S(m, gamma) - func.S(beta * m, gamma)) + 1 / func.S(beta * m, gamma))
         C = pow(delta_c_0(a), 2) / (func.S(m, gamma) - func.S(beta * m, gamma)) - 1
 
-        try:
+        if np.ndim(beta) == 2:
             roots = np.zeros_like(beta)
             for i in range(len(beta)):
                 for j in range(len(beta[0])):
@@ -87,8 +87,8 @@ def most_probable_rho(m, beta, gamma:float = pms.default_gamma, a:float = 1,
                     root = candidates[np.argmin(abs(candidates - us_mode_delta[i, j]))]
                     roots[i, j] = delta_tilde_to_rho(root)
             return roots
-        
-        except:
+
+        else:
             candidates = poly.polyroots([C, B, A])
             root = candidates[np.argmin(abs(candidates - us_mode_delta))]
             return func.delta_tilde_to_rho(root)
@@ -121,7 +121,7 @@ def most_probable_rho_transformed(m, beta, gamma, sf:float = 1):
     d = - eta * (1 + delta_c)
 
     # Solve the cubic
-    try:
+    if np.ndim(beta) == 2:
         candidates = np.zeros_like(beta)
         for i in range(len(beta)):
             for j in range(len(beta[0])):
@@ -130,8 +130,8 @@ def most_probable_rho_transformed(m, beta, gamma, sf:float = 1):
                     if r > 0:
                         candidates[i, j] = pow(r, -delta_c)
         return candidates
-    
-    except:
+
+    else:
         root = poly.polyroots([d, c, b, a])
         candidate = [pow(r, -delta_c) for r in root if r > 0]
         return candidate

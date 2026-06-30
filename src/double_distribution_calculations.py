@@ -72,20 +72,20 @@ class DoubleDistributionCalculations:
             and the standard deviation of the mode, sliced at m.
         """
 
-        try:
+        if np.ndim(self.PDF) == 3:
             self.n_mode = self.rvs[np.argmax(self.PDF, axis=1)]
-            # for this variance measure, multiply PDF with 
+            # for this variance measure, multiply PDF with
             # squared difference from the sample mode.
-            self.n_stdev = np.array([[(self.PDF[j,:,i] * pow(self.rvs 
-                                                - self.n_mode[j, i], 2)).sum() 
-                                                for i in range(len(self.n_mode[0]))] 
+            self.n_stdev = np.array([[(self.PDF[j,:,i] * pow(self.rvs
+                                                - self.n_mode[j, i], 2)).sum()
+                                                for i in range(len(self.n_mode[0]))]
                                                 for j in range(len(self.n_mode))])
             self.n_stdev /= (pms.num_rho - 1)
-        
-        except:
+
+        else:
             self.n_mode = self.rvs[np.argmax(self.PDF)]
-            self.n_stdev = np.array([(self.PDF[i] * pow(self.rvs 
-                                                - self.n_mode, 2)).sum() 
+            self.n_stdev = np.array([(self.PDF[i] * pow(self.rvs
+                                                - self.n_mode, 2)).sum()
                                                 for i in range(len(self.PDF))])
             self.n_stdev /= (pms.num_rho - 1)
 
