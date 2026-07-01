@@ -8,6 +8,7 @@
                  previously hard-coded in parameters.py.
 """
 
+import re
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -17,9 +18,31 @@ import yaml
 CONFIG_DIR = Path(__file__).resolve().parent.parent / "configs"
 
 
+class _ConfigLoader(yaml.SafeLoader):
+    """SafeLoader with a corrected float resolver (see below)."""
+
+
+# PyYAML's default float resolver requires a signed exponent, so scalars such as
+# "1.0e14" or "1e14" wrongly parse as strings. Register a resolver that also
+# accepts unsigned exponents, so scientific-notation masses load as floats.
+_ConfigLoader.add_implicit_resolver(
+    "tag:yaml.org,2002:float",
+    re.compile(
+        r"""^(?:[-+]?(?:[0-9][0-9_]*)\.[0-9_]*(?:[eE][-+]?[0-9]+)?
+             |[-+]?(?:[0-9][0-9_]*)(?:[eE][-+]?[0-9]+)
+             |\.[0-9_]+(?:[eE][-+]?[0-9]+)?
+             |[-+]?[0-9][0-9_]*(?::[0-5]?[0-9])+\.[0-9_]*
+             |[-+]?\.(?:inf|Inf|INF)
+             |\.(?:nan|NaN|NAN))$""",
+        re.X,
+    ),
+    list("-+0123456789."),
+)
+
+
 def _load_yaml(path):
     with open(path, "r") as f:
-        return yaml.safe_load(f)
+        return yaml.load(f, Loader=_ConfigLoader)
 
 
 def load_config(run_path=None, cosmology=None):
