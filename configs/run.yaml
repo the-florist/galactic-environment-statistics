@@ -1,0 +1,52 @@
+# Run settings for the galactic-environment-statistics programs.
+# The cosmology preset is loaded from configs/<cosmology>.yaml.
+
+# Which cosmology preset to load (concordance or eds)
+cosmology: concordance
+
+# Print progress information to the terminal
+verbose: false
+
+# Scale-factor range for the growth-factor integration
+scale_factor:
+  a_i: 0.01          # lower limit avoids a divide-by-zero in the integrand
+  a_f: 1
+  num_steps: 200
+
+# Growth-factor program (mode 1) flags
+growth_factor:
+  print_D_a: true
+  compare_case_1: true     # Einstein-de Sitter check
+  compare_case_2: true     # flat-universe check
+
+# Density-profile program (mode 2) settings
+density_profile:
+  power_law_approx: true
+  default_gamma: 0.52
+  root_finder_precision: 1.0e-5
+
+# Double-distribution program (mode 3) settings
+double_distribution:
+  enforce_positive_pdf: true
+  transform_pdf: true
+  normalise_pdf: true
+  beta:  {min: 1.25,   max: 2.25,   num: 15, heuristic: 2}
+  rho:   {min: 0.001,  max: 10,     num: 100}
+  mass:  {min: 1.0e14, max: 1.0e15, num: 3}
+  gamma: {min: 0.4,    max: 0.6,    num: 3}
+  quantiles: {lqr: 0.16, uqr: 0.84}
+  plot:
+    plot_dimension: 1
+    slice_in_rho: true
+    slice_in_beta: false
+    plot_statistics: true
+    plot_untransformed_PDF: true
+    plot_sis: false
+    compare_pla: false
+    mode_error: false
+    plot_rho_derivative: false
+
+# Shared constants (independent of the cosmology preset)
+h: 0.71              # dimensionless Hubble parameter H0 / 100
+n: 1                 # primordial spectral index
+M_200: 8.0e13        # virial mass scale [solar masses]

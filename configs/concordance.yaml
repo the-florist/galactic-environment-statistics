@@ -1,0 +1,8 @@
+# Concordance LambdaCDM cosmology.
+# Values follow Pavlidou & Fields, PRD 71 043510 (2005), p. 7.
+Omega_m: 0.27
+# Omega_L is intentionally omitted: config.py computes it as 1 - Omega_m
+# (flat universe), reproducing the original code bit-for-bit.
+s_8: 0.84          # density-field variance normalisation at the 8 Mpc/h scale
+m_8: 2.0e14        # mass scale associated with s_8 [solar masses]
+delta_c: 1.6757    # collapse overdensity
