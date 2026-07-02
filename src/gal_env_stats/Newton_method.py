@@ -2,8 +2,8 @@
 
 """
 import numpy as np
-import util.parameters as pms
-import util.double_distribution_functions as ddfunc
+import gal_env_stats.parameters as pms
+import gal_env_stats.double_distribution_functions as ddfunc
 
 class NewtonsMethod:
     # Rho domain parameters

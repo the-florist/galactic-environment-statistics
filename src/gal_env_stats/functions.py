@@ -14,7 +14,7 @@ from typing import overload, Literal, Tuple, Union
 from scipy.optimize import minimize
 
 # parameters
-import util.parameters as pms
+import gal_env_stats.parameters as pms
 
 """
     General purpose functions

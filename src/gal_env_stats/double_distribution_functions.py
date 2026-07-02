@@ -9,9 +9,9 @@ import numpy as np
 import numpy.polynomial.polynomial as poly
 from scipy.special import erf
 
-import util.parameters as pms
-import util.functions as func
-from util.functions import delta_c_0, delta_tilde_to_rho
+import gal_env_stats.parameters as pms
+import gal_env_stats.functions as func
+from gal_env_stats.functions import delta_c_0, delta_tilde_to_rho
 
 """
     Functions related to the double distribution (PDF).

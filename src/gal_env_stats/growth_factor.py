@@ -14,8 +14,8 @@ import numpy as np
 from typing import List, cast
 
 # custom files
-import util.parameters as pms
-import util.functions as func
+import gal_env_stats.parameters as pms
+import gal_env_stats.functions as func
 
 def run():
     """

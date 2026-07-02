@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gal-env-stats"
+version = "0.1.0"
+description = "Calculate and visualise the double distribution and the most probable galactic outer density profile for a given cosmology."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "GPL-2.0-only" }
+authors = [{ name = "Ericka Florio", email = "eaf49@cam.ac.uk" }]
+dependencies = [
+    "matplotlib",
+    "numpy",
+    "pyyaml",
+    "scipy",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

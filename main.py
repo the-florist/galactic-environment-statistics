@@ -1,6 +1,6 @@
 """
-    Read the program mode from the command line, and execute the corresponding 
-    module from src/
+    Read the program mode from the command line, and execute the corresponding
+    module from the gal_env_stats package.
 """
 
 import sys
@@ -10,17 +10,17 @@ if __name__ == '__main__':
     match mode:
         case "1":
             print("Visualising growth factor.")
-            import src.growth_factor as grw
+            import gal_env_stats.growth_factor as grw
             grw.run()
 
         case "2":
             print("Visualising density profile.")
-            import src.density_profile as dpr 
+            import gal_env_stats.density_profile as dpr 
             dpr.run()
 
         case "3":
             print("Visualising double distribution.")
-            from src.double_distribution import DoubleDistribution
+            from gal_env_stats.double_distribution import DoubleDistribution
             dd = DoubleDistribution()
             dd.run()
             

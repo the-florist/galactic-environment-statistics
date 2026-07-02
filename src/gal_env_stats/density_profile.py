@@ -11,8 +11,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.integrate as integrate
 
-import util.parameters as pms 
-import util.functions as func
+import gal_env_stats.parameters as pms 
+import gal_env_stats.functions as func
 
 # Problem-specific quantities
 gamma = [0.55, 0.525, 0.50]     # taken as mean of figure given in Pavlidou 2024

@@ -9,10 +9,10 @@
 """
 
 import numpy as np
-import util.parameters as pms
-import util.functions as func
-import util.double_distribution_functions as ddfunc
-from util.Newton_method import NewtonsMethod
+import gal_env_stats.parameters as pms
+import gal_env_stats.functions as func
+import gal_env_stats.double_distribution_functions as ddfunc
+from gal_env_stats.Newton_method import NewtonsMethod
 
 class DoubleDistributionCalculations:
     def __init__(self):

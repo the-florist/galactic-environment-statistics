@@ -9,9 +9,9 @@
                  double_distribution_plotting.py.
 """
 
-import util.parameters as pms
-from src.double_distribution_calculations import DoubleDistributionCalculations
-from src.double_distribution_plotting import DoubleDistributionPlots
+import gal_env_stats.parameters as pms
+from gal_env_stats.double_distribution_calculations import DoubleDistributionCalculations
+from gal_env_stats.double_distribution_plotting import DoubleDistributionPlots
 
 class DoubleDistribution():
     def __init__(self):

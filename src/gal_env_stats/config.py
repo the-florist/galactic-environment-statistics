@@ -14,8 +14,9 @@ from types import SimpleNamespace
 
 import yaml
 
-# configs/ lives at the repository root, one level above this util/ package.
-CONFIG_DIR = Path(__file__).resolve().parent.parent / "configs"
+# configs/ lives at the repository root, two levels above this package file
+# (src/gal_env_stats/config.py -> src/ -> repo root).
+CONFIG_DIR = Path(__file__).resolve().parents[2] / "configs"
 
 
 class _ConfigLoader(yaml.SafeLoader):

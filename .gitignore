@@ -12,6 +12,7 @@ plots/
 
 # Extra documents
 docs/robust-outer-density-profile.pdf
+src/gal_env_stats.egg-info
 
 # Generated data dumps
 *.txt
