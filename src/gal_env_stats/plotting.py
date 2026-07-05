@@ -14,11 +14,17 @@ def make_directory(output_dir):
         os.makedirs(output_dir)
 
 
-def save_figure(path, fig=None):
+# All generated figures are written under this directory, relative to the
+# current working directory.
+OUTPUT_DIR = "output/plots"
+
+
+def save_figure(name, fig=None):
     """
-        Ensure the target directory exists, then save and close the figure.
-        If fig is None the current pyplot figure is used.
+        Save a figure (by file name) into OUTPUT_DIR, creating the directory if
+        needed, then close it. If fig is None the current pyplot figure is used.
     """
+    path = os.path.join(OUTPUT_DIR, name)
     make_directory(os.path.dirname(path) or ".")
     if fig is None:
         plt.savefig(path)

@@ -105,4 +105,4 @@ def run():
     plt.title(r"Mock density profile (today, LambdaCDM)")
     plt.legend()
     plt.grid(True)
-    plotting.save_figure("plots/density-profile.pdf")
+    plotting.save_figure("density-profile.pdf")

@@ -25,7 +25,7 @@ def _run(args, tmp_path):
 def test_subcommand_runs_and_produces_a_plot(command, tmp_path):
     result = _run([command], tmp_path)
     assert result.returncode == 0, result.stderr
-    plots = list((tmp_path / "plots").glob("*.pdf"))
+    plots = list((tmp_path / "output" / "plots").glob("*.pdf"))
     assert plots, f"{command!r} produced no plot files"
 
 
@@ -33,4 +33,4 @@ def test_subcommand_runs_and_produces_a_plot(command, tmp_path):
 def test_cosmology_override(cosmology, tmp_path):
     result = _run(["--cosmology", cosmology, "growth-factor"], tmp_path)
     assert result.returncode == 0, result.stderr
-    assert (tmp_path / "plots").glob("*.pdf")
+    assert list((tmp_path / "output" / "plots").glob("*.pdf"))

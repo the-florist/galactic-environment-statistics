@@ -143,7 +143,7 @@ class DoubleDistributionPlots:
         self.format_plot("Abs diff between cubic and universal-scaling modes",
                         r"$m$",
                         r"($\hat{\rho}_{us} - \hat{\rho}_{full})/\hat{\rho}_{us}$")
-        self.save_plot("plots/mode-diffs.pdf")
+        self.save_plot("mode-diffs.pdf")
 
     def plot_rho_derivative(self):
         # Plot rho_derivative using rho_vals
@@ -152,7 +152,7 @@ class DoubleDistributionPlots:
         plt.yscale('log')
         self.format_plot(r"rho derivative: $\bar{\rho}^{-1/\tilde{\delta}_{c}-1}$",
                         r"$\bar{\rho}$", r"$d \tilde{\delta}_l / d \bar{\rho}$")
-        self.save_plot("plots/rho-derivative.pdf")
+        self.save_plot("rho-derivative.pdf")
     
     def plot_heatmap(self, fname):
         if pms.verbose:

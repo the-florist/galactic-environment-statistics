@@ -29,7 +29,7 @@ class DoubleDistribution():
             Calculate and plot the normalised joint PDF.
         """
         self.ddc.calc_PDF(True, pms.default_gamma)
-        self.ddp.plot_heatmap("plots/joint-pdf.pdf")
+        self.ddp.plot_heatmap("joint-pdf.pdf")
 
     def pdf_slice_in_rho(self):
         """
@@ -89,7 +89,7 @@ class DoubleDistribution():
         
         # Finish plot of PDF slices
         self.ddp.format_plot(r"PDF slices along mass", r"$\tilde{\rho}$", r"$P_n$")
-        self.ddp.save_plot("plots/joint-pdf-slice.pdf")
+        self.ddp.save_plot("joint-pdf-slice.pdf")
 
     def pdf_slice_in_beta(self):
         """
@@ -113,7 +113,7 @@ class DoubleDistribution():
         # Format and save the plot
         self.ddp.format_plot(r"Most probale profile vs. $\beta$", 
                         r"$\beta$", r"$\hat{\rho}$")
-        self.ddp.save_plot("plots/mpp-scaling.pdf")
+        self.ddp.save_plot("mpp-scaling.pdf")
 
     def mode_error(self):
         # Find the closest beta to our heuristic value
