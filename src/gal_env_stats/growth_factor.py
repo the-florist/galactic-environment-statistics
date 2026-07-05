@@ -15,7 +15,7 @@ from typing import List, cast
 
 # custom files
 import gal_env_stats.parameters as pms
-import gal_env_stats.functions as func
+import gal_env_stats.physics.growth as growth
 
 def run():
     """
@@ -23,12 +23,12 @@ def run():
     """
 
     # Compute D(a) for a single value
-    D_i, err = func.D(pms.a_f, return_full = True)
+    D_i, err = growth.D(pms.a_f, return_full = True)
     print("D(a) = "+str(D_i))
     print("D(a) error: "+str(err))
 
     a_vals = np.linspace(pms.a_i, pms.a_f, pms.num_steps)
-    D_vals: List[float] = [cast(float, func.D(a, return_full=False)) 
+    D_vals: List[float] = [cast(float, growth.D(a, return_full=False)) 
                           for a in a_vals]
 
     # Plot D(a)
@@ -44,7 +44,7 @@ def run():
 
     # Check the matter-only case works
     if(pms.compare_case_1 == True):
-        matter_model: List[float] = [cast(float, func.D(a, return_full=False, 
+        matter_model: List[float] = [cast(float, growth.D(a, return_full=False, 
                                                          Om=1, Ol=0)) 
                                       for a in a_vals]
         slope_est = (matter_model[-1] - matter_model[0])/(pms.a_f - pms.a_i)
@@ -67,13 +67,13 @@ def run():
             print(Omega_m, Omega_L, Omega_m + Omega_L)
             raise Exception("For test 2, Omega_m and Omega_L must sum to 1")
 
-        even_evaluation: List[float] = [cast(float, func.D(a, return_full=False, 
+        even_evaluation: List[float] = [cast(float, growth.D(a, return_full=False, 
                                                            Om=Omega_m, Ol=Omega_L)) 
                                          for a in a_vals]
-        even_model = [func.A(func.x_of_a(a)) for a in a_vals]
+        even_model = [growth.A(growth.x_of_a(a)) for a in a_vals]
 
         rescale = pow(Omega_L, -3/2) * pow(2 * pms.w, 2/3) * np.sqrt(Omega_L) 
-        even_model_rescaled = [(func.A(func.x_of_a(a)) * rescale) for a in a_vals]
+        even_model_rescaled = [(growth.A(growth.x_of_a(a)) * rescale) for a in a_vals]
 
         plt.plot(a_vals, even_evaluation, label="D(a)")
         plt.plot(a_vals, even_model, label="A(x)", linestyle='--')

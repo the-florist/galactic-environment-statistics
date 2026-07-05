@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import scipy.integrate as integrate
 
 import gal_env_stats.parameters as pms 
-import gal_env_stats.functions as func
+import gal_env_stats.physics.variance as variance
 
 # Problem-specific quantities
 gamma = [0.55, 0.525, 0.50]     # taken as mean of figure given in Pavlidou 2024
@@ -46,12 +46,12 @@ def rho(beta, delta_c, gamma:float = pms.default_gamma, a = 1, m:float = pms.M_2
                 / (pms.Omega_m * pms.rho_c))
 
     else:
-        C = pms.s_8 / (integrate.quad(lambda k: func.transfer_function_integrand(k), 
-                                        0, func.k_of_m(pms.m_8)))[0]
-        temp = delta_c * pow(1 - func.S(beta * m)/func.S(m), -1) * func.k_of_m(beta * m) 
-        temp *= func.transfer_function_integrand(func.k_of_m(m)) / 3 / func.S(m)
+        C = pms.s_8 / (integrate.quad(lambda k: variance.transfer_function_integrand(k), 
+                                        0, variance.k_of_m(pms.m_8)))[0]
+        temp = delta_c * pow(1 - variance.S(beta * m)/variance.S(m), -1) * variance.k_of_m(beta * m) 
+        temp *= variance.transfer_function_integrand(variance.k_of_m(m)) / 3 / variance.S(m)
         denominator = 1 - temp * C
-        return rho_avg(func.S(beta * m), func.S(m), delta_c) / denominator
+        return rho_avg(variance.S(beta * m), variance.S(m), delta_c) / denominator
 
 def r(beta, delta_c, delta_ta, gamma:float = pms.default_gamma, m:float = pms.M_200):
     """
@@ -63,7 +63,7 @@ def r(beta, delta_c, delta_ta, gamma:float = pms.default_gamma, m:float = pms.M_
             return pow(w * beta * pow(1 - pow(beta, -gamma), delta_c), 1/3)
 
     else:
-        temp = beta * pow(1 - func.S(beta * m)/func.S(m), delta_c) * (1 + delta_ta) / pms.beta_ta # FIXME
+        temp = beta * pow(1 - variance.S(beta * m)/variance.S(m), delta_c) * (1 + delta_ta) / pms.beta_ta # FIXME
         return pow(temp, 1/3)
 
 

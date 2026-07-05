@@ -10,8 +10,8 @@ import numpy.polynomial.polynomial as poly
 from scipy.special import erf
 
 import gal_env_stats.parameters as pms
-import gal_env_stats.functions as func
-from gal_env_stats.functions import delta_c_0, delta_tilde_to_rho
+from gal_env_stats.physics import growth, variance, collapse
+from gal_env_stats.physics.collapse import delta_c_0, delta_tilde_to_rho
 
 """
     Functions related to the double distribution (PDF).
@@ -28,25 +28,25 @@ def dn(rho, m, beta,
     """
 
     # Set some useful constants
-    delta_c = delta_c_0(a) * func.D(a) / func.D(1)
+    delta_c = delta_c_0(a) * growth.D(a) / growth.D(1)
     rho_m = pms.Omega_m * pms.rho_c 
 
     # Transform rho into \tilde{\delta}_l
-    delta_tilde = func.rho_to_delta_tilde(rho)
+    delta_tilde = collapse.rho_to_delta_tilde(rho)
 
     # Calculate the component distributions
     mass_removal = (delta_c_0(a) - delta_tilde) 
     mass_removal *= np.exp(-(delta_c_0(a) - delta_tilde)**2 
-                          / (2 *(func.S(m, g, pla=pla) 
-                               - func.S(beta * m, g, pla=pla)))) 
+                          / (2 *(variance.S(m, g, pla=pla) 
+                               - variance.S(beta * m, g, pla=pla)))) 
 
-    mass_removal /= pow(func.S(m, g, pla=pla) - func.S(beta*m, g, pla=pla), 3/2)
+    mass_removal /= pow(variance.S(m, g, pla=pla) - variance.S(beta*m, g, pla=pla), 3/2)
 
-    random_walk = np.exp(-(delta_tilde ** 2) / (2 * func.S(beta * m, g, pla=pla)))
+    random_walk = np.exp(-(delta_tilde ** 2) / (2 * variance.S(beta * m, g, pla=pla)))
     if sis:
         random_walk -= np.exp(-pow(delta_tilde - 2 * delta_c_0(a), 2) / 
-                        (2 * func.S(beta * m, g, pla=pla)))
-    random_walk *= (rho_m / m) / (2 * np.pi * np.sqrt(func.S(beta*m, g, pla=pla)))
+                        (2 * variance.S(beta * m, g, pla=pla)))
+    random_walk *= (rho_m / m) / (2 * np.pi * np.sqrt(variance.S(beta*m, g, pla=pla)))
 
     # Construct the raw PDF
     dn = random_walk * mass_removal # * func.dS(m)
@@ -67,17 +67,17 @@ def most_probable_rho(m, beta, gamma:float = pms.default_gamma, a:float = 1,
         either with or without mass dependence.
     """
 
-    delta_c = delta_c_0(a) * func.D(a) / func.D(1)
+    delta_c = delta_c_0(a) * growth.D(a) / growth.D(1)
     # From Eqn. 2 of arXiv:2404.11183v2 
     us_mode_rho = pow(1 - pow(beta, -gamma), -delta_c + 1)
     # From Eqn. 3 of arXiv:2402.18634v2
-    us_mode_delta = delta_c_0(a) * func.S(beta * m, gamma) / func.S(m, gamma)
+    us_mode_delta = delta_c_0(a) * variance.S(beta * m, gamma) / variance.S(m, gamma)
     
     if inc_mass_scaling:
         # Solve the quadratic, which keeps the dependence of the mode on mass.
-        A = 1 / (func.S(m, gamma) - func.S(beta * m, gamma)) + 1 / (func.S(beta * m, gamma))
-        B = - delta_c_0(a) * (2 / (func.S(m, gamma) - func.S(beta * m, gamma)) + 1 / func.S(beta * m, gamma))
-        C = pow(delta_c_0(a), 2) / (func.S(m, gamma) - func.S(beta * m, gamma)) - 1
+        A = 1 / (variance.S(m, gamma) - variance.S(beta * m, gamma)) + 1 / (variance.S(beta * m, gamma))
+        B = - delta_c_0(a) * (2 / (variance.S(m, gamma) - variance.S(beta * m, gamma)) + 1 / variance.S(beta * m, gamma))
+        C = pow(delta_c_0(a), 2) / (variance.S(m, gamma) - variance.S(beta * m, gamma)) - 1
 
         if np.ndim(beta) == 2:
             roots = np.zeros_like(beta)
@@ -91,7 +91,7 @@ def most_probable_rho(m, beta, gamma:float = pms.default_gamma, a:float = 1,
         else:
             candidates = poly.polyroots([C, B, A])
             root = candidates[np.argmin(abs(candidates - us_mode_delta))]
-            return func.delta_tilde_to_rho(root)
+            return collapse.delta_tilde_to_rho(root)
 
     else:
         # Return the universal profile, which does not depend on mass.
@@ -104,11 +104,11 @@ def most_probable_rho_transformed(m, beta, gamma, sf:float = 1):
     """
 
     # Set up first layer of constants
-    delta_c = delta_c_0(sf) * func.D(sf) / func.D(1)
+    delta_c = delta_c_0(sf) * growth.D(sf) / growth.D(1)
     eta = delta_c_0(sf) - delta_c
-    A = func.S(m, gamma) / (2 * func.S(beta * m, gamma) *(func.S(m, gamma) 
-                                - func.S(beta * m, gamma)))
-    B = delta_c_0(sf) / 2 / (func.S(m, gamma) - func.S(beta * m, gamma))
+    A = variance.S(m, gamma) / (2 * variance.S(beta * m, gamma) *(variance.S(m, gamma) 
+                                - variance.S(beta * m, gamma)))
+    B = delta_c_0(sf) / 2 / (variance.S(m, gamma) - variance.S(beta * m, gamma))
 
     # Set up second layer of constants
     Ap = A * pow(delta_c, 2)
@@ -146,15 +146,15 @@ def CDF(rho, m, beta, gamma:float = pms.default_gamma, a:float = 1):
     """
 
     # Convert rho -> delta_tilde and set constants.
-    delta_tilde = func.rho_to_delta_tilde(rho)
+    delta_tilde = collapse.rho_to_delta_tilde(rho)
     rho_m = pms.Omega_m * pms.rho_c 
 
-    N = (rho_m / m) * 1. / (2 * np.pi * np.sqrt(func.S(beta * m, gamma)) 
-        * pow(func.S(m, gamma) - func.S(beta * m, gamma), 3/2))
+    N = (rho_m / m) * 1. / (2 * np.pi * np.sqrt(variance.S(beta * m, gamma)) 
+        * pow(variance.S(m, gamma) - variance.S(beta * m, gamma), 3/2))
 
-    A = func.S(m, gamma) / (2 * func.S(beta * m, gamma) *(func.S(m, gamma) - func.S(beta * m, gamma)))
-    B = delta_c_0(a) / (2 * (func.S(m, gamma) - func.S(beta * m, gamma)))
-    C = (delta_c_0(a) ** 2) / (2 * (func.S(m, gamma) - func.S(beta * m, gamma)))
+    A = variance.S(m, gamma) / (2 * variance.S(beta * m, gamma) *(variance.S(m, gamma) - variance.S(beta * m, gamma)))
+    B = delta_c_0(a) / (2 * (variance.S(m, gamma) - variance.S(beta * m, gamma)))
+    C = (delta_c_0(a) ** 2) / (2 * (variance.S(m, gamma) - variance.S(beta * m, gamma)))
 
     # Calculate the CDF in layers.
     cdf_temp = np.sqrt(np.pi / A) * (delta_c_0(a) - B / A) / 2. # 0.5 * np.sqrt(np.pi / A) * (delta_c_0(a) - B / (2 * A))

@@ -10,7 +10,7 @@
 
 import numpy as np
 import gal_env_stats.parameters as pms
-import gal_env_stats.functions as func
+import gal_env_stats.physics.growth as growth
 import gal_env_stats.double_distribution_functions as ddfunc
 from gal_env_stats.Newton_method import NewtonsMethod
 
@@ -133,7 +133,7 @@ class DoubleDistributionCalculations:
 
 
     def rho_derivative(self, rho):
-            delta_c = ddfunc.delta_c_0(1) * func.D(1) / func.D(1)
+            delta_c = ddfunc.delta_c_0(1) * growth.D(1) / growth.D(1)
             return pow(rho, (-1 - 1/delta_c))
 
     
