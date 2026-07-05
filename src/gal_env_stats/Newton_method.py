@@ -3,7 +3,7 @@
 """
 import numpy as np
 import gal_env_stats.parameters as pms
-import gal_env_stats.double_distribution_functions as ddfunc
+import gal_env_stats.physics.distribution as dist
 
 class NewtonsMethod:
     # Rho domain parameters
@@ -40,7 +40,7 @@ class NewtonsMethod:
             Calculate the difference between the CDF and the zscore 
             at a value of rho.
         """
-        return (ddfunc.conditional_CDF(rho, self.ms, self.bs, 
+        return (dist.conditional_CDF(rho, self.ms, self.bs, 
                                          self.gamma, pms.a_f) - self.zscore)
 
     def deriv(self, rho_0, rho_1, step):

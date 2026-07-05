@@ -15,7 +15,7 @@ from matplotlib.gridspec import GridSpec
 from gal_env_stats.double_distribution_calculations import DoubleDistributionCalculations as DDC
 import gal_env_stats.parameters as pms
 import gal_env_stats.functions as func
-import gal_env_stats.double_distribution_functions as ddfunc
+import gal_env_stats.physics.distribution as dist
 
 class DoubleDistributionPlots:
     m_norm = 1e14
@@ -92,7 +92,7 @@ class DoubleDistributionPlots:
             self.plot_colors.append(color)
     
     def plot_point(self, rho, mi, transf, shape, color):
-        plt.plot(rho, ddfunc.dn(rho, self.ddc.mvs[mi], self.ddc.bvs[self.b], 
+        plt.plot(rho, dist.dn(rho, self.ddc.mvs[mi], self.ddc.bvs[self.b], 
                 transform=transf) / self.ddc.norm[self.b,:,mi], 
                 shape, color=color)
 

@@ -1,9 +1,9 @@
 """
-    Filename: double_distribution_functions.py
+    Filename: distribution.py
     Author: Ericka Florio
     Created: 21 Oct 2025
-    Description: Functions used solely by the double_distribution module, 
-    including the full probability density and its analytic statistic estimates.
+    Description: The double-distribution PDF (dn), its most-probable-rho modes,
+    and the analytic CDF. Used by the double_distribution analysis module.
 """
 import numpy as np
 import numpy.polynomial.polynomial as poly

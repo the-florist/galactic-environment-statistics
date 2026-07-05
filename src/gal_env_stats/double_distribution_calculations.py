@@ -11,7 +11,7 @@
 import numpy as np
 import gal_env_stats.parameters as pms
 import gal_env_stats.physics.growth as growth
-import gal_env_stats.double_distribution_functions as ddfunc
+import gal_env_stats.physics.distribution as dist
 from gal_env_stats.Newton_method import NewtonsMethod
 
 class DoubleDistributionCalculations:
@@ -31,7 +31,7 @@ class DoubleDistributionCalculations:
         if pms.verbose:
             print("Starting PDF calculation.")
 
-        self.PDF = ddfunc.dn(self.RHOS, self.MS, self.BTS, 
+        self.PDF = dist.dn(self.RHOS, self.MS, self.BTS, 
                              transform=transfm, sis=sis, 
                              pla=pla, g=g)
         
@@ -98,7 +98,7 @@ class DoubleDistributionCalculations:
     def a_stats(self, transfm, g = pms.default_gamma):
         
         if transfm:
-            self.a_mode = ddfunc.most_probable_rho_transformed(self.MS[:,0,:], 
+            self.a_mode = dist.most_probable_rho_transformed(self.MS[:,0,:], 
                                                         self.BTS[:,0,:], gamma=g)
             temp = []
             guesses = np.array([self.n_mode, self.n_mode - self.n_stdev, 
@@ -112,7 +112,7 @@ class DoubleDistributionCalculations:
             self.a_quantiles = np.stack(temp, axis=0)
         
         else:
-            self.a_mode = ddfunc.most_probable_rho(self.MS[:,0,:], self.BTS[:,0,:], 
+            self.a_mode = dist.most_probable_rho(self.MS[:,0,:], self.BTS[:,0,:], 
                                                    inc_mass_scaling=True)
 
     
@@ -121,8 +121,8 @@ class DoubleDistributionCalculations:
         a_median = self.a_quantiles[1, bi, mi]
         nm = NewtonsMethod(self.mvs, self.bvs, 0)
 
-        n_cdf = ddfunc.conditional_CDF(n_median, self.mvs[mi], self.bvs[bi])
-        a_cdf = ddfunc.conditional_CDF(a_median, self.mvs[mi], self.bvs[bi])
+        n_cdf = dist.conditional_CDF(n_median, self.mvs[mi], self.bvs[bi])
+        a_cdf = dist.conditional_CDF(a_median, self.mvs[mi], self.bvs[bi])
         
         print("Median estimates: ", n_median, a_median)
         print("Conditional CDF of each: ", n_cdf, a_cdf)
@@ -133,15 +133,15 @@ class DoubleDistributionCalculations:
 
 
     def rho_derivative(self, rho):
-            delta_c = ddfunc.delta_c_0(1) * growth.D(1) / growth.D(1)
+            delta_c = dist.delta_c_0(1) * growth.D(1) / growth.D(1)
             return pow(rho, (-1 - 1/delta_c))
 
     
     def calc_mode_error(self):
-        transf_mode = ddfunc.most_probable_rho_transformed(self.MS[:,0,:], 
+        transf_mode = dist.most_probable_rho_transformed(self.MS[:,0,:], 
                                         self.BTS[:,0,:], pms.default_gamma)
 
-        us_mode = ddfunc.most_probable_rho(self.MS[:,0,:], self.BTS[:,0,:], 
+        us_mode = dist.most_probable_rho(self.MS[:,0,:], self.BTS[:,0,:], 
                                                    inc_mass_scaling=True)
 
         num_mode = self.rvs[np.argmax(self.PDF, axis=1)]
