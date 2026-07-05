@@ -1,3 +1,1 @@
-"""Make the plot directory"""
-from gal_env_stats.functions import make_directory
-make_directory("plots")
+"""Analytic double distribution and most-probable galactic outer density profile."""

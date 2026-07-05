@@ -11,26 +11,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.integrate as integrate
 
-import gal_env_stats.parameters as pms 
+import gal_env_stats.parameters as pms
 import gal_env_stats.physics.variance as variance
-
-# Problem-specific quantities
-gamma = [0.55, 0.525, 0.50]     # taken as mean of figure given in Pavlidou 2024
-delta_ta = 11 * (pms.Omega_m)   # turnaround overdensity (provided by Vaso)
-
-# Integration range 
-# turnaround predicted around beta ~ 1.7
-# the model cannot work below beta = 1.2
-beta_0 = 1.3
-beta_f = 10
-num_betas = 300
-beta_range = np.linspace(beta_0, beta_f, num_betas)
-
-# Information to terminal
-print("Cosmological parameters:")
-print("Omega_m = "+str(pms.Omega_m))
-print("Omega_L = "+str(pms.Omega_L))
-print("delta_c = "+str(pms.delta_c))
+import gal_env_stats.plotting as plotting
 
 def rho_avg(Sbm, Sm, delta_c):
     return (pms.Omega_m * pms.rho_c) * pow(1 - Sbm/Sm, -delta_c)
@@ -71,6 +54,23 @@ def run():
     """
         Calculate and plot the density profile for given model of S(m)
     """
+    # Problem-specific quantities
+    gamma = [0.55, 0.525, 0.50]     # taken as mean of figure given in Pavlidou 2024
+    delta_ta = 11 * (pms.Omega_m)   # turnaround overdensity (provided by Vaso)
+
+    # Integration range (turnaround predicted around beta ~ 1.7;
+    # the model cannot work below beta ~ 1.2)
+    beta_0 = 1.3
+    beta_f = 10
+    num_betas = 300
+    beta_range = np.linspace(beta_0, beta_f, num_betas)
+
+    # Information to terminal
+    print("Cosmological parameters:")
+    print("Omega_m = "+str(pms.Omega_m))
+    print("Omega_L = "+str(pms.Omega_L))
+    print("delta_c = "+str(pms.delta_c))
+
     if pms.power_law_approx == True:
         print("Using power law approximation for S(m).\n gamma = "+str(gamma))
 
@@ -105,5 +105,4 @@ def run():
     plt.title(r"Mock density profile (today, LambdaCDM)")
     plt.legend()
     plt.grid(True)
-    plt.savefig("plots/density-profile.pdf")
-    plt.close()
+    plotting.save_figure("plots/density-profile.pdf")

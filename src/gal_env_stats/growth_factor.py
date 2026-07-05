@@ -16,6 +16,7 @@ from typing import List, cast
 # custom files
 import gal_env_stats.parameters as pms
 import gal_env_stats.physics.growth as growth
+import gal_env_stats.plotting as plotting
 
 def run():
     """
@@ -39,8 +40,7 @@ def run():
         plt.title("Growth Factor D(a) vs Scale Factor a")
         plt.legend()
         plt.grid(True)
-        plt.savefig("plots/D-plot.pdf")
-        plt.close()
+        plotting.save_figure("plots/D-plot.pdf")
 
     # Check the matter-only case works
     if(pms.compare_case_1 == True):
@@ -56,8 +56,7 @@ def run():
         plt.title("Growth Factor D(a) vs Scale Factor a")
         plt.legend()
         plt.grid(True)
-        plt.savefig("plots/D-case-1.pdf")
-        plt.close()
+        plotting.save_figure("plots/D-case-1.pdf")
 
     # Check the Matter + DM = 1 case works
     if(pms.compare_case_2 == True):
@@ -84,5 +83,4 @@ def run():
         plt.title("Example 2: Omega_m + Omega_L = 1")
         plt.legend()
         plt.grid(True)
-        plt.savefig("plots/D-case-2.pdf")
-        plt.close()
+        plotting.save_figure("plots/D-case-2.pdf")

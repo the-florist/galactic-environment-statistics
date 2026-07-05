@@ -14,7 +14,7 @@ from matplotlib.gridspec import GridSpec
 
 from gal_env_stats.double_distribution_calculations import DoubleDistributionCalculations as DDC
 import gal_env_stats.parameters as pms
-import gal_env_stats.functions as func
+import gal_env_stats.plotting as plotting
 import gal_env_stats.physics.distribution as dist
 
 class DoubleDistributionPlots:
@@ -38,9 +38,7 @@ class DoubleDistributionPlots:
         plt.legend()
     
     def save_plot(self, fname):
-        func.make_directory("plots")
-        self.fig.savefig(fname)
-        plt.close(self.fig)
+        plotting.save_figure(fname, self.fig)
 
     def plot_slice(self, x, y, args):
         line, = self.ax.plot(x, y, **args)
@@ -204,6 +202,4 @@ class DoubleDistributionPlots:
         plt.setp(ax_marg_dl.get_yticklabels(), visible=False)
 
         # Save the plot
-        func.make_directory("plots")
-        plt.savefig(fname)
-        plt.close()
+        plotting.save_figure(fname)
