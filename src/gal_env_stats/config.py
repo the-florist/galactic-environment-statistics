@@ -46,6 +46,13 @@ def _load_yaml(path):
         return yaml.load(f, Loader=_ConfigLoader)
 
 
+# Optional overrides set by the CLI before parameters.py is first imported, so
+# that --config / --cosmology take effect even though parameters.py calls
+# load_config() with no arguments at import time.
+run_path_override = None
+cosmology_override = None
+
+
 def load_config(run_path=None, cosmology=None):
     """
         Load the run settings and the selected cosmology preset, compute the
@@ -57,11 +64,12 @@ def load_config(run_path=None, cosmology=None):
                     'eds').
     """
 
+    run_path = run_path or run_path_override
     run_path = Path(run_path) if run_path else CONFIG_DIR / "run.yaml"
     run = _load_yaml(run_path)
 
     # Choose and load the cosmology preset.
-    cosmology = cosmology or run["cosmology"]
+    cosmology = cosmology or cosmology_override or run["cosmology"]
     cosmo = _load_yaml(CONFIG_DIR / f"{cosmology}.yaml")
 
     # Pull the nested run settings into the flat names used across the code.

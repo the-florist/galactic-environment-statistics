@@ -17,5 +17,8 @@ dependencies = [
     "scipy",
 ]
 
+[project.scripts]
+gal-env-stats = "gal_env_stats.cli:main"
+
 [tool.setuptools.packages.find]
 where = ["src"]
