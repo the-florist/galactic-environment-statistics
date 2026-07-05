@@ -1,5 +1,8 @@
 """
-
+    Filename: newton.py
+    Author: Ericka Florio
+    Description: Newton's-method root finder used to solve for the quantiles of
+                 the double-distribution conditional CDF.
 """
 import numpy as np
 import gal_env_stats.parameters as pms

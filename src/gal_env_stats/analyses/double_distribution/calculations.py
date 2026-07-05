@@ -1,5 +1,5 @@
 """
-    Filename: double_distribution_calculations.py
+    Filename: calculations.py
     Author: Ericka Florio
     Created: 21 Nov. 2025
     Description: Declaration of a class that 
@@ -12,7 +12,7 @@ import numpy as np
 import gal_env_stats.parameters as pms
 import gal_env_stats.physics.growth as growth
 import gal_env_stats.physics.distribution as dist
-from gal_env_stats.Newton_method import NewtonsMethod
+from gal_env_stats.analyses.double_distribution.newton import NewtonsMethod
 
 class DoubleDistributionCalculations:
     def __init__(self):

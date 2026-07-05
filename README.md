@@ -35,11 +35,15 @@ galactic-environment-statistics/
 │   ├── config.py                 # Loads the YAML configuration
 │   ├── parameters.py             # Exposes the loaded configuration to the code
 │   ├── plotting.py               # Shared plotting / output helpers
-│   ├── growth_factor.py          # Growth factor D(a) program
-│   ├── density_profile.py        # Most probable density profile program
-│   ├── double_distribution.py    # Double distribution program (+ _calculations, _plotting)
-│   ├── Newton_method.py          # Root finder for the analytic statistics
-│   └── physics/                  # Core maths: growth, variance, collapse, distribution
+│   ├── physics/                  # Core maths: growth, variance, collapse, distribution
+│   └── analyses/                 # The three user-facing programs
+│       ├── growth_factor.py      # Growth factor D(a) program
+│       ├── density_profile.py    # Most probable density profile program
+│       └── double_distribution/  # Double distribution program
+│           ├── analysis.py       #   orchestrator (class DoubleDistribution)
+│           ├── calculations.py   #   PDF grid and sample statistics
+│           ├── plotting.py       #   figures for the double distribution
+│           └── newton.py         #   root finder for the analytic statistics
 ├── tests/
 │   └── test_smoke.py             # End-to-end smoke tests
 ├── docs/

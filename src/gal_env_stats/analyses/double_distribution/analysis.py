@@ -1,17 +1,15 @@
 """
-    Filename: double_distribution.py
+    Filename: analysis.py
     Author: Ericka Florio
     Created: 11 Sept 2025
-    Description: Main class which controls the calculation of 
-                 the double distribution and the plotting of this 
-                 distribution, as described in 
-                 double_distribution_calculations.py and 
-                 double_distribution_plotting.py.
+    Description: Main class which controls the calculation of
+                 the double distribution and the plotting of this
+                 distribution, as described in calculations.py and plotting.py.
 """
 
 import gal_env_stats.parameters as pms
-from gal_env_stats.double_distribution_calculations import DoubleDistributionCalculations
-from gal_env_stats.double_distribution_plotting import DoubleDistributionPlots
+from gal_env_stats.analyses.double_distribution.calculations import DoubleDistributionCalculations
+from gal_env_stats.analyses.double_distribution.plotting import DoubleDistributionPlots
 
 class DoubleDistribution():
     def __init__(self):

@@ -45,17 +45,17 @@ def main(argv=None):
 
     if args.command == "growth-factor":
         print("Visualising growth factor.")
-        from gal_env_stats import growth_factor
+        from gal_env_stats.analyses import growth_factor
         growth_factor.run()
 
     elif args.command == "density-profile":
         print("Visualising density profile.")
-        from gal_env_stats import density_profile
+        from gal_env_stats.analyses import density_profile
         density_profile.run()
 
     elif args.command == "double-distribution":
         print("Visualising double distribution.")
-        from gal_env_stats.double_distribution import DoubleDistribution
+        from gal_env_stats.analyses.double_distribution import DoubleDistribution
         DoubleDistribution().run()
 
     print("Program ended.")

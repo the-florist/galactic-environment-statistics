@@ -1,8 +1,8 @@
 """
-    Filename: double_distribution_plotting.py
+    Filename: plotting.py
     Author: Ericka Florio
     Created: 11 Sept 2025
-    Description: Plotting routine for the joint double distribution for the 
+    Description: Plotting routine for the joint double distribution for the
             number density of objects 
             of mass m with local overdensity delta_l, 
             as derived in Pavlidou and Fields 2005.
@@ -12,7 +12,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 
-from gal_env_stats.double_distribution_calculations import DoubleDistributionCalculations as DDC
+from gal_env_stats.analyses.double_distribution.calculations import DoubleDistributionCalculations as DDC
 import gal_env_stats.parameters as pms
 import gal_env_stats.plotting as plotting
 import gal_env_stats.physics.distribution as dist
