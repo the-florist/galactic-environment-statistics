@@ -1,4 +1,4 @@
-# Beyond the Mean: Advancing the Analytic Outer Density Profile
+# Resolving the Mode: Calculations of the Galactic Outer Density Profile
 
 [![Documentation](https://img.shields.io/badge/Docs-PDF-blue)](docs/documentation.pdf)
 [![License: GPL v2](https://img.shields.io/badge/License-GPLv2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
@@ -8,8 +8,10 @@
 ## Overview
 
 This repository contains the code and analysis accompanying the paper  
-**"Beyond the Mean: Advancing the Analytic Outer Density Profile"**  
-by **Ericka Florio (DAMTP, University of Cambridge & FORTH, University of Crete)**.
+**"The Most Probable Outer Density Profile from Excursion Set
+Theory"**  
+by **Ericka Florio (DAMTP, University of Cambridge UK & FORTH, University of Crete GR)**
+and **Vasiliki Pavlidou (FORTH and the University of Crete, Heraklion GR)**.
 
 ### Abstract
 The mode of the double distribution describes the “most probable”
