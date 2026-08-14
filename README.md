@@ -103,11 +103,14 @@ changes are needed to alter the model:
 
 If you use this code or analysis in your research, please cite:
 ```bibtex
-@misc{florio2025beyond,
-  author    = {Ericka Florio},
-  title     = {Beyond the Mean: Advancing the Analytic Outer Density Profile},
-  year      = {2025},
-  url       = {https://github.com/the-florist/galactic-environment-statistics}
+@misc{florio2026probableouterdensityprofile,
+      title={The Most Probable Outer Density Profile from Excursion Set Theory}, 
+      author={Ericka Florio and Vasiliki Pavlidou},
+      year={2026},
+      eprint={2608.13347},
+      archivePrefix={arXiv},
+      primaryClass={astro-ph.CO},
+      url={https://arxiv.org/abs/2608.13347}, 
 }
 ```
 
